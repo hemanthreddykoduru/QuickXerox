@@ -10,12 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "expo": "^53.0.9",
+    "express": "^5.1.0",
+    "firebase": "^11.6.1",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.292.0",
+    "mysql2": "^3.14.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.18.0",
+    "twilio": "^5.5.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
@@ -33,6 +40,11 @@
     "postcss": "^8.4.31",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
-  }
+    "vite": "^4.5.14"
+  },
+  "main": "eslint.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

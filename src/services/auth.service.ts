@@ -21,7 +21,6 @@ export const generateOTP = (mobile: string): string => {
 
   // Simulate sending OTP (console log for testing)
   console.log('Generated OTP:', otp);
-  toast.success('Verification code sent (for testing): 123456');
 
   return otp;
 };

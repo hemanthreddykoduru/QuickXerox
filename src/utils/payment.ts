@@ -1,5 +1,6 @@
 import { PaymentMethod } from '../types';
 import { RAZORPAY_KEY } from '../config/constants';
+import { initializeRazorpayPayment } from '../utils/razorpay';
 
 interface RazorpayOptions {
   key: string;
@@ -84,3 +85,25 @@ export const createRazorpayOptions = (
     }
   }
 });
+
+const handlePayNow = () => {
+  const amount = 100; // Amount in INR
+  const method: PaymentMethod = 'upi'; // or 'qr', etc.
+
+  initializeRazorpayPayment(
+    amount,
+    method,
+    (response) => {
+      // Success handler
+      alert('Payment Successful! Payment ID: ' + response.razorpay_payment_id);
+      // You can also redirect or update UI here
+    },
+    (error) => {
+      // Error handler
+      alert('Payment Failed: ' + (error?.error?.description || 'Unknown error'));
+    }
+  );
+};
+
+// Added Pay Now button
+<button onClick={handlePayNow}>Pay Now</button>

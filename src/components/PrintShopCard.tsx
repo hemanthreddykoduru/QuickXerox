@@ -40,7 +40,7 @@ const PrintShopCard: React.FC<PrintShopCardProps> = ({ shop, isSelected, onSelec
 
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-gray-900">
-            ${shop.price.toFixed(2)}/page
+          ₹{shop.price.toFixed(2)}/page
           </span>
           <button 
             onClick={onSelect}

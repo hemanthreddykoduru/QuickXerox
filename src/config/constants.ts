@@ -1,4 +1,4 @@
-export const RAZORPAY_KEY = 'rzp_test_YOUR_KEY_HERE';
+export const RAZORPAY_KEY = 'rzp_test_1dvVhW0JrQ9oe1';
 
 export const PAYMENT_METHODS = [
   {

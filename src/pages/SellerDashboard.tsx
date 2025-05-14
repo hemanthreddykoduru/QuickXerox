@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, DollarSign, Bell, Settings, LogOut, Users } from 'lucide-react';
+import { Printer, DollarSign, Bell, Settings, LogOut, BarChart } from 'lucide-react';
+
 import OrderList from '../components/seller/OrderList';
 import OrderStats from '../components/seller/OrderStats';
 import { Order, OrderStatus } from '../types';
@@ -47,9 +48,10 @@ const SellerDashboard: React.FC = () => {
   });
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false); // NEW STATE
 
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(orders.map(order => 
+    setOrders(orders.map(order =>
       order.id === orderId ? { ...order, status: newStatus } : order
     ));
   };
@@ -60,7 +62,6 @@ const SellerDashboard: React.FC = () => {
   };
 
   const handleSettingsSave = () => {
-    // Save the seller details here (You can make API calls if necessary)
     alert('Seller details updated successfully!');
     setIsSettingsModalOpen(false);
   };
@@ -101,16 +102,19 @@ const SellerDashboard: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <button className="flex items-center justify-center space-x-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <Users className="h-6 w-6 text-blue-600" />
-            <span className="font-medium text-gray-900">Manage Staff</span>
+          <button
+            onClick={() => setIsBankModalOpen(true)}
+            className="flex items-center justify-center space-x-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+          >
+            <DollarSign className="h-6 w-6 text-green-600" />
+            <span className="font-medium text-gray-900">Bank Account</span>
           </button>
           <button className="flex items-center justify-center space-x-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
             <Settings className="h-6 w-6 text-blue-600" />
             <span className="font-medium text-gray-900">Today Orders</span>
           </button>
           <button className="flex items-center justify-center space-x-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <DollarSign className="h-6 w-6 text-blue-600" />
+            <BarChart className="h-6 w-6 text-blue-600" />
             <span className="font-medium text-gray-900">View Reports</span>
           </button>
         </div>
@@ -179,15 +183,43 @@ const SellerDashboard: React.FC = () => {
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2"
                 />
               </div>
+            </form>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSettingsSave}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bank Account Modal */}
+      {isBankModalOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+            <h2 className="text-xl font-bold mb-4">Bank Account Details</h2>
+            <form>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Bank Account</label>
+                <label className="block text-sm font-medium text-gray-700">Account Number</label>
                 <input
                   type="text"
                   value={sellerDetails.bankDetails.accountNumber}
                   onChange={(e) =>
                     setSellerDetails({
                       ...sellerDetails,
-                      bankDetails: { ...sellerDetails.bankDetails, accountNumber: e.target.value },
+                      bankDetails: {
+                        ...sellerDetails.bankDetails,
+                        accountNumber: e.target.value,
+                      },
                     })
                   }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2"
@@ -201,7 +233,10 @@ const SellerDashboard: React.FC = () => {
                   onChange={(e) =>
                     setSellerDetails({
                       ...sellerDetails,
-                      bankDetails: { ...sellerDetails.bankDetails, bankName: e.target.value },
+                      bankDetails: {
+                        ...sellerDetails.bankDetails,
+                        bankName: e.target.value,
+                      },
                     })
                   }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2"
@@ -215,7 +250,10 @@ const SellerDashboard: React.FC = () => {
                   onChange={(e) =>
                     setSellerDetails({
                       ...sellerDetails,
-                      bankDetails: { ...sellerDetails.bankDetails, ifscCode: e.target.value },
+                      bankDetails: {
+                        ...sellerDetails.bankDetails,
+                        ifscCode: e.target.value,
+                      },
                     })
                   }
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2"
@@ -224,14 +262,17 @@ const SellerDashboard: React.FC = () => {
             </form>
             <div className="flex justify-end space-x-4">
               <button
-                onClick={() => setIsSettingsModalOpen(false)}
+                onClick={() => setIsBankModalOpen(false)}
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSettingsSave}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                onClick={() => {
+                  alert('Bank details updated successfully!');
+                  setIsBankModalOpen(false);
+                }}
+                className="bg-green-600 text-white px-4 py-2 rounded-md"
               >
                 Save
               </button>

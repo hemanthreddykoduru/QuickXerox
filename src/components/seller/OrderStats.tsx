@@ -39,7 +39,7 @@ const OrderStats: React.FC<OrderStatsProps> = ({ orders }) => {
     },
     {
       title: "Today's Revenue",
-      value: `$${stats.totalRevenue.toFixed(2)}`,
+      value: `₹${stats.totalRevenue.toFixed(2)}`,
       icon: <DollarSign className="h-6 w-6 text-green-400" />,
       bgColor: 'bg-green-100',
     },
