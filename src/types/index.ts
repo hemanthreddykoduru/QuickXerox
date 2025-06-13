@@ -3,6 +3,12 @@ export interface UserProfile {
   mobile: string;
   email: string;
   address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  profileImage?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PrintJob {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Clock, CheckCircle,} from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, IndianRupee } from 'lucide-react';
 import { Order } from '../../types';
 
 interface OrderStatsProps {
@@ -40,7 +40,7 @@ const OrderStats: React.FC<OrderStatsProps> = ({ orders }) => {
     {
       title: "Today's Revenue",
       value: `₹${stats.totalRevenue.toFixed(2)}`,
-      icon: <DollarSign className="h-6 w-6 text-green-400" />,
+      icon: <IndianRupee className="h-6 w-6 text-green-400" />,
       bgColor: 'bg-green-100',
     },
   ];

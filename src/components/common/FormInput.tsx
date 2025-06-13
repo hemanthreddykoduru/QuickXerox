@@ -4,57 +4,64 @@ import { LucideIcon } from 'lucide-react';
 interface FormInputProps {
   label: string;
   type?: string;
+  name: string;
   value: string;
-  onChange: (value: string) => void;
-  icon: LucideIcon;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
+  error?: string;
+  disabled?: boolean;
+  maxLength?: number;
   placeholder?: string;
-  isTextArea?: boolean;
-  rows?: number;
+  icon?: LucideIcon;
 }
 
 const FormInput: React.FC<FormInputProps> = ({
   label,
   type = 'text',
+  name,
   value,
   onChange,
-  icon: Icon,
   required = false,
+  error,
+  disabled = false,
+  maxLength,
   placeholder,
-  isTextArea = false,
-  rows = 3,
+  icon: Icon
 }) => {
-  const inputClasses = "pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500";
-  
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="space-y-1">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
         {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      <div className="relative rounded-md shadow-sm">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className="h-5 w-5 text-gray-400" />
-        </div>
-        {isTextArea ? (
-          <textarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className={inputClasses}
-            required={required}
-            placeholder={placeholder}
-            rows={rows}
-          />
-        ) : (
-          <input
-            type={type}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className={inputClasses}
-            required={required}
-            placeholder={placeholder}
-          />
+      <div className="relative">
+        {Icon && (
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Icon className="h-5 w-5 text-gray-400" />
+          </div>
         )}
+        <input
+          type={type}
+          name={name}
+          id={name}
+          value={value}
+          onChange={onChange}
+          required={required}
+          disabled={disabled}
+          maxLength={maxLength}
+          placeholder={placeholder}
+          className={`
+            block w-full rounded-md shadow-sm
+            ${Icon ? 'pl-10' : 'pl-3'}
+            ${error ? 'border-red-300' : 'border-gray-300'}
+            ${disabled ? 'bg-gray-100' : 'bg-white'}
+            focus:ring-blue-500 focus:border-blue-500 sm:text-sm
+          `}
+        />
       </div>
+      {error && (
+        <p className="mt-1 text-sm text-red-600">{error}</p>
+      )}
     </div>
   );
 };

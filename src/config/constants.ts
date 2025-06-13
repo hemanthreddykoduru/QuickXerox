@@ -20,6 +20,7 @@ export const PAYMENT_METHODS = [
 export const OTP_CONFIG = {
   MOBILE_REGEX: /^[6-9]\d{9}$/, // Matches valid 10-digit Indian mobile numbers starting with 6-9
   OTP_LENGTH: 6,               // Length of OTP
-  OTP_EXPIRY: 300,             // OTP expiry in seconds
+  EXPIRY: 300,                 // OTP expiry in seconds
+  MAX_ATTEMPTS: 3              // Maximum number of OTP verification attempts
 };
 
