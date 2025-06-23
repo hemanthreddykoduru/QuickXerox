@@ -19,13 +19,15 @@ export interface PrintJob {
 }
 
 export interface PrintShop {
-  id: number;
+  id: string;
   name: string;
   rating: number;
   distance: string;
   price: number;
   eta: string;
   image: string;
+  isShopOpen: boolean;
+  perPageCostAdjustment: number;
 }
 
 export type OrderStatus = 'pending' | 'processing' | 'completed' | 'rejected';

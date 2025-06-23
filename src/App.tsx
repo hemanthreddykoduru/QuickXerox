@@ -8,17 +8,32 @@ import AccountPage from './pages/AccountPage';
 import SellerInvitation from './components/SellerInvitation';
 import SellerInvitationAccept from './pages/SellerInvitationAccept';
 import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminOrderList from './pages/AdminOrderList';
+import AdminSellerList from './pages/AdminSellerList';
+import AdminSellerDetails from './pages/AdminSellerDetails';
 
-const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' }) => {
+const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
   const location = useLocation();
-  const isAuthenticated =
-    type === 'seller'
-      ? localStorage.getItem('isSellerAuthenticated') === 'true'
-      : localStorage.getItem('isAuthenticated') === 'true';
+  let isAuthenticated = false;
+
+  if (type === 'seller') {
+    isAuthenticated = localStorage.getItem('isSellerAuthenticated') === 'true';
+  } else if (type === 'admin') {
+    isAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
+  } else {
+    isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  }
 
   if (!isAuthenticated) {
-    // Redirect to login page with the return url
-    return <Navigate to={type === 'seller' ? '/seller/login' : '/login'} state={{ from: location }} replace />;
+    // Redirect to login page based on type
+    let redirectTo = '/login';
+    if (type === 'seller') {
+      redirectTo = '/seller/login';
+    } else if (type === 'admin') {
+      redirectTo = '/admin/login';
+    }
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
@@ -48,7 +63,7 @@ function App() {
           }
         />
         <Route
-          path="/seller"
+          path="/seller/dashboard"
           element={
             <PrivateRoute type="seller">
               <SellerDashboard />
@@ -58,6 +73,38 @@ function App() {
         <Route path="/admin/invite-seller" element={<SellerInvitation />} />
         <Route path="/seller-invitation" element={<SellerInvitationAccept />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <PrivateRoute type="admin">
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/orders"
+          element={
+            <PrivateRoute type="admin">
+              <AdminOrderList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/sellers"
+          element={
+            <PrivateRoute type="admin">
+              <AdminSellerList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/sellers/:sellerId"
+          element={
+            <PrivateRoute type="admin">
+              <AdminSellerDetails />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

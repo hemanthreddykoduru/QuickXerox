@@ -59,9 +59,9 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, onConfirm }) =
         </div>
 
         {/* Preview Area */}
-        <div className="flex-1 overflow-auto p-4">
-          <div className="flex justify-center items-center h-full">
+        <div className="flex-1 overflow-auto p-4 flex justify-center items-center">
             <div
+            className="flex justify-center items-center w-full h-full"
               style={{
                 transform: `scale(${scale}) rotate(${rotation}deg)`,
                 transition: 'transform 0.2s ease-in-out',
@@ -76,11 +76,10 @@ const FilePreview: React.FC<FilePreviewProps> = ({ file, onClose, onConfirm }) =
               ) : (
                 <iframe
                   src={previewUrl}
-                  className="w-[800px] h-[600px]"
+                className="w-full h-full max-w-full max-h-[70vh]"
                   title="Document preview"
                 />
               )}
-            </div>
           </div>
         </div>
 

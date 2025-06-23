@@ -15,11 +15,21 @@ export interface PaymentDetails {
 
 export const createPayment = async (paymentDetails: PaymentDetails) => {
   try {
-    const callableCreateOrder = httpsCallable<PaymentDetails, { orderId: string; amount: number; currency: string; key_id: string }>(functions, 'createRazorpayOrder');
-    const result = await callableCreateOrder(paymentDetails);
-    return result.data;
+    const response = await fetch('https://us-central1-otp-project-aafc6.cloudfunctions.net/createRazorpayOrderHttp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(paymentDetails),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create Razorpay order');
+    }
+
+    return await response.json();
   } catch (error) {
-    console.error('Error creating payment (via Cloud Function):', error);
+    console.error('Error creating payment (via HTTP Cloud Function):', error);
     throw error;
   }
 };

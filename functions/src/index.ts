@@ -1,7 +1,9 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
 import Razorpay from 'razorpay';
+import cors from 'cors';
+
 
 admin.initializeApp();
 
@@ -19,6 +21,8 @@ const razorpay = new Razorpay({
   key_id: functions.config().razorpay.key_id,
   key_secret: functions.config().razorpay.key_secret,
 });
+
+const corsHandler = cors({ origin: true });
 
 export const sendSellerInvitation = functions.firestore
   .document('sellerInvitations/{invitationId}')
@@ -59,12 +63,12 @@ interface CreateOrderData {
   notes: { [key: string]: string };
 }
 
-export const createRazorpayOrder = functions.https.onCall(async (request: functions.https.CallableRequest<CreateOrderData>) => {
-  if (!request.auth) {
+export const createRazorpayOrder = functions.https.onCall(async (data: CreateOrderData, context: functions.https.CallableContext) => {
+  if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
   }
 
-  const { amount, currency, receipt, notes } = request.data;
+  const { amount, currency, receipt, notes } = data;
 
   try {
     const order = await razorpay.orders.create({
@@ -80,18 +84,40 @@ export const createRazorpayOrder = functions.https.onCall(async (request: functi
   }
 });
 
+// HTTP endpoint for Razorpay order creation with CORS
+export const createRazorpayOrderHttp = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).send('Method Not Allowed');
+    }
+    try {
+      const { amount, currency, receipt, notes } = req.body;
+      const order = await razorpay.orders.create({
+        amount: amount * 100, // Razorpay expects amount in paise
+        currency,
+        receipt,
+        notes,
+      });
+      res.status(200).send({ orderId: order.id, amount: order.amount, currency: order.currency, key_id: functions.config().razorpay.key_id });
+    } catch (error: any) {
+      console.error('Error creating Razorpay order:', error);
+      res.status(500).send({ error: 'Failed to create Razorpay order', details: error.message });
+    }
+  });
+});
+
 interface VerifyPaymentData {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
 }
 
-export const verifyRazorpayPayment = functions.https.onCall(async (request: functions.https.CallableRequest<VerifyPaymentData>) => {
-  if (!request.auth) {
+export const verifyRazorpayPayment = functions.https.onCall(async (data: VerifyPaymentData, context: functions.https.CallableContext) => {
+  if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
   }
 
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = request.data;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = data;
 
   try {
     const body = razorpay_order_id + '|' + razorpay_payment_id;

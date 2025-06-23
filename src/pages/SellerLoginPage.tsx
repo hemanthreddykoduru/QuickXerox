@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Printer, Mail, Lock, ArrowRight, Eye, EyeOff, Building2, Shield } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -58,8 +58,8 @@ const SellerLoginPage = () => {
           localStorage.removeItem('sellerRememberedEmail');
         }
 
-        toast.success('Login successful!');
-        navigate('/seller');
+        toast.success('🎉 Welcome back! Seller login successful!');
+        navigate('/seller/dashboard');
       } else {
         // Sign out if user is not a shop owner
         await auth.signOut();
@@ -80,28 +80,40 @@ const SellerLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full md:max-w-md">
-        <div className="flex justify-center">
-          <Printer className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
-        </div>
-        <h2 className="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">
-          QuickXerox Partner
-        </h2>
-        <p className="mt-1 sm:mt-2 text-center text-sm sm:text-base text-gray-600">
-          Sign in to your print shop dashboard
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col justify-center py-8 px-4 sm:px-6 lg:px-8">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full md:max-w-md">
-        <div className="bg-white py-6 px-4 shadow sm:rounded-lg sm:px-8">
+      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20 transform transition-all duration-300 hover:scale-[1.02]">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <Printer className="h-14 w-14 text-blue-600 animate-pulse-slow" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              QuickXerox Partner
+            </h2>
+            <p className="text-gray-600 text-lg">
+              Sign in to your print shop dashboard
+            </p>
+            <div className="flex items-center justify-center mt-4 space-x-2 text-sm text-gray-500">
+              <Building2 className="h-4 w-4" />
+              <span>Business Partner Portal</span>
+            </div>
+          </div>
+
+          {/* Form */}
           <form className="space-y-6" onSubmit={handleSubmit} autoComplete="on" method="post">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                 Email address
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -111,7 +123,7 @@ const SellerLoginPage = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-12 w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                   placeholder="shop@example.com"
                   disabled={isLoading}
                   autoComplete="username"
@@ -120,11 +132,11 @@ const SellerLoginPage = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
@@ -134,7 +146,7 @@ const SellerLoginPage = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="pl-12 w-full px-4 py-3 text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
                   placeholder="••••••••"
                   disabled={isLoading}
                   autoComplete="current-password"
@@ -142,7 +154,7 @@ const SellerLoginPage = () => {
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-200"
                   title={showPassword ? "Hide password" : "Show password"}
                   disabled={isLoading}
                 >
@@ -155,52 +167,70 @@ const SellerLoginPage = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                disabled={isLoading}
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                Remember me
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
+                  disabled={isLoading}
+                />
+                <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-700 font-medium">
+                  Remember me
+                </label>
+              </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <Shield className="h-4 w-4 mr-1" />
+                <span>Secure login</span>
+              </div>
             </div>
 
             <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center py-3 px-6 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5"
               >
-                <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                  <ArrowRight className="h-5 w-5 text-blue-500 group-hover:text-blue-400" />
-                </span>
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </>
+                )}
               </button>
             </div>
           </form>
 
-          <div className="mt-4 sm:mt-6">
+          {/* Divider */}
+          <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
+                <span className="px-4 bg-white/80 text-gray-500 font-medium">
                   Want to become a partner?
                 </span>
               </div>
             </div>
 
-            <div className="mt-4 sm:mt-6 text-center">
+            <div className="mt-6 text-center">
               <a
                 href="mailto:workwithquickxerox@gmail.com"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white/50 backdrop-blur-sm hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
               >
+                <Building2 className="h-4 w-4 mr-2" />
                 Contact our partnership team
               </a>
             </div>

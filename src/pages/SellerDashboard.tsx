@@ -63,7 +63,7 @@ const SellerDashboard: React.FC = () => {
     name: 'QuickPrint Pro',
     address: 'Gitam University, State',
     mobile: '9876543210',
-    email: 'quickprint@example.com',
+    email: '',
     bankDetails: {
       accountNumber: '123456789012',
       bankName: 'State Bank of India',
@@ -91,11 +91,14 @@ const SellerDashboard: React.FC = () => {
   const [settings, setSettings] = useState({
     shop: {
       name: 'QuickPrint Pro',
+      ownerName: '',
       address: 'Gitam University, State',
       mobile: '9876543210',
-      email: 'quickprint@example.com',
+      email: '',
       description: '',
       gstNumber: '',
+      timezone: 'Asia/Kolkata',
+      perPageCostAdjustment: 0.00,
     },
     notifications: {
       newOrders: true,
@@ -123,25 +126,21 @@ const SellerDashboard: React.FC = () => {
       minOrderAmount: 10,
       currency: 'INR',
       timezone: 'Asia/Kolkata',
+      perPageCostAdjustment: 0.00,
     }
   });
 
   const [activeSettingsTab, setActiveSettingsTab] = useState<'shop' | 'notifications' | 'hours' | 'preferences'>('shop');
+  const [tempSettings, setTempSettings] = useState(settings); // New state for temporary settings
 
   useEffect(() => {
-    // Load bank details from localStorage
-    const savedBankDetails = localStorage.getItem('sellerBankDetails');
-    if (savedBankDetails) {
-      setBankDetails(JSON.parse(savedBankDetails));
-    }
-
-    // Load settings from localStorage
+    // Load settings from localStorage for initial display (if available)
     const savedSettings = localStorage.getItem('sellerSettings');
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
 
-    // Load seller details from Firebase
+    // Load seller details from Firebase (including bank and settings)
     const fetchSellerDetails = async () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
@@ -150,16 +149,45 @@ const SellerDashboard: React.FC = () => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.bankDetails) {
-            setBankDetails(data.bankDetails);
+            setBankDetails(data.bankDetails); // Always set from Firebase
+          } else {
+            // If no bank details in Firebase, ensure state is reset
+            setBankDetails({
+              accountNumber: '',
+              bankName: '',
+              ifscCode: '',
+              accountHolderName: '',
+              branchName: '',
+              accountType: 'savings',
+              mobileNumber: '',
+              isVerified: false
+            });
           }
           if (data.settings) {
-            setSettings(data.settings);
+            setSettings(data.settings); // Always set from Firebase
+            console.log('Fetched seller settings:', data.settings);
           }
+        } else {
+          // If seller document doesn't exist, clear all related local data
+          localStorage.removeItem('isSellerAuthenticated');
+          localStorage.removeItem('sellerId');
+          localStorage.removeItem('sellerBankDetails'); // Clear old bank details
+          localStorage.removeItem('sellerSettings');   // Clear old settings
+          navigate('/seller/login', { replace: true });
+          toast.error('Seller profile not found. Please log in again.');
         }
+      } else {
+        // No current user, ensure local data is cleared and navigate to login
+        localStorage.removeItem('isSellerAuthenticated');
+        localStorage.removeItem('sellerId');
+        localStorage.removeItem('sellerBankDetails'); // Clear old bank details
+        localStorage.removeItem('sellerSettings');   // Clear old settings
+        navigate('/seller/login', { replace: true });
+        toast.error('You must be logged in to view the seller dashboard.');
       }
     };
     fetchSellerDetails();
-  }, []);
+  }, [navigate]);
 
   const validateBankDetails = () => {
     if (!bankDetails.accountNumber || bankDetails.accountNumber.length < 9) {
@@ -222,17 +250,32 @@ const SellerDashboard: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('isSellerAuthenticated');
+    localStorage.removeItem('sellerId');
+    localStorage.removeItem('sellerBankDetails'); // Clear cached bank details
+    localStorage.removeItem('sellerSettings');   // Clear cached settings
     navigate('/seller/login');
   };
 
   const handleSettingsSave = async () => {
     const currentUser = auth.currentUser;
     if (currentUser) {
+      // Basic validation for shop details before saving
+      if (!tempSettings.shop.name.trim()) {
+        toast.error('Shop Name is required.');
+        return;
+      }
+      if (!tempSettings.shop.mobile || tempSettings.shop.mobile.length !== 10) {
+        toast.error('Mobile Number must be 10 digits.');
+        return;
+      }
+
       try {
         const sellerDocRef = doc(db, 'shopOwners', currentUser.uid);
-        await setDoc(sellerDocRef, { settings }, { merge: true });
+        console.log('Saving settings to Firebase:', tempSettings);
+        await setDoc(sellerDocRef, { settings: tempSettings }, { merge: true });
+        setSettings(tempSettings);
         toast.success('Settings updated successfully!');
-    setIsSettingsModalOpen(false);
+        setIsSettingsModalOpen(false);
       } catch (error) {
         console.error('Error saving settings to Firebase:', error);
         toast.error('Failed to save settings. Please try again.');
@@ -244,7 +287,7 @@ const SellerDashboard: React.FC = () => {
 
   const handleBusinessHoursChange = (day: string, field: string, value: string | boolean) => {
     if (day === 'isShopOpen') {
-      setSettings(prev => ({
+      setTempSettings(prev => ({
         ...prev,
         businessHours: {
           ...prev.businessHours,
@@ -252,16 +295,16 @@ const SellerDashboard: React.FC = () => {
         }
       }));
     } else {
-    setSettings(prev => ({
-      ...prev,
-      businessHours: {
-        ...prev.businessHours,
-        [day]: {
+      setTempSettings(prev => ({
+        ...prev,
+        businessHours: {
+          ...prev.businessHours,
+          [day]: {
             ...(prev.businessHours as any)[day],
-          [field]: value
+            [field]: value
+          }
         }
-      }
-    }));
+      }));
     }
   };
 
@@ -308,7 +351,7 @@ const SellerDashboard: React.FC = () => {
               <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Print Shop Dashboard</h1>
-                <p className="text-xs sm:text-sm text-gray-500">QuickPrint Pro - Gitam University</p>
+                <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name} - Gitam University</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -324,7 +367,10 @@ const SellerDashboard: React.FC = () => {
                 className="p-1 sm:p-2 text-gray-400 hover:text-gray-500"
                 title="Settings"
                 aria-label="Open settings"
-                onClick={() => setIsSettingsModalOpen(true)}
+                onClick={() => {
+                  setTempSettings(JSON.parse(JSON.stringify(settings)));
+                  setIsSettingsModalOpen(true);
+                }}
               >
                 <Settings className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
@@ -488,8 +534,8 @@ const SellerDashboard: React.FC = () => {
                     <label className="block text-xs sm:text-sm font-medium text-gray-700">Shop Name</label>
                     <input
                       type="text"
-                      value={settings.shop.name}
-                      onChange={(e) => setSettings(prev => ({
+                      value={tempSettings.shop.name}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         shop: { ...prev.shop, name: e.target.value }
                       }))}
@@ -502,8 +548,8 @@ const SellerDashboard: React.FC = () => {
                     <label className="block text-xs sm:text-sm font-medium text-gray-700">GST Number</label>
                 <input
                   type="text"
-                      value={settings.shop.gstNumber}
-                      onChange={(e) => setSettings(prev => ({
+                      value={tempSettings.shop.gstNumber}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         shop: { ...prev.shop, gstNumber: e.target.value }
                       }))}
@@ -512,12 +558,48 @@ const SellerDashboard: React.FC = () => {
                   aria-label="GST number"
                 />
               </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700">Mobile Number</label>
+                    <input
+                      type="tel"
+                      value={tempSettings.shop.mobile}
+                      onChange={(e) => {
+                        // Only allow numbers and limit to 10 digits
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setTempSettings(prev => ({
+                          ...prev,
+                          shop: { ...prev.shop, mobile: value }
+                        }));
+                      }}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm"
+                      placeholder="Enter 10-digit mobile number"
+                      aria-label="Shop mobile number"
+                      maxLength={10}
+                      pattern="[0-9]{10}"
+                      title="Please enter a valid 10-digit mobile number"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700">Shop Owner Name</label>
+                    <input
+                      type="text"
+                      value={tempSettings.shop.ownerName}
+                      onChange={(e) => setTempSettings(prev => ({
+                        ...prev,
+                        shop: { ...prev.shop, ownerName: e.target.value }
+                      }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm"
+                      placeholder="Enter shop owner's name"
+                      aria-label="Shop owner name"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700">Description</label>
                 <textarea
-                    value={settings.shop.description}
-                    onChange={(e) => setSettings(prev => ({
+                    value={tempSettings.shop.description}
+                    onChange={(e) => setTempSettings(prev => ({
                       ...prev,
                       shop: { ...prev.shop, description: e.target.value }
                     }))}
@@ -538,8 +620,8 @@ const SellerDashboard: React.FC = () => {
                     <input
                       type="checkbox"
                       id="newOrders"
-                      checked={settings.notifications.newOrders}
-                      onChange={(e) => setSettings(prev => ({
+                      checked={tempSettings.notifications.newOrders}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         notifications: { ...prev.notifications, newOrders: e.target.checked }
                       }))}
@@ -553,8 +635,8 @@ const SellerDashboard: React.FC = () => {
                     <input
                       type="checkbox"
                       id="dailyReport"
-                      checked={settings.notifications.dailyReport}
-                      onChange={(e) => setSettings(prev => ({
+                      checked={tempSettings.notifications.dailyReport}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         notifications: { ...prev.notifications, dailyReport: e.target.checked }
                       }))}
@@ -568,8 +650,8 @@ const SellerDashboard: React.FC = () => {
                     <input
                       type="checkbox"
                       id="paymentReceived"
-                      checked={settings.notifications.paymentReceived}
-                      onChange={(e) => setSettings(prev => ({
+                      checked={tempSettings.notifications.paymentReceived}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         notifications: { ...prev.notifications, paymentReceived: e.target.checked }
                       }))}
@@ -587,8 +669,8 @@ const SellerDashboard: React.FC = () => {
                       <input
                         type="checkbox"
                         id="emailNotifications"
-                        checked={settings.notifications.emailNotifications}
-                        onChange={(e) => setSettings(prev => ({
+                        checked={tempSettings.notifications.emailNotifications}
+                        onChange={(e) => setTempSettings(prev => ({
                           ...prev,
                           notifications: { ...prev.notifications, emailNotifications: e.target.checked }
                         }))}
@@ -602,8 +684,8 @@ const SellerDashboard: React.FC = () => {
                       <input
                         type="checkbox"
                         id="smsNotifications"
-                        checked={settings.notifications.smsNotifications}
-                        onChange={(e) => setSettings(prev => ({
+                        checked={tempSettings.notifications.smsNotifications}
+                        onChange={(e) => setTempSettings(prev => ({
                           ...prev,
                           notifications: { ...prev.notifications, smsNotifications: e.target.checked }
                         }))}
@@ -625,15 +707,15 @@ const SellerDashboard: React.FC = () => {
                   <div>
                     <h3 className="text-base sm:text-lg font-medium text-gray-900">Shop Status</h3>
                     <p className="text-xs sm:text-sm text-gray-500">
-                      {settings.businessHours.isShopOpen ? 'Currently Open' : 'Currently Closed'}
+                      {tempSettings.businessHours.isShopOpen ? 'Currently Open' : 'Currently Closed'}
                     </p>
                   </div>
                   <div className="flex items-center mt-2 sm:mt-0">
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={settings.businessHours.isShopOpen}
-                        onChange={(e) => setSettings(prev => ({
+                        checked={tempSettings.businessHours.isShopOpen}
+                        onChange={(e) => setTempSettings(prev => ({
                           ...prev,
                           businessHours: {
                             ...prev.businessHours,
@@ -650,7 +732,7 @@ const SellerDashboard: React.FC = () => {
 
                 <div className="border-t pt-3 sm:pt-4">
                   <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Business Hours</h3>
-                  {Object.entries(settings.businessHours).map(([day, hours]) => {
+                  {Object.entries(tempSettings.businessHours).map(([day, hours]) => {
                     if (day === 'isShopOpen') return null;
                     const dayHours = hours as { open: boolean; start: string; end: string; };
                     return (
@@ -665,7 +747,7 @@ const SellerDashboard: React.FC = () => {
                             type="checkbox"
                             checked={dayHours.open}
                             onChange={(e) => handleBusinessHoursChange(day, 'open', e.target.checked)}
-                            disabled={!settings.businessHours.isShopOpen}
+                            disabled={!tempSettings.businessHours.isShopOpen}
                             className="h-4 w-4 text-blue-600 disabled:opacity-50"
                             aria-label={`${day} open`}
                           />
@@ -676,7 +758,7 @@ const SellerDashboard: React.FC = () => {
                             type="time"
                             value={dayHours.start}
                             onChange={(e) => handleBusinessHoursChange(day, 'start', e.target.value)}
-                            disabled={!dayHours.open || !settings.businessHours.isShopOpen}
+                            disabled={!dayHours.open || !tempSettings.businessHours.isShopOpen}
                             className="border border-gray-300 rounded-md shadow-sm px-2 py-1.5 text-sm disabled:bg-gray-100"
                             aria-label={`${day} start time`}
                           />
@@ -685,7 +767,7 @@ const SellerDashboard: React.FC = () => {
                             type="time"
                             value={dayHours.end}
                             onChange={(e) => handleBusinessHoursChange(day, 'end', e.target.value)}
-                            disabled={!dayHours.open || !settings.businessHours.isShopOpen}
+                            disabled={!dayHours.open || !tempSettings.businessHours.isShopOpen}
                             className="border border-gray-300 rounded-md shadow-sm px-2 py-1.5 text-sm disabled:bg-gray-100"
                             aria-label={`${day} end time`}
                           />
@@ -705,8 +787,8 @@ const SellerDashboard: React.FC = () => {
                     <input
                       type="checkbox"
                       id="autoAcceptOrders"
-                      checked={settings.preferences.autoAcceptOrders}
-                      onChange={(e) => setSettings(prev => ({
+                      checked={tempSettings.preferences.autoAcceptOrders}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         preferences: { ...prev.preferences, autoAcceptOrders: e.target.checked }
                       }))}
@@ -720,8 +802,8 @@ const SellerDashboard: React.FC = () => {
                     <input
                       type="checkbox"
                       id="requireCustomerConfirmation"
-                      checked={settings.preferences.requireCustomerConfirmation}
-                      onChange={(e) => setSettings(prev => ({
+                      checked={tempSettings.preferences.requireCustomerConfirmation}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         preferences: { ...prev.preferences, requireCustomerConfirmation: e.target.checked }
                       }))}
@@ -737,8 +819,8 @@ const SellerDashboard: React.FC = () => {
                     <label className="block text-xs sm:text-sm font-medium text-gray-700">Maximum Order Size</label>
                 <input
                       type="number"
-                      value={settings.preferences.maxOrderSize}
-                      onChange={(e) => setSettings(prev => ({
+                      value={tempSettings.preferences.maxOrderSize}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         preferences: { ...prev.preferences, maxOrderSize: Number(e.target.value) }
                       }))}
@@ -750,8 +832,8 @@ const SellerDashboard: React.FC = () => {
                     <label className="block text-xs sm:text-sm font-medium text-gray-700">Minimum Order Amount (₹)</label>
                 <input
                       type="number"
-                      value={settings.preferences.minOrderAmount}
-                      onChange={(e) => setSettings(prev => ({
+                      value={tempSettings.preferences.minOrderAmount}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         preferences: { ...prev.preferences, minOrderAmount: Number(e.target.value) }
                       }))}
@@ -762,10 +844,27 @@ const SellerDashboard: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700">Per Page Cost Adjustment (₹)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={tempSettings.preferences.perPageCostAdjustment}
+                      onChange={(e) => setTempSettings(prev => ({
+                        ...prev,
+                        preferences: { ...prev.preferences, perPageCostAdjustment: Number(e.target.value) }
+                      }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm"
+                      placeholder="e.g., 0.50"
+                      aria-label="Per page cost adjustment"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700">Currency</label>
                     <select
-                      value={settings.preferences.currency}
-                      onChange={(e) => setSettings(prev => ({
+                      value={tempSettings.preferences.currency}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         preferences: { ...prev.preferences, currency: e.target.value }
                       }))}
@@ -780,8 +879,8 @@ const SellerDashboard: React.FC = () => {
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700">Timezone</label>
                     <select
-                      value={settings.preferences.timezone}
-                      onChange={(e) => setSettings(prev => ({
+                      value={tempSettings.preferences.timezone}
+                      onChange={(e) => setTempSettings(prev => ({
                         ...prev,
                         preferences: { ...prev.preferences, timezone: e.target.value }
                       }))}

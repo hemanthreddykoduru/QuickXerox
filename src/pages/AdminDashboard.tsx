@@ -3,38 +3,65 @@ import { useNavigate } from 'react-router-dom';
 import { Printer, Users, ShoppingBag, Settings, LogOut, BarChart, CreditCard, Mail, FileText, Globe } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+
+interface RecentSeller {
+  id: string;
+  name: string;
+  shopName?: string;
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminProfile, setAdminProfile] = useState<{ email: string; role: string; } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recentSellers, setRecentSellers] = useState<RecentSeller[]>([]);
 
   useEffect(() => {
     const fetchAdminProfile = async () => {
+      console.log('Attempting to fetch admin profile...');
       try {
         const user = auth.currentUser;
+        console.log('Firebase current user:', user);
+
         if (!user) {
+          console.log('No user found, navigating to admin login.');
           navigate('/admin/login');
           return;
         }
 
         const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+        console.log('Admin document data:', adminDoc.data());
+        
         if (adminDoc.exists() && adminDoc.data().role === 'admin') {
+          console.log('Admin profile found and authorized.');
           setAdminProfile({ email: user.email || '', role: adminDoc.data().role });
+
+          // Fetch recent sellers
+          const q = query(collection(db, 'shopOwners'), orderBy('createdAt', 'desc'), limit(5));
+          const querySnapshot = await getDocs(q);
+          const fetchedRecentSellers: RecentSeller[] = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            name: doc.data().name || 'N/A',
+            shopName: doc.data().shopName || 'N/A',
+          }));
+          setRecentSellers(fetchedRecentSellers);
+
         } else {
+          console.log('Not authorized as an admin or admin profile not found. Signing out.');
           await auth.signOut();
           navigate('/admin/login');
           toast.error('Not authorized as an admin.');
         }
       } catch (err: any) {
-        console.error('Error fetching admin profile:', err);
-        setError(err.message || 'Failed to load admin profile.');
-        toast.error('Failed to load admin profile.');
+        console.error('Error fetching admin profile or recent sellers:', err);
+        setError(err.message || 'Failed to load admin profile or recent sellers.');
+        toast.error('Failed to load dashboard data.');
         navigate('/admin/login');
       } finally {
         setIsLoading(false);
+        console.log('Finished fetching admin profile. isLoading:', false);
       }
     };
 
@@ -99,13 +126,39 @@ const AdminDashboard = () => {
             <Users className="h-6 w-6 sm:h-7 sm:w-7 text-purple-600" />
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Manage Sellers</h3>
             <p className="text-sm text-gray-500">View, add, and manage print shop partners.</p>
-            <button
-              onClick={() => navigate('/admin/invite-seller')}
-              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
-            >
-              Invite New Seller
-            </button>
-            {/* Additional actions for managing sellers can be added here */}
+            
+            {/* Action Buttons */}
+            <div className="w-full space-y-2 mt-3">
+              <button
+                onClick={() => navigate('/admin/sellers')}
+                className="w-full bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+              >
+                View All Sellers
+              </button>
+              <button
+                onClick={() => navigate('/admin/invite-seller')}
+                className="w-full bg-purple-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-purple-700 transition-colors text-sm"
+              >
+                Invite New Seller
+              </button>
+            </div>
+            
+            {/* Display Recent Sellers */}
+            {recentSellers.length > 0 ? (
+              <div className="w-full mt-3 border-t pt-3">
+                <p className="text-xs font-medium text-gray-500 mb-2">Recent Sellers:</p>
+                <div className="max-h-24 overflow-y-auto space-y-1 text-sm">
+                  {recentSellers.map((seller) => (
+                    <div key={seller.id} className="flex justify-between items-center text-gray-700">
+                      <span>{seller.name}</span>
+                      <span className="text-gray-500 text-xs">{seller.shopName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 mt-2">No recent sellers found.</p>
+            )}
           </div>
 
           {/* Manage Orders Card */}
@@ -114,9 +167,8 @@ const AdminDashboard = () => {
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Review Orders</h3>
             <p className="text-sm text-gray-500">Monitor customer orders across all shops.</p>
             <button
-              onClick={() => toast('Order review functionality coming soon!')}
-              className="mt-auto bg-gray-200 text-gray-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md cursor-not-allowed text-sm"
-              disabled
+              onClick={() => navigate('/admin/orders')}
+              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
             >
               View All Orders
             </button>
