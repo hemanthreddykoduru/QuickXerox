@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, IndianRupee, Bell, Settings, LogOut, BarChart, CreditCard, Clock, BellRing, Globe, Shield, X } from 'lucide-react';
+import { Printer, IndianRupee, Bell, Settings, LogOut, BarChart, CreditCard, Clock, BellRing, Globe, Shield, X, MapPin } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
@@ -133,6 +133,8 @@ const SellerDashboard: React.FC = () => {
   const [activeSettingsTab, setActiveSettingsTab] = useState<'shop' | 'notifications' | 'hours' | 'preferences'>('shop');
   const [tempSettings, setTempSettings] = useState(settings); // New state for temporary settings
 
+  const [sellerLocation, setSellerLocation] = useState<string>('Fetching location...');
+
   useEffect(() => {
     // Load settings from localStorage for initial display (if available)
     const savedSettings = localStorage.getItem('sellerSettings');
@@ -187,6 +189,31 @@ const SellerDashboard: React.FC = () => {
       }
     };
     fetchSellerDetails();
+
+    // Get seller location on mount
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          // Reverse geocode using OpenStreetMap Nominatim
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await response.json();
+            const address = data.address || {};
+            const townOrCity = address.city || address.town || address.village || address.hamlet || address.county || 'Unknown location';
+            setSellerLocation(townOrCity);
+          } catch (err) {
+            setSellerLocation('Unknown location');
+          }
+        },
+        (error) => {
+          setSellerLocation('Location permission denied');
+        }
+      );
+    } else {
+      setSellerLocation('Geolocation not supported');
+    }
   }, [navigate]);
 
   const validateBankDetails = () => {
@@ -351,7 +378,13 @@ const SellerDashboard: React.FC = () => {
               <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Print Shop Dashboard</h1>
-                <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name} - Gitam University</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name} - Gitam University</p>
+                  <span className="flex items-center text-xs sm:text-sm text-gray-500">
+                    <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                    {sellerLocation}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
