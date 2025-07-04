@@ -4,6 +4,7 @@ import { Printer, IndianRupee, Bell, Settings, LogOut, BarChart, CreditCard, Clo
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
+import { onAuthStateChanged } from 'firebase/auth';
 
 import OrderList from '../components/seller/OrderList';
 import OrderStats from '../components/seller/OrderStats';
@@ -13,15 +14,6 @@ import { Order, OrderStatus } from '../types';
 
 const SellerDashboard: React.FC = () => {
   const navigate = useNavigate();
-
-  // Add useEffect to check authentication on component mount
-  useEffect(() => {
-    const isSellerAuthenticated = localStorage.getItem('isSellerAuthenticated');
-    if (isSellerAuthenticated !== 'true') {
-      navigate('/seller/login', { replace: true });
-      toast.error('You must be logged in to view the seller dashboard.');
-    }
-  }, [navigate]);
 
   const [orders, setOrders] = useState<Order[]>([
     {
@@ -135,6 +127,40 @@ const SellerDashboard: React.FC = () => {
 
   const [sellerLocation, setSellerLocation] = useState<string>('Fetching location...');
 
+  // Move fetchSellerDetails out of useEffect
+  const fetchSellerDetails = async (uid: string) => {
+    const sellerDocRef = doc(db, 'shopOwners', uid);
+    const docSnap = await getDoc(sellerDocRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.bankDetails) {
+        setBankDetails(data.bankDetails);
+      } else {
+        setBankDetails({
+          accountNumber: '',
+          bankName: '',
+          ifscCode: '',
+          accountHolderName: '',
+          branchName: '',
+          accountType: 'savings',
+          mobileNumber: '',
+          isVerified: false
+        });
+      }
+      if (data.settings) {
+        setSettings(data.settings);
+        console.log('Fetched seller settings:', data.settings);
+      }
+    } else {
+      localStorage.removeItem('isSellerAuthenticated');
+      localStorage.removeItem('sellerId');
+      localStorage.removeItem('sellerBankDetails');
+      localStorage.removeItem('sellerSettings');
+      navigate('/seller/login', { replace: true });
+      toast.error('Seller profile not found. Please log in again.');
+    }
+  };
+
   useEffect(() => {
     // Load settings from localStorage for initial display (if available)
     const savedSettings = localStorage.getItem('sellerSettings');
@@ -142,53 +168,19 @@ const SellerDashboard: React.FC = () => {
       setSettings(JSON.parse(savedSettings));
     }
 
-    // Load seller details from Firebase (including bank and settings)
-    const fetchSellerDetails = async () => {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        const sellerDocRef = doc(db, 'shopOwners', currentUser.uid);
-        const docSnap = await getDoc(sellerDocRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          if (data.bankDetails) {
-            setBankDetails(data.bankDetails); // Always set from Firebase
-          } else {
-            // If no bank details in Firebase, ensure state is reset
-            setBankDetails({
-              accountNumber: '',
-              bankName: '',
-              ifscCode: '',
-              accountHolderName: '',
-              branchName: '',
-              accountType: 'savings',
-              mobileNumber: '',
-              isVerified: false
-            });
-          }
-          if (data.settings) {
-            setSettings(data.settings); // Always set from Firebase
-            console.log('Fetched seller settings:', data.settings);
-          }
-        } else {
-          // If seller document doesn't exist, clear all related local data
-          localStorage.removeItem('isSellerAuthenticated');
-          localStorage.removeItem('sellerId');
-          localStorage.removeItem('sellerBankDetails'); // Clear old bank details
-          localStorage.removeItem('sellerSettings');   // Clear old settings
-          navigate('/seller/login', { replace: true });
-          toast.error('Seller profile not found. Please log in again.');
-        }
+    // Use onAuthStateChanged to reliably check auth state
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchSellerDetails(user.uid);
       } else {
-        // No current user, ensure local data is cleared and navigate to login
         localStorage.removeItem('isSellerAuthenticated');
         localStorage.removeItem('sellerId');
-        localStorage.removeItem('sellerBankDetails'); // Clear old bank details
-        localStorage.removeItem('sellerSettings');   // Clear old settings
+        localStorage.removeItem('sellerBankDetails');
+        localStorage.removeItem('sellerSettings');
         navigate('/seller/login', { replace: true });
         toast.error('You must be logged in to view the seller dashboard.');
       }
-    };
-    fetchSellerDetails();
+    });
 
     // Get seller location on mount
     if ('geolocation' in navigator) {
@@ -214,6 +206,9 @@ const SellerDashboard: React.FC = () => {
     } else {
       setSellerLocation('Geolocation not supported');
     }
+
+    // Clean up the auth listener on unmount
+    return () => unsubscribe();
   }, [navigate]);
 
   const validateBankDetails = () => {
