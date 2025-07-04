@@ -379,7 +379,7 @@ const SellerDashboard: React.FC = () => {
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Print Shop Dashboard</h1>
                 <div className="flex items-center space-x-2">
-                  <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name} - Gitam University</p>
+                  <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name}</p>
                   <span className="flex items-center text-xs sm:text-sm text-gray-500">
                     <MapPin className="h-4 w-4 mr-1 text-gray-400" />
                     {sellerLocation}
