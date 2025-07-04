@@ -12,6 +12,7 @@ import { PrintJob, PrintShop } from '../types';
 import { db } from '../firebase'; // Import db
 import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore'; // Import Firestore functions
 import { toast } from 'react-hot-toast';
+import { useState as useReactState } from 'react';
 
 function CustomerDashboard() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ function CustomerDashboard() {
   const [selectedShop, setSelectedShop] = useState<PrintShop | null>(null);
   const [showFloatingCart, setShowFloatingCart] = useState(false);
   const [printShops, setPrintShops] = useState<PrintShop[]>([]); // New state for dynamic shops
+  const [userLocation, setUserLocation] = useReactState<string>('Fetching location...');
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -39,6 +41,34 @@ function CustomerDashboard() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [navigate]);
+
+  // Get user location on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          // Reverse geocode using a free API (OpenStreetMap Nominatim)
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await response.json();
+            // Extract city/town/village/hamlet/county
+            const address = data.address || {};
+            const townOrCity = address.city || address.town || address.village || address.hamlet || address.county || 'Unknown location';
+            setUserLocation(townOrCity);
+          } catch (err) {
+            setUserLocation('Unknown location');
+          }
+        },
+        (error) => {
+          setUserLocation('Location permission denied');
+        }
+      );
+    } else {
+      setUserLocation('Geolocation not supported');
+    }
+  }, []);
 
   // Fetch print shops from Firebase in real-time
   useEffect(() => {
@@ -129,7 +159,7 @@ function CustomerDashboard() {
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="hidden sm:flex items-center space-x-2">
                 <MapPin className="h-5 w-5 text-gray-500" />
-                <span className="text-gray-600 text-sm">Gitam, Bengaluru</span>
+                <span className="text-gray-600 text-sm max-w-xs truncate" title={userLocation}>{userLocation}</span>
               </div>
               <CartButton
                 itemCount={printJobs.length}

@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminOrderList from './pages/AdminOrderList';
 import AdminSellerList from './pages/AdminSellerList';
 import AdminSellerDetails from './pages/AdminSellerDetails';
+import LandingPage from './pages/LandingPage';
 
 const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
   const location = useLocation();
@@ -43,7 +44,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/landingpage" replace />} />
+        <Route path="/landingpage" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/seller/login" element={<SellerLoginPage />} />
         <Route
