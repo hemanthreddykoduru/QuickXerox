@@ -13,6 +13,7 @@ import AdminOrderList from './pages/AdminOrderList';
 import AdminSellerList from './pages/AdminSellerList';
 import AdminSellerDetails from './pages/AdminSellerDetails';
 import LandingPage from './pages/LandingPage';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 
 const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
   const location = useLocation();
@@ -108,6 +109,7 @@ function App() {
           }
         />
       </Routes>
+      <PWAInstallPrompt />
     </Router>
   );
 }
