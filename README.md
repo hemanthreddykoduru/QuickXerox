@@ -9,8 +9,8 @@ QuickXerox is an online Xerox printing service that allows users to upload docum
 - 📁 File Upload (PDF, DOCX, Images)
 - 🎨 Print options (Black & White or Color)
 - 📍 Nearby shop selection
-- 💳 Online payments via Razorpay
-- 🔒 Secure user authentication (using Supabase)
+- 💳 Online payments via CashFree
+- 🔒 Secure user authentication (using Firebase)
 - 🖨️ Shopkeeper dashboard to manage and accept orders
 
 ---
@@ -39,6 +39,8 @@ QuickXerox is an online Xerox printing service that allows users to upload docum
 If you'd like to collaborate, report bugs, or give suggestions:
 
 📬 Email: [workwithquickxerox@gmail.com]
+
+https://quickxerox.kesug.com/login
 
 ---
 
