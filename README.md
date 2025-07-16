@@ -1,3 +1,5 @@
+https://quickxerox.kesug.com/login
+
 # 🚀 QuickXerox
 
 QuickXerox is an online Xerox printing service that allows users to upload documents, choose print settings (color or B&W), select a nearby registered shop, and pay online. Orders are then processed by shopkeepers and picked up in person.
