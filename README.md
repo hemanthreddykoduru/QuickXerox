@@ -1,4 +1,4 @@
-https://quickxerox.kesug.com/login
+https://quickxerox.app/login
 
 # 🚀 QuickXerox
 
@@ -42,7 +42,7 @@ If you'd like to collaborate, report bugs, or give suggestions:
 
 📬 Email: [workwithquickxerox@gmail.com]
 
-https://quickxerox.kesug.com/login
+https://quickxerox.app/landingpage
 
 ---
 
