@@ -1,4 +1,4 @@
-https://quickxerox.app/login
+https://quickxerox.app
 
 # 🚀 QuickXerox
 
@@ -42,7 +42,7 @@ If you'd like to collaborate, report bugs, or give suggestions:
 
 📬 Email: [workwithquickxerox@gmail.com]
 
-https://quickxerox.app/landingpage
+https://quickxerox.app
 
 ---
 
