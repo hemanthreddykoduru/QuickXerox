@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminOrderList from './pages/AdminOrderList';
 import AdminSellerList from './pages/AdminSellerList';
 import AdminSellerDetails from './pages/AdminSellerDetails';
+import IpBlocked from './pages/IpBlocked';
 import LandingPage from './pages/LandingPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
@@ -45,10 +46,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/landingpage" replace />} />
-        <Route path="/landingpage" element={<LandingPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/landingpage" element={<LandingPage />} />
         <Route path="/seller/login" element={<SellerLoginPage />} />
+        <Route path="/ip-blocked" element={<IpBlocked />} />
         <Route
           path="/customerdashboard"
           element={

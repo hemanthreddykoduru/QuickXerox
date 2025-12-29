@@ -17,28 +17,35 @@ const SellerDashboard: React.FC = () => {
 
   const [orders, setOrders] = useState<Order[]>([
     {
-      id: '1',
+      id: 'ORD-001',
       customerName: 'John Doe',
+      customerPhone: '+91 98765 43210',
+      sellerPhone: '+91 87654 32109',
       items: [
         { id: '1', fileName: 'document.pdf', copies: 2, isColor: true, pages: 5 }
       ],
       total: 25.00,
-      status: 'pending',
+      status: 'processing',
       timestamp: new Date().toISOString(),
       shopId: 1,
-      isPaid: true
+      isPaid: true,
+      otpVerified: false,
+      otpGeneratedAt: new Date().toISOString()
     },
     {
-      id: '2',
+      id: 'ORD-002',
       customerName: 'Jane Smith',
+      customerPhone: '+91 91234 56789',
+      sellerPhone: '+91 87654 32109',
       items: [
         { id: '2', fileName: 'presentation.pdf', copies: 1, isColor: false, pages: 10 }
       ],
       total: 15.00,
-      status: 'processing',
+      status: 'pending',
       timestamp: new Date().toISOString(),
       shopId: 1,
-      isPaid: true
+      isPaid: false,
+      otpVerified: false
     }
   ]);
 
@@ -91,6 +98,7 @@ const SellerDashboard: React.FC = () => {
       gstNumber: '',
       timezone: 'Asia/Kolkata',
       perPageCostAdjustment: 0.00,
+      shopPictureUrl: '',
     },
     notifications: {
       newOrders: true,
@@ -119,10 +127,13 @@ const SellerDashboard: React.FC = () => {
       currency: 'INR',
       timezone: 'Asia/Kolkata',
       perPageCostAdjustment: 0.00,
+    },
+    security: {
+      allowedIpRanges: [] as string[],
     }
   });
 
-  const [activeSettingsTab, setActiveSettingsTab] = useState<'shop' | 'notifications' | 'hours' | 'preferences'>('shop');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'shop' | 'notifications' | 'hours' | 'preferences' | 'security'>('shop');
   const [tempSettings, setTempSettings] = useState(settings); // New state for temporary settings
 
   const [sellerLocation, setSellerLocation] = useState<string>('Fetching location...');
@@ -130,35 +141,35 @@ const SellerDashboard: React.FC = () => {
   // Move fetchSellerDetails out of useEffect
   const fetchSellerDetails = async (uid: string) => {
     const sellerDocRef = doc(db, 'shopOwners', uid);
-    const docSnap = await getDoc(sellerDocRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.bankDetails) {
+        const docSnap = await getDoc(sellerDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.bankDetails) {
         setBankDetails(data.bankDetails);
-      } else {
-        setBankDetails({
-          accountNumber: '',
-          bankName: '',
-          ifscCode: '',
-          accountHolderName: '',
-          branchName: '',
-          accountType: 'savings',
-          mobileNumber: '',
-          isVerified: false
-        });
-      }
-      if (data.settings) {
+          } else {
+            setBankDetails({
+              accountNumber: '',
+              bankName: '',
+              ifscCode: '',
+              accountHolderName: '',
+              branchName: '',
+              accountType: 'savings',
+              mobileNumber: '',
+              isVerified: false
+            });
+          }
+          if (data.settings) {
         setSettings(data.settings);
-        console.log('Fetched seller settings:', data.settings);
-      }
-    } else {
-      localStorage.removeItem('isSellerAuthenticated');
-      localStorage.removeItem('sellerId');
+            console.log('Fetched seller settings:', data.settings);
+          }
+        } else {
+          localStorage.removeItem('isSellerAuthenticated');
+          localStorage.removeItem('sellerId');
       localStorage.removeItem('sellerBankDetails');
       localStorage.removeItem('sellerSettings');
-      navigate('/seller/login', { replace: true });
-      toast.error('Seller profile not found. Please log in again.');
-    }
+          navigate('/seller/login', { replace: true });
+          toast.error('Seller profile not found. Please log in again.');
+        }
   };
 
   useEffect(() => {
@@ -261,9 +272,16 @@ const SellerDashboard: React.FC = () => {
   };
 
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(orders.map(order =>
+    setOrders(orders.map(order => 
       order.id === orderId ? { ...order, status: newStatus } : order
     ));
+  };
+
+  const handleOTPVerificationComplete = (orderId: string) => {
+    setOrders(orders.map(order => 
+      order.id === orderId ? { ...order, otpVerified: true, status: 'completed' as OrderStatus } : order
+    ));
+    toast.success('Order verified and completed successfully!');
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -487,8 +505,13 @@ const SellerDashboard: React.FC = () => {
               </button>
             </div>
           </div>
-          <OrderList orders={filteredOrders} onStatusChange={handleStatusChange} />
+          <OrderList
+            orders={filteredOrders}
+            onStatusChange={handleStatusChange}
+            onOTPVerificationComplete={handleOTPVerificationComplete}
+          />
         </div>
+
       </main>
 
       {/* Settings Modal */}
@@ -551,6 +574,17 @@ const SellerDashboard: React.FC = () => {
               >
                 <Shield className="h-5 w-5 inline-block mr-2" />
                 Preferences
+              </button>
+              <button
+                onClick={() => setActiveSettingsTab('security')}
+                className={`pb-2 px-2 sm:px-4 text-sm sm:text-base ${
+                  activeSettingsTab === 'security'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Shield className="h-5 w-5 inline-block mr-2" />
+                Security
               </button>
             </div>
 
@@ -636,6 +670,23 @@ const SellerDashboard: React.FC = () => {
                   placeholder="Enter shop description"
                   aria-label="Shop description"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Shop Picture URL</label>
+                  <input
+                    type="url"
+                    value={tempSettings.shop.shopPictureUrl}
+                    onChange={(e) => setTempSettings(prev => ({
+                      ...prev,
+                      shop: { ...prev.shop, shopPictureUrl: e.target.value }
+                    }))}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm"
+                    placeholder="https://example.com/shop-image.jpg"
+                    aria-label="Shop picture URL"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Enter a URL to an image of your shop. This will be displayed to customers.
+                  </p>
                 </div>
               </div>
             )}
@@ -920,6 +971,31 @@ const SellerDashboard: React.FC = () => {
                       <option value="America/New_York">Eastern Time</option>
                     </select>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Security Tab */}
+            {activeSettingsTab === 'security' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Allowed IP ranges (CIDR, comma separated)</label>
+                  <input
+                    type="text"
+                    value={(tempSettings as any).security?.allowedIpRanges?.join(', ') || ''}
+                    onChange={(e) => setTempSettings(prev => ({
+                      ...prev,
+                      security: {
+                        ...(prev as any).security,
+                        allowedIpRanges: e.target.value.split(',').map(v => v.trim()).filter(Boolean)
+                      }
+                    }))}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm"
+                    placeholder="203.0.113.0/24, 198.51.100.12/32"
+                    aria-label="Allowed IP ranges"
+                    title="Allowed IP ranges"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Only requests coming from these IPs will be allowed for seller APIs (if enforced server-side).</p>
                 </div>
               </div>
             )}

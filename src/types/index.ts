@@ -43,12 +43,17 @@ export interface OrderItem {
 export interface Order {
   id: string;
   customerName: string;
+  customerPhone: string;
+  sellerPhone: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;
   timestamp: string;
   shopId: number;
   isPaid: boolean;
+  otpVerified?: boolean;
+  otp?: string;
+  otpGeneratedAt?: string;
 }
 
-export type PaymentMethod = 'upi' | 'qr';
+export type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';

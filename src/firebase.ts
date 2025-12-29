@@ -54,4 +54,9 @@ provider.setCustomParameters({
   prompt: "select_account",
 });
 
+// Preload auth state for faster login
+auth.authStateReady().then(() => {
+  console.log('Firebase Auth state ready');
+});
+
 export { provider };

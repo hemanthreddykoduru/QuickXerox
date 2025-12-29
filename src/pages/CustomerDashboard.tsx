@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Printer, MapPin, Clock, CreditCard, CheckCircle, LogOut, User } from 'lucide-react';
+import { Printer, MapPin, Clock, CreditCard, CheckCircle, LogOut, User, Bell, Zap, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import PrintShopCard from '../components/PrintShopCard';
 import FileUpload from '../components/FileUpload';
@@ -8,7 +8,11 @@ import PrintJobList from '../components/PrintJobList';
 import Cart from '../components/Cart';
 import CartButton from '../components/CartButton';
 import FloatingCartButton from '../components/FloatingCartButton';
-import { PrintJob, PrintShop } from '../types';
+import DocumentAnalyzer from '../components/ai/DocumentAnalyzer';
+import OrderTracking from '../components/orders/OrderTracking';
+import OTPVerification from '../components/orders/OTPVerification';
+import NotificationCenter from '../components/notifications/NotificationCenter';
+import { PrintJob, PrintShop, Order } from '../types';
 import { db } from '../firebase'; // Import db
 import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore'; // Import Firestore functions
 import { toast } from 'react-hot-toast';
@@ -23,6 +27,12 @@ function CustomerDashboard() {
   const [showFloatingCart, setShowFloatingCart] = useState(false);
   const [printShops, setPrintShops] = useState<PrintShop[]>([]); // New state for dynamic shops
   const [userLocation, setUserLocation] = useReactState<string>('Fetching location...');
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [selectedFileForAnalysis, setSelectedFileForAnalysis] = useState<File | null>(null);
+  const [showOrderTracking, setShowOrderTracking] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const [selectedOrderForOTP, setSelectedOrderForOTP] = useState<Order | null>(null);
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -85,7 +95,7 @@ function CustomerDashboard() {
             distance: data.distance || 'N/A', 
             price: data.settings?.preferences?.perPageCostAdjustment ?? 2.50, 
             eta: data.eta || '20-30', 
-            image: data.image || 'https://lh3.googleusercontent.com/gps-cs-s/AC9h4noan8Hek57X2BZ6IMo3jnJ-PXolN7bl_rS8ddcpJvRbQbRMHj-5vw1gjJ9fVXXqS8_6NtLH_im9FvLhzehe5jmmpiCRraA_pZqxg_a62-7hir81dcPYwUAFN3n6HGMtqWkBNpqYVQ=s1360-w1360-h1020-rw', 
+            image: data.settings?.shop?.shopPictureUrl || data.image || 'https://lh3.googleusercontent.com/gps-cs-s/AC9h4noan8Hek57X2BZ6IMo3jnJ-PXolN7bl_rS8ddcpJvRbQbRMHj-5vw1gjJ9fVXXqS8_6NtLH_im9FvLhzehe5jmmpiCRraA_pZqxg_a62-7hir81dcPYwUAFN3n6HGMtqWkBNpqYVQ=s1360-w1360-h1020-rw', 
             isShopOpen: data.settings?.businessHours?.isShopOpen ?? true, 
             perPageCostAdjustment: data.settings?.preferences?.perPageCostAdjustment ?? 0.00,
           });
@@ -146,6 +156,55 @@ function CustomerDashboard() {
     setSelectedShop(shop || null);
   };
 
+  const handleFileAnalysis = (file: File) => {
+    setSelectedFileForAnalysis(file);
+  };
+
+  const handleAnalysisComplete = (analysis: any) => {
+    console.log('Document analysis completed:', analysis);
+    toast.success('Document analyzed successfully!');
+  };
+
+  const handleOptimizeFile = (optimizedFile: File) => {
+    // Replace the original file with optimized version
+    const updatedJobs = printJobs.map(job => 
+      job.file.name === selectedFileForAnalysis?.name 
+        ? { ...job, file: optimizedFile }
+        : job
+    );
+    setPrintJobs(updatedJobs);
+    setSelectedFileForAnalysis(null);
+    toast.success('Document optimized successfully!');
+  };
+
+  const handleTrackOrder = (order: Order) => {
+    setCurrentOrder(order);
+    setShowOrderTracking(true);
+  };
+
+  const handleOTPVerification = (order: Order) => {
+    setSelectedOrderForOTP(order);
+    setShowOTPVerification(true);
+  };
+
+  const handleOTPVerificationSuccess = () => {
+    if (selectedOrderForOTP) {
+      // Update order status to verified
+      console.log('Order verified successfully:', selectedOrderForOTP.id);
+      toast.success('Order verified successfully! You can now collect your prints.');
+      // In a real app, you would update the order in the database
+    }
+    setShowOTPVerification(false);
+    setSelectedOrderForOTP(null);
+  };
+
+  const handleOTPVerificationFailed = () => {
+    console.log('OTP verification failed');
+    toast.error('OTP verification failed. Please try again.');
+    setShowOTPVerification(false);
+    setSelectedOrderForOTP(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -161,6 +220,17 @@ function CustomerDashboard() {
                 <MapPin className="h-5 w-5 text-gray-500" />
                 <span className="text-gray-600 text-sm max-w-xs truncate" title={userLocation}>{userLocation}</span>
               </div>
+              <button
+                onClick={() => setIsNotificationCenterOpen(true)}
+                className="relative p-1 sm:p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                title="Notifications"
+                aria-label="Notifications"
+              >
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                  3
+                </span>
+              </button>
               <CartButton
                 itemCount={printJobs.length}
                 onClick={() => setIsCartOpen(true)}
@@ -270,6 +340,78 @@ function CustomerDashboard() {
         selectedShop={selectedShop}
         onShopSelect={handleShopSelect}
         shops={printShops}
+      />
+
+      {/* Document Analyzer Modal */}
+      {selectedFileForAnalysis && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">AI Document Analysis</h3>
+                <button
+                  onClick={() => setSelectedFileForAnalysis(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                  title="Close document analysis"
+                  aria-label="Close document analysis"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <DocumentAnalyzer
+                file={selectedFileForAnalysis}
+                onAnalysisComplete={handleAnalysisComplete}
+                onOptimize={handleOptimizeFile}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Tracking Modal */}
+      {showOrderTracking && currentOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Order Tracking</h3>
+                <button
+                  onClick={() => setShowOrderTracking(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                  title="Close order tracking"
+                  aria-label="Close order tracking"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <OrderTracking
+                order={currentOrder}
+                onStatusUpdate={(newStatus) => {
+                  setCurrentOrder({ ...currentOrder, status: newStatus });
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Verification Modal */}
+      {selectedOrderForOTP && (
+        <OTPVerification
+          orderId={selectedOrderForOTP.id}
+          customerPhone={selectedOrderForOTP.customerPhone}
+          sellerPhone={selectedOrderForOTP.sellerPhone}
+          onVerificationSuccess={handleOTPVerificationSuccess}
+          onVerificationFailed={handleOTPVerificationFailed}
+          onClose={() => setShowOTPVerification(false)}
+          isOpen={showOTPVerification}
+        />
+      )}
+
+      {/* Notification Center */}
+      <NotificationCenter
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
       />
     </div>
   );

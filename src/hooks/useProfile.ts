@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { UserProfile } from '../types';
 import { toast } from 'react-hot-toast';
-import { doc, setDoc, getDoc, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase'; // Import auth
+import { userCache, CACHE_KEYS } from '../utils/cache';
 
 const cleanMobileNumber = (mobile: string): string => {
   return mobile.replace(/[^0-9]/g, '');
@@ -14,7 +15,9 @@ export const useProfile = () => {
     const currentUser = auth.currentUser;
     console.log("useProfile init: currentUser?.phoneNumber", currentUser?.phoneNumber);
     console.log("useProfile init: sessionStorage.getItem('userPhone')", sessionStorage.getItem('userPhone'));
-    return {
+    console.log("useProfile init: currentUser", currentUser);
+    
+    const initialProfile = {
       name: currentUser?.displayName || sessionStorage.getItem('userName') || '',
       mobile: currentUser?.phoneNumber || sessionStorage.getItem('userPhone') || '',
       email: currentUser?.email || sessionStorage.getItem('userEmail') || '',
@@ -25,29 +28,50 @@ export const useProfile = () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+    
+    console.log("useProfile initial profile:", initialProfile);
+    return initialProfile;
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Modify fetchProfile to use UID
+  // Optimized fetchProfile with caching
   const fetchProfile = useCallback(async (uid: string) => {
     if (!uid) return null;
+    
+    // Check cache first
+    const cacheKey = `${CACHE_KEYS.USER_PROFILE}_${uid}`;
+    const cachedProfile = userCache.get<UserProfile>(cacheKey);
+    if (cachedProfile && !isLoading) {
+      setProfile(cachedProfile);
+      return cachedProfile;
+    }
+    
+    // Check sessionStorage as fallback
+    const sessionProfile = sessionStorage.getItem('userProfile');
+    if (sessionProfile && !isLoading) {
+      try {
+        const parsedProfile = JSON.parse(sessionProfile);
+        setProfile(parsedProfile);
+        // Cache it for next time
+        userCache.set(cacheKey, parsedProfile);
+        return parsedProfile;
+      } catch (e) {
+        // If parsing fails, continue with Firebase fetch
+      }
+    }
     
     try {
       setIsLoading(true);
       setError(null);
-      console.log('Fetching profile for UID:', uid);
       
       const userRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userRef);
       
       if (userDoc.exists()) {
-        console.log('Found user profile in Firebase for UID:', uid);
         const userData = userDoc.data();
-        console.log('fetchProfile: userData.mobile', userData.mobile);
-        console.log('fetchProfile: auth.currentUser?.phoneNumber', auth.currentUser?.phoneNumber);
         const currentAuthEmail = auth.currentUser?.email || '';
 
         const fetchedProfile: UserProfile = {
@@ -64,15 +88,22 @@ export const useProfile = () => {
         
         setProfile(fetchedProfile);
         
-        // Store in sessionStorage for current tab
-        sessionStorage.setItem('userProfile', JSON.stringify(fetchedProfile));
-        sessionStorage.setItem('userName', fetchedProfile.name);
-        sessionStorage.setItem('userPhone', fetchedProfile.mobile);
-        sessionStorage.setItem('userEmail', fetchedProfile.email);
+        // Cache the profile
+        userCache.set(cacheKey, fetchedProfile);
+        
+        // Store all session data at once
+        const sessionData = {
+          userProfile: JSON.stringify(fetchedProfile),
+          userName: fetchedProfile.name,
+          userPhone: fetchedProfile.mobile,
+          userEmail: fetchedProfile.email
+        };
+        Object.entries(sessionData).forEach(([key, value]) => {
+          sessionStorage.setItem(key, value);
+        });
 
         return fetchedProfile;
       } else {
-        console.log('No user profile found in Firebase for UID:', uid);
         const defaultProfile: UserProfile = {
           name: auth.currentUser?.displayName || '',
           mobile: auth.currentUser?.phoneNumber || '',
@@ -84,15 +115,22 @@ export const useProfile = () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
-        await setDoc(userRef, defaultProfile, { merge: true });
-        setProfile(defaultProfile);
         
-        // Store in sessionStorage for current tab
-        sessionStorage.setItem('userProfile', JSON.stringify(defaultProfile));
-        sessionStorage.setItem('userName', defaultProfile.name);
-        sessionStorage.setItem('userPhone', defaultProfile.mobile);
-        sessionStorage.setItem('userEmail', defaultProfile.email);
-
+        // Create profile and store session data in parallel
+        await Promise.all([
+          setDoc(userRef, defaultProfile, { merge: true }),
+          Promise.resolve(Object.entries({
+            userProfile: JSON.stringify(defaultProfile),
+            userName: defaultProfile.name,
+            userPhone: defaultProfile.mobile,
+            userEmail: defaultProfile.email
+          }).forEach(([key, value]) => sessionStorage.setItem(key, value)))
+        ]);
+        
+        // Cache the default profile
+        userCache.set(cacheKey, defaultProfile);
+        
+        setProfile(defaultProfile);
         return defaultProfile;
       }
     } catch (err) {
@@ -104,7 +142,7 @@ export const useProfile = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isLoading]);
 
   // Initial profile fetch based on authenticated user UID
   useEffect(() => {
@@ -179,18 +217,29 @@ export const useProfile = () => {
           ...completeProfile,
           role: 'customer',
           lastLogin: new Date().toISOString(),
-          isActive: true
+          isActive: true,
+          updatedAt: serverTimestamp()
       }, { merge: true });
-      batch.set(profileRef, completeProfile, { merge: true });
+      batch.set(profileRef, { ...completeProfile, updatedAt: serverTimestamp() }, { merge: true });
 
       await batch.commit();
 
+      // Read back from Firestore to ensure UI and local caches reflect the canonical values
+      const [userSnap, profileSnap] = await Promise.all([
+        getDoc(userRef),
+        getDoc(profileRef)
+      ]);
+      const canonical = (profileSnap.exists() ? profileSnap.data() : userSnap.data()) as UserProfile | undefined;
+      const persistedProfile: UserProfile = {
+        ...(canonical || completeProfile)
+      } as UserProfile;
+
       // Update session storage for current tab
-      setProfile(completeProfile);
-      sessionStorage.setItem('userProfile', JSON.stringify(completeProfile));
-      sessionStorage.setItem('userName', completeProfile.name);
-      sessionStorage.setItem('userPhone', completeProfile.mobile);
-      sessionStorage.setItem('userEmail', completeProfile.email);
+      setProfile(persistedProfile);
+      sessionStorage.setItem('userProfile', JSON.stringify(persistedProfile));
+      sessionStorage.setItem('userName', persistedProfile.name);
+      sessionStorage.setItem('userPhone', persistedProfile.mobile);
+      sessionStorage.setItem('userEmail', persistedProfile.email);
 
       console.log('Profile updated successfully:', completeProfile);
       toast.success('Profile updated successfully');

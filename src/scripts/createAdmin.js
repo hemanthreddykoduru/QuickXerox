@@ -35,9 +35,17 @@ const createAdmin = async () => {
       console.log(
         "Admin email already in use. Proceeding to update Firestore document."
       );
-      // If email is already in use, try to get the existing user
-      const userRecord = await auth.getUserByEmail("admin@quickxerox.com");
-      user = userRecord;
+      // If email is already in use, get the existing user
+      // Use Firebase Admin SDK or other method to get UID if needed
+      // For client-side, you may need to sign in and get currentUser
+      // Here, we assume user is already signed in
+      user = auth.currentUser;
+      if (!user) {
+        console.error(
+          "Please sign in as admin@quickxerox.com to update Firestore document."
+        );
+        return;
+      }
     } else {
       console.error("Error creating admin in Firebase Auth:", error);
       return;

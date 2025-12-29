@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, Clock, BellRing, Package, Users } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, Clock, BellRing, Package, Users, Image } from 'lucide-react';
 
 interface SellerDetails {
   id: string;
@@ -38,6 +38,7 @@ interface SellerDetails {
       description: string;
       gstNumber: string;
       ownerName: string;
+      shopPictureUrl: string;
     };
     notifications: {
       newOrders: boolean;
@@ -216,6 +217,7 @@ const AdminSellerDetails = () => {
                     <DetailItem icon={<Phone className="text-purple-500" />} label="Shop Mobile (Settings)" value={seller.settings.shop.mobile} />
                     <DetailItem icon={<MapPin className="text-purple-500" />} label="Shop Address (Settings)" value={seller.settings.shop.address} />
                     <DetailItem icon={<Shield className="text-purple-500" />} label="GST Number (Settings)" value={seller.settings.shop.gstNumber} />
+                    <DetailItem icon={<Image className="text-purple-500" />} label="Shop Picture URL (Settings)" value={seller.settings.shop.shopPictureUrl} />
                     <DetailItem label="Shop Description (Settings)" value={seller.settings.shop.description} fullWidth={true} />
                   </div>
                 </div>

@@ -23,14 +23,17 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
   // Update form data when profile changes
   useEffect(() => {
     console.log('Profile updated in EditProfileForm:', profile);
+    console.log('Profile keys:', Object.keys(profile || {}));
+    console.log('Profile values:', profile);
+    
     setFormData({
-      name: profile.name || '',
-      email: profile.email || '',
-      address: profile.address || '',
-      city: profile.city || '',
-      state: profile.state || '',
-      pincode: profile.pincode || '',
-      mobile: profile.mobile || '',
+      name: profile?.name || '',
+      email: profile?.email || '',
+      address: profile?.address || '',
+      city: profile?.city || '',
+      state: profile?.state || '',
+      pincode: profile?.pincode || '',
+      mobile: profile?.mobile || '',
     });
   }, [profile]);
 
@@ -39,6 +42,10 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
     
     if (!formData.name?.trim()) {
       newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
+      newErrors.mobile = 'Mobile number must be 10 digits';
     }
     
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -65,7 +72,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
     try {
       const updatedProfile = {
         ...formData,
-        mobile: profile.mobile || '',
+        mobile: formData.mobile || profile.mobile || '',
         createdAt: profile.createdAt,
       } as UserProfile;
 
@@ -84,9 +91,10 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const nextValue = name === 'mobile' ? value.replace(/[^0-9]/g, '').slice(0, 10) : value;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
     // Clear error when user starts typing
     if (errors[name]) {
@@ -109,6 +117,17 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
           required
           error={errors.name}
           maxLength={50}
+        />
+        <FormInput
+          label="Mobile Number"
+          type="tel"
+          name="mobile"
+          value={formData.mobile || ''}
+          onChange={handleChange}
+          required
+          error={errors.mobile}
+          maxLength={10}
+          placeholder="10-digit number"
         />
         <FormInput
           label="Email"

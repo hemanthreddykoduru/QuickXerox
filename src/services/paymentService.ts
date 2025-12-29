@@ -34,6 +34,24 @@ export const createPayment = async (paymentDetails: PaymentDetails) => {
   }
 };
 
+export const createCashfreePayment = async (paymentDetails: PaymentDetails) => {
+  try {
+    // For now, we'll simulate the Cashfree order creation
+    // In a real implementation, you would call your backend API
+    const orderId = 'cf_order_' + Math.random().toString(36).substr(2, 9);
+    
+    return {
+      orderId: orderId,
+      amount: paymentDetails.amount,
+      currency: paymentDetails.currency,
+      status: 'created'
+    };
+  } catch (error) {
+    console.error('Error creating Cashfree payment:', error);
+    throw error;
+  }
+};
+
 export const verifyPayment = async (
   razorpayPaymentId: string,
   razorpayOrderId: string,
@@ -49,6 +67,21 @@ export const verifyPayment = async (
     return result.data.success;
   } catch (error) {
     console.error('Error verifying payment (via Cloud Function):', error);
+    throw error;
+  }
+};
+
+export const verifyCashfreePayment = async (
+  cashfreePaymentId: string,
+  cashfreeOrderId: string,
+  cashfreeSignature: string
+) => {
+  try {
+    // For now, we'll simulate the verification
+    // In a real implementation, you would call your backend API
+    return true;
+  } catch (error) {
+    console.error('Error verifying Cashfree payment:', error);
     throw error;
   }
 }; 

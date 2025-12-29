@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Global theme + smooth transitions */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900 transition-colors duration-300 ease-out;
+  }
+  .dark body {
+    @apply bg-gray-950 text-gray-100;
+  }
+}
+
+/* Minimal dark-mode overrides for common utility classes used across admin pages */
+@layer utilities {
+  .dark .bg-white { background-color: #0f172a !important; }
+  .dark .bg-gray-50 { background-color: #0b1220 !important; }
+  .dark .text-gray-900 { color: #e5e7eb !important; }
+  .dark .text-gray-700 { color: #cbd5e1 !important; }
+  .dark .text-gray-600 { color: #94a3b8 !important; }
+  .dark .text-gray-500 { color: #94a3b8 !important; }
+  .dark .border-gray-200 { border-color: #1f2a44 !important; }
+  .dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0,0,0,0.4) !important; }
+}
+
+/* Page enter animation for admin pages */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-page {
+  animation: fadeInUp 300ms ease-out;
+}

@@ -1,4 +1,5 @@
-export const RAZORPAY_KEY = 'rzp_test_1dvVhW0JrQ9oe1';
+export const CASHFREE_APP_ID = import.meta.env.VITE_CASHFREE_APP_ID;
+export const CASHFREE_SECRET_KEY = import.meta.env.VITE_CASHFREE_SECRET_KEY;
 
 export const PAYMENT_METHODS = [
   {
@@ -8,10 +9,22 @@ export const PAYMENT_METHODS = [
     description: 'Pay using Google Pay, PhonePe, or other UPI apps',
   },
   {
-    id: 'qr',
-    name: 'Scan QR Code',
-    icon: 'QrCode',
-    description: 'Scan QR code with any UPI app',
+    id: 'card',
+    name: 'Credit/Debit Card',
+    icon: 'CreditCard',
+    description: 'Pay using credit or debit card',
+  },
+  {
+    id: 'netbanking',
+    name: 'Net Banking',
+    icon: 'Bank',
+    description: 'Pay using net banking',
+  },
+  {
+    id: 'wallet',
+    name: 'Digital Wallet',
+    icon: 'Wallet',
+    description: 'Pay using digital wallets',
   },
 ] as const;
 

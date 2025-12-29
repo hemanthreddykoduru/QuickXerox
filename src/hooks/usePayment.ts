@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PaymentMethod } from '../types';
-import { initializeRazorpayPayment } from '../utils/razorpay';
+import { initializeCashfreePayment } from '../utils/cashfree';
 import { toast } from 'react-hot-toast';
 
 interface UsePaymentProps {
@@ -16,17 +16,17 @@ export const usePayment = ({ amount, onSuccess, onError }: UsePaymentProps) => {
     setIsLoading(true);
 
     try {
-      await initializeRazorpayPayment(
+      await initializeCashfreePayment(
         amount,
         method,
-        (response) => {
+        (response: any) => {
           setIsLoading(false);
           toast.success('Payment successful!');
           onSuccess();
           // In a real app, verify the payment with your backend here
           console.log('Payment success:', response);
         },
-        (error) => {
+        (error: any) => {
           setIsLoading(false);
           toast.error('Payment failed. Please try again.');
           onError(error);

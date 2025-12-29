@@ -171,6 +171,15 @@ export const verifyOTP = async (mobileNumber: string, userOTP: string): Promise<
       }
       await signInWithCustomToken(auth, data.customToken);
       console.log('Firebase phone authentication successful.');
+      // Persist session flags so the UI routes and hooks recognize auth
+      localStorage.setItem('isAuthenticated', 'true');
+      // Store minimal session info for downstream components/hooks
+      if (data.uid) {
+        sessionStorage.setItem('uid', data.uid);
+      }
+      if (mobileNumber) {
+        sessionStorage.setItem('userPhone', `+91${mobileNumber.replace(/[^0-9]/g, '')}`);
+      }
     } catch (firebaseAuthError) {
       console.error('Firebase phone authentication failed:', firebaseAuthError);
       return { success: false, error: 'Firebase authentication failed.' };
@@ -235,10 +244,14 @@ export const updateProfile = async (profile: UserProfile): Promise<UserProfile> 
 
 export const getProfile = async (mobile: string): Promise<UserProfile> => {
   try {
-    const cleanMobile = cleanMobileNumber(mobile);
-    console.log('Fetching profile for mobile:', cleanMobile);
+    // Prefer fetching by UID as per current server API contract
+    const uid = auth.currentUser?.uid || sessionStorage.getItem('uid');
+    if (!uid) {
+      throw new Error('No authenticated user found to fetch profile.');
+    }
+    console.log('Fetching profile for uid:', uid);
 
-    const response = await fetchWithRetry(`/api/profile/${cleanMobile}`);
+    const response = await fetchWithRetry(`/api/profile/${uid}`);
     
     if (!response.ok) {
       const errorData = await response.json();

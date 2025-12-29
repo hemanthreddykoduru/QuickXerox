@@ -7,6 +7,7 @@ import EditProfileModal from '../components/account/EditProfileModal';
 import { useProfile } from '../hooks/useProfile';
 import { Order } from '../types';
 import { toast } from 'react-hot-toast';
+import { generateSampleOrders } from '../utils/sampleOrders';
 
 const AccountPage = () => {
   const navigate = useNavigate();
@@ -22,32 +23,16 @@ const AccountPage = () => {
     }
   }, [navigate]);
 
-  const [orders] = useState<Order[]>([
-    {
-      id: '1',
-      customerName: 'John Doe',
-      items: [
-        { id: '1', fileName: 'document.pdf', copies: 2, isColor: true, pages: 5 }
-      ],
-      total: 25.00,
-      status: 'completed',
-      timestamp: '2024-03-15T10:30:00Z',
-      shopId: 1,
-      isPaid: true
-    },
-    {
-      id: '2',
-      customerName: 'John Doe',
-      items: [
-        { id: '2', fileName: 'presentation.pdf', copies: 1, isColor: false, pages: 10 }
-      ],
-      total: 15.00,
-      status: 'processing',
-      timestamp: '2024-03-14T15:45:00Z',
-      shopId: 2,
-      isPaid: true
-    }
-  ]);
+  const [orders] = useState<Order[]>(generateSampleOrders());
+
+  useEffect(() => {
+    // Initialize sample OTP data for demonstration
+    const sampleOTP = '7918'; // Sample OTP
+    localStorage.setItem('otp_ORD-001', sampleOTP);
+    localStorage.setItem('otp_ORD-001_timestamp', Date.now().toString());
+    localStorage.setItem('otp_ORD-001_customer_phone', '+91 98765 43210');
+    localStorage.setItem('otp_ORD-001_seller_phone', '+91 87654 32109');
+  }, []);
 
   const handleProfileUpdate = (updatedProfile: typeof profile) => {
     updateProfile(updatedProfile);

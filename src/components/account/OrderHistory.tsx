@@ -1,12 +1,31 @@
-import React from 'react';
-import { Clock, Printer, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, Printer, FileText, Shield, CheckCircle, Copy, Eye, EyeOff } from 'lucide-react';
 import { Order } from '../../types';
+import { toast } from 'react-hot-toast';
 
 interface OrderHistoryProps {
   orders: Order[];
 }
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
+  const [showOTP, setShowOTP] = useState<{ [key: string]: boolean }>({});
+
+  const toggleOTPVisibility = (orderId: string) => {
+    setShowOTP(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
+
+  const getStoredOTP = (orderId: string) => {
+    return localStorage.getItem(`otp_${orderId}`) || '';
+  };
+
+  const copyOTP = (otp: string) => {
+    navigator.clipboard.writeText(otp);
+    toast.success('OTP copied to clipboard!');
+  };
+
   const getStatusColor = (status: string) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -16,6 +35,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
     };
     return colors[status as keyof typeof colors] || colors.pending;
   };
+
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -70,13 +90,59 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
                   </span>
                 </div>
                 <p className="font-medium text-gray-900 text-sm sm:text-base">
-                  ${order.total.toFixed(2)}
+                  ₹{order.total.toFixed(2)}
                 </p>
               </div>
+
+              {/* OTP Display Section */}
+              {order.status === 'processing' && order.isPaid && getStoredOTP(order.id) && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-gray-900">Your Verification Code</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => toggleOTPVisibility(order.id)}
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                        title={showOTP[order.id] ? "Hide OTP" : "Show OTP"}
+                      >
+                        {showOTP[order.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                      <button
+                        onClick={() => copyOTP(getStoredOTP(order.id))}
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Copy OTP"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-center space-x-2 mb-3">
+                    {getStoredOTP(order.id).split('').map((digit, index) => (
+                      <div
+                        key={index}
+                        className="w-10 h-10 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center"
+                      >
+                        <span className="text-lg font-bold text-blue-600">
+                          {showOTP[order.id] ? digit : '•'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 text-center">
+                    Show this code to the seller when collecting your prints
+                  </p>
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
+
     </div>
   );
 };

@@ -1,13 +1,33 @@
-import React from 'react';
-import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye } from 'lucide-react'; // Import Eye icon
+import React, { useState } from 'react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye, Shield, EyeOff } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
+import { toast } from 'react-hot-toast';
 
 interface OrderListProps {
   orders: Order[];
   onStatusChange: (orderId: string, status: OrderStatus) => void;
+  onOTPVerificationComplete?: (orderId: string) => void; // kept for compatibility, not used
 }
 
-const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange }) => {
+const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVerificationComplete }) => {
+  const [showOTP, setShowOTP] = useState<{ [key: string]: boolean }>({});
+
+  const toggleOTPVisibility = (orderId: string) => {
+    setShowOTP(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
+
+  const getStoredOTP = (orderId: string) => {
+    return localStorage.getItem(`otp_${orderId}`) || '';
+  };
+
+  const copyOTP = (otp: string) => {
+    navigator.clipboard.writeText(otp);
+    toast.success('OTP copied to clipboard!');
+  };
+
   const getStatusBadge = (status: OrderStatus) => {
     const badges = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -102,6 +122,53 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange }) => {
             </div>
           </div>
 
+          {/* OTP Display for Processing Orders (verification removed) */}
+          {order.status === 'processing' && order.isPaid && (
+            <div className="mt-4">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-5 w-5 text-blue-600" />
+                    <h4 className="font-medium text-blue-900">Customer OTP</h4>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => toggleOTPVisibility(order.id)}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      title={showOTP[order.id] ? "Hide OTP" : "Show OTP"}
+                    >
+                      {showOTP[order.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => copyOTP(getStoredOTP(order.id))}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                      title="Copy OTP"
+                    >
+                      <Download className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center space-x-2 mb-2">
+                  {getStoredOTP(order.id).split('').map((digit, index) => (
+                    <div
+                      key={index}
+                      className="w-10 h-10 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center"
+                    >
+                      <span className="text-lg font-bold text-blue-600">
+                        {showOTP[order.id] ? digit : '•'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                <p className="text-xs text-blue-700 text-center">
+                  Customer: {order.customerPhone} • Ask customer to show this OTP
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-900">Total:</span>
@@ -128,13 +195,15 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange }) => {
             )}
 
             {order.status === 'processing' && (
-              <button
-                onClick={() => onStatusChange(order.id, 'completed')}
-                className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Mark as Complete
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => onStatusChange(order.id, 'completed')}
+                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Mark as Complete
+                </button>
+              </div>
             )}
           </div>
         </div>

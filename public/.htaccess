@@ -1,0 +1,59 @@
+RewriteEngine On
+RewriteBase /
+
+# Admin/Seller IP allowlist (proxy/CDN aware)
+# Real allowed admin IP: 103.103.209.150
+# Supports Cloudflare (CF-Connecting-IP), proxies (X-Forwarded-For), and direct (REMOTE_ADDR)
+
+# Allow if CF-Connecting-IP matches
+RewriteCond %{REQUEST_URI} ^/(admin|seller) [NC]
+RewriteCond %{HTTP:CF-Connecting-IP} ^103\.103\.209\.150$
+RewriteRule ^ - [L]
+
+# Allow if X-Forwarded-For (first IP) matches
+RewriteCond %{REQUEST_URI} ^/(admin|seller) [NC]
+RewriteCond %{HTTP:X-Forwarded-For} ^103\.103\.209\.150 [OR]
+RewriteCond %{REMOTE_ADDR} ^103\.103\.209\.150$
+RewriteRule ^ - [L]
+
+# Deny all other IPs for admin/seller routes
+RewriteCond %{REQUEST_URI} ^/(admin|seller) [NC]
+RewriteRule ^ - [F]
+
+# Serve existing files/folders directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Do not rewrite assets or static files
+RewriteCond %{REQUEST_URI} ^/assets/ [OR]
+RewriteCond %{REQUEST_URI} \.(js|css|png|jpg|jpeg|gif|svg|ico|json)$
+RewriteRule ^ - [L]
+
+# SPA fallback
+RewriteRule ^ index.html [L]
+
+# Enable gzip compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Browser caching
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType text/css "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|png|jpg|jpeg|gif|svg|ico|json)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+</IfModule>
