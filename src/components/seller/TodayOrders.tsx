@@ -13,7 +13,7 @@ const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange }) => 
 
   // Filter orders for today
   const today = new Date().toISOString().split('T')[0];
-  const todayOrders = orders.filter(order => 
+  const todayOrders = orders.filter(order =>
     order.timestamp.startsWith(today)
   );
 
@@ -120,7 +120,7 @@ const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange }) => 
                   {order.customerName}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.timestamp).toLocaleTimeString()}
+                  {new Date(order.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   ₹{order.total.toFixed(2)}

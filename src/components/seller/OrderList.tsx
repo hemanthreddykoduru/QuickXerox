@@ -94,7 +94,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
                   Order #{order.id}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {new Date(order.timestamp).toLocaleString()}
+                  {new Date(order.timestamp).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                 </p>
               </div>
             </div>
