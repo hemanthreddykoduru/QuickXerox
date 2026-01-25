@@ -10,7 +10,7 @@ interface Seller {
   name: string;
   email: string;
   mobile?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'active';
   createdAt: string;
   shopName?: string;
   ownerName?: string;
@@ -23,7 +23,7 @@ const AdminSellerList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<'all'|'pending'|'approved'|'rejected'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [editSeller, setEditSeller] = useState<Seller | null>(null);
 
   useEffect(() => {
@@ -183,13 +183,10 @@ const AdminSellerList = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{seller.shopName || 'N/A'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              seller.status === 'approved'
-                                ? 'bg-green-100 text-green-800'
-                                : seller.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${seller.status === 'approved' || seller.status === 'active' || seller.status === 'pending'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                              }`}
                           >
                             {seller.status}
                           </span>
