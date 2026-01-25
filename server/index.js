@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 // const twilio = require("twilio"); // Removed
 const admin = require("firebase-admin");
-const serviceAccount = require("./serviceAccountKey.json");
 require("dotenv").config();
 
 const app = express();
