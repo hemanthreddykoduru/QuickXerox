@@ -1,0 +1,13 @@
+{
+    "email": {
+        "user": "test@example.com",
+        "pass": "testpass"
+    },
+    "app": {
+        "url": "http://localhost:3000"
+    },
+    "razorpay": {
+        "key_id": "rzp_test_S6aPHcOZKR3AO2",
+        "key_secret": "QIEynkcicrhIUO8fm3SkhICq"
+    }
+}

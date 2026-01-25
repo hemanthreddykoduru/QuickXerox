@@ -1,0 +1,15 @@
+# Walkthrough - Added Favicon
+
+I have successfully added a custom favicon to the QuickXerox website.
+
+## Changes
+1.  **Created Facicon**: Generated a scalable SVG favicon ([/favicon.svg](file:///Users/hemanthmacbook/Desktop/QuickXerox/public/favicon.svg)) featuring a clean, blue design.
+2.  **Updated HTML**: Modified [index.html](file:///Users/hemanthmacbook/Desktop/QuickXerox/index.html) to link to the new SVG file and removed the default Vite logo.
+3.  **Deployed**: Built and deployed the changes to Firebase Hosting.
+
+## Verification
+The site has been deployed to `https://otp-project-aafc6.web.app`.
+You should now see the new icon in your browser tab title bar.
+
+> [!NOTE]
+> If you still see the old icon, try doing a "Hard Refresh" (Cmd+Shift+R) or clearing your browser cache for the site.

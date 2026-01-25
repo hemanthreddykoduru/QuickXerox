@@ -1,0 +1,61 @@
+export interface UserProfile {
+  name: string;
+  mobile: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  profileImage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PrintJob {
+  id: string;
+  file: File;
+  copies: number;
+  isColor: boolean;
+}
+
+export interface PrintShop {
+  id: string;
+  name: string;
+  rating: number;
+  distance: string;
+  price: number;
+  eta: string;
+  image: string;
+  isShopOpen: boolean;
+  perPageCostAdjustment: number;
+}
+
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'rejected';
+
+export interface OrderItem {
+  id: string;
+  fileName: string;
+  filePath?: string; // Supabase storage path (for private access)
+  fileUrl?: string; // Legacy:/Direct link (deprecated for private files)
+  copies: number;
+  isColor: boolean;
+  pages: number;
+}
+
+export interface Order {
+  id: string;
+  customerName: string;
+  customerPhone: string;
+  sellerPhone: string;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  timestamp: string;
+  shopId: number;
+  isPaid: boolean;
+  otpVerified?: boolean;
+  otp?: string;
+  otpGeneratedAt?: string;
+}
+
+export type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';
