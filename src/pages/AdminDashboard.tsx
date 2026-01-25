@@ -253,11 +253,14 @@ const AdminDashboard = () => {
           // Fetch recent sellers
           const q = query(collection(db, 'shopOwners'), orderBy('createdAt', 'desc'), limit(5));
           const querySnapshot = await getDocs(q);
-          const fetchedRecentSellers: RecentSeller[] = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            name: doc.data().name || 'N/A',
-            shopName: doc.data().shopName || 'N/A',
-          }));
+          const fetchedRecentSellers: RecentSeller[] = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name || data.shopName || data.email || 'Unnamed Seller',
+              shopName: data.shopName || data.name || 'No shop name',
+            };
+          });
           setRecentSellers(fetchedRecentSellers);
           // Fetch metrics and audit logs in parallel with timeout
           const timeoutPromise = new Promise<never>((_, reject) =>
