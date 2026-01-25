@@ -99,7 +99,7 @@ app.get("/api/health", (req, res) => {
     const response = {
       status: "ok",
       timestamp: new Date().toISOString(),
-      twilioConfigured: !!(accountSid && authToken && twilioPhone),
+      twilioConfigured: false,
     };
     console.log("Health check response:", response);
     res.status(200).json(response);
@@ -405,6 +405,6 @@ app.listen(port, () => {
   console.log("Environment:", process.env.NODE_ENV || "development");
   console.log(
     "Twilio configured:",
-    !!accountSid && !!authToken && !!twilioPhone
+    false
   );
 });
