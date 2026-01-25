@@ -24,13 +24,35 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
-// Initialize Firebase Admin SDK
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
-const db = admin.firestore();
-const authAdmin = admin.auth(); // Initialize Firebase Admin Auth
+// Initialize Firebase Admin SDK (OPTIONAL FOR TESTING)
+let db, authAdmin;
+try {
+  const serviceAccount = require("./serviceAccountKey.json");
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  db = admin.firestore();
+  authAdmin = admin.auth();
+  console.log("✅ Firebase initialized successfully");
+} catch (error) {
+  console.warn("⚠️  Firebase not initialized (running in test mode):", error.message);
+  console.warn("⚠️  Webhook endpoint will work, but order updates won't save to Firestore");
+  // Create mock db object so code doesn't crash
+  db = {
+    collection: () => ({
+      add: async () => console.log("Mock: would add to Firestore"),
+      doc: () => ({
+        set: async () => console.log("Mock: would set document"),
+        update: async () => console.log("Mock: would update document"),
+        get: async () => ({ exists: false })
+      }),
+      where: () => ({
+        get: async () => ({ empty: true, docs: [] })
+      })
+    })
+  };
+  authAdmin = null;
+}
 
 // Debug: Log environment variables (excluding sensitive data)
 console.log("Environment:", {
