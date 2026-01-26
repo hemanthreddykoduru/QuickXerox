@@ -36,6 +36,7 @@ function CustomerDashboard() {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [showOTPVerification, setShowOTPVerification] = useState(false);
   const [selectedOrderForOTP, setSelectedOrderForOTP] = useState<Order | null>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -109,6 +110,45 @@ function CustomerDashboard() {
     }, (error) => {
       console.error('Error fetching print shops in real-time:', error);
       toast.error('Failed to load print shops in real-time.');
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Real-time notification count based on orders
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+
+    const ordersQuery = query(
+      collection(db, 'orders'),
+      where('customerId', '==', userId)
+    );
+
+    const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+      let count = 0;
+      snapshot.forEach((doc) => {
+        const order = doc.data();
+        const orderId = doc.id;
+
+        // Count unread notifications based on order status
+        if (order.status === 'pending' && order.paymentStatus === 'success') {
+          if (!readNotifications.includes(`order-pending-${orderId}`)) count++;
+        }
+        if (order.status === 'processing') {
+          if (!readNotifications.includes(`order-processing-${orderId}`)) count++;
+        }
+        if (order.status === 'completed') {
+          if (!readNotifications.includes(`order-completed-${orderId}`)) count++;
+        }
+        if (order.status === 'rejected') {
+          if (!readNotifications.includes(`order-rejected-${orderId}`)) count++;
+        }
+      });
+
+      setNotificationCount(count);
     });
 
     return () => unsubscribe();
@@ -233,9 +273,11 @@ function CustomerDashboard() {
                 aria-label="Notifications"
               >
                 <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  3
-                </span>
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {notificationCount}
+                  </span>
+                )}
               </button>
               <CartButton
                 itemCount={printJobs.length}
