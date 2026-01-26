@@ -19,7 +19,7 @@ interface Order {
 }
 
 const RevenueReports: React.FC = () => {
-  const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('weekly');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [orders, setOrders] = useState<Order[]>([]);
@@ -51,12 +51,7 @@ const RevenueReports: React.FC = () => {
         });
       });
       console.log('Revenue Reports - Fetched orders:', fetchedOrders.length);
-      console.log('Revenue Reports - Orders data:', fetchedOrders.map(o => ({
-        id: o.id.slice(-6),
-        status: o.status,
-        total: o.total,
-        timestamp: o.timestamp
-      })));
+      console.log('Revenue Reports - Completed orders:', fetchedOrders.filter(o => o.status === 'completed').length);
       setOrders(fetchedOrders);
       setLoading(false);
     }, (error) => {
@@ -97,14 +92,21 @@ const RevenueReports: React.FC = () => {
     }));
   };
 
-  // Aggregate data by week for weekly view
+  // Aggregate data by week for weekly view - FIXED VERSION
   const getWeeklyData = (): RevenueData[] => {
     const now = new Date();
     const weeks: RevenueData[] = [];
 
-    for (let i = 3; i >= 0; i--) {
-      const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
-      const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 1000);
+    // For each of the last 4 weeks
+    for (let weekIndex = 0; weekIndex < 4; weekIndex++) {
+      // Week 1 = 3 weeks ago, Week 2 = 2 weeks ago, Week 3 = 1 week ago, Week 4 = this week
+      const weeksAgo = 3 - weekIndex;
+
+      // Calculate start of this week (7 days ago from the end)
+      const weekEnd = new Date(now.getTime() - (weeksAgo * 7 * 24 * 60 * 60 * 1000));
+      const weekStart = new Date(weekEnd.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+      console.log(`Week ${weekIndex + 1}: ${weekStart.toISOString().slice(0, 10)} to ${weekEnd.toISOString().slice(0, 10)}`);
 
       let revenue = 0;
       let orderCount = 0;
@@ -116,24 +118,22 @@ const RevenueReports: React.FC = () => {
         const orderDate = new Date(order.timestamp);
         const matches = orderDate >= weekStart && orderDate < weekEnd;
 
-        console.log(`  Order ${order.id.slice(-6)}: ${orderDate.toISOString()}, matches=${matches}`);
-
         if (matches) {
+          console.log(`  ✓ Order ${order.id.slice(-6)}: ${orderDate.toISOString().slice(0, 10)}, ₹${order.total}`);
           revenue += order.total;
           orderCount += 1;
         }
       });
 
       weeks.push({
-        date: `Week ${4 - i}`,
+        date: `Week ${weekIndex + 1}`,
         revenue: Math.round(revenue),
         orders: orderCount
       });
 
-      console.log(`Week ${4 - i}: revenue=${revenue}, orders=${orderCount}`);
+      console.log(`Week ${weekIndex + 1} TOTAL: ₹${revenue}, ${orderCount} orders\n`);
     }
 
-    console.log('Weekly data:', weeks);
     return weeks;
   };
 
@@ -300,7 +300,7 @@ const RevenueReports: React.FC = () => {
               id="startDate"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="border border-gray-300 rounded-md px-3 py-2"
             />
           </div>
           <div>
@@ -312,65 +312,59 @@ const RevenueReports: React.FC = () => {
               id="endDate"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="border border-gray-300 rounded-md px-3 py-2"
             />
           </div>
         </div>
       )}
 
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <IndianRupee className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Total Revenue</h3>
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-blue-900">₹{getTotalRevenue()}</p>
+            </div>
+            <IndianRupee className="h-8 w-8 text-blue-600" />
           </div>
-          <p className="text-2xl font-bold text-blue-600 mt-2">
-            ₹{getTotalRevenue().toLocaleString()}
-          </p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5 text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Total Orders</h3>
+
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-600">Total Orders</p>
+              <p className="text-2xl font-bold text-green-900">{getTotalOrders()}</p>
+            </div>
+            <Calendar className="h-8 w-8 text-green-600" />
           </div>
-          <p className="text-2xl font-bold text-green-600 mt-2">
-            {getTotalOrders().toLocaleString()}
-          </p>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <TrendingUp className="h-5 w-5 text-purple-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Average Order Value</h3>
+
+        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-600">Average Order Value</p>
+              <p className="text-2xl font-bold text-purple-900">
+                ₹{getTotalOrders() > 0 ? (getTotalRevenue() / getTotalOrders()).toFixed(2) : '0.00'}
+              </p>
+            </div>
+            <TrendingUp className="h-8 w-8 text-purple-600" />
           </div>
-          <p className="text-2xl font-bold text-purple-600 mt-2">
-            ₹{getTotalOrders() > 0 ? (getTotalRevenue() / getTotalOrders()).toFixed(2) : '0.00'}
-          </p>
         </div>
       </div>
 
-      <div className="h-[400px]">
+      {/* Chart */}
+      <div className="h-96">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={getData()}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
-            <YAxis yAxisId="left" orientation="left" stroke="#3B82F6" />
-            <YAxis yAxisId="right" orientation="right" stroke="#10B981" />
+            <YAxis yAxisId="left" orientation="left" stroke="#3b82f6" />
+            <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
             <Tooltip />
             <Legend />
-            <Bar
-              yAxisId="left"
-              dataKey="revenue"
-              name="Revenue (₹)"
-              fill="#3B82F6"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar
-              yAxisId="right"
-              dataKey="orders"
-              name="Orders"
-              fill="#10B981"
-              radius={[4, 4, 0, 0]}
-            />
+            <Bar yAxisId="left" dataKey="revenue" fill="#3b82f6" name="Revenue (₹)" />
+            <Bar yAxisId="right" dataKey="orders" fill="#10b981" name="Orders" />
           </BarChart>
         </ResponsiveContainer>
       </div>
