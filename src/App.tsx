@@ -12,6 +12,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminOrderList from './pages/AdminOrderList';
 import AdminSellerList from './pages/AdminSellerList';
 import AdminSellerDetails from './pages/AdminSellerDetails';
+import AdminAuditLogs from './pages/AdminAuditLogs';
+import AdminEmailTemplates from './pages/AdminEmailTemplates';
 import IpBlocked from './pages/IpBlocked';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 
@@ -105,6 +107,22 @@ function App() {
           element={
             <PrivateRoute type="admin">
               <AdminSellerDetails />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/audit-logs"
+          element={
+            <PrivateRoute type="admin">
+              <AdminAuditLogs />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/email-templates"
+          element={
+            <PrivateRoute type="admin">
+              <AdminEmailTemplates />
             </PrivateRoute>
           }
         />

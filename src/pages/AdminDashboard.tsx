@@ -94,9 +94,11 @@ const AdminDashboard = () => {
       biometricEnabled: boolean;
       newCheckoutEnabled: boolean;
     };
+    maintenanceMode: boolean;
   };
 
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
+    maintenanceMode: false,
     branding: { appName: 'QuickXerox' },
     auth: {
       requireEmailVerification: true,
@@ -152,6 +154,7 @@ const AdminDashboard = () => {
   // Deep-merge helper to keep defaults when loading from Firestore
   const mergeSystemSettings = (base: SystemSettings, loaded: Partial<SystemSettings>): SystemSettings => {
     const merged: SystemSettings = {
+      maintenanceMode: loaded.maintenanceMode ?? base.maintenanceMode,
       branding: { ...base.branding, ...(loaded.branding || {}) },
       auth: {
         ...base.auth,
@@ -556,9 +559,8 @@ const AdminDashboard = () => {
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Email & Notifications</h3>
             <p className="text-sm text-gray-500">Configure communication settings.</p>
             <button
-              onClick={() => toast('Email settings functionality coming soon!')}
-              className="mt-auto bg-gray-200 text-gray-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md cursor-not-allowed text-sm"
-              disabled
+              onClick={() => navigate('/admin/email-templates')}
+              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
             >
               Manage Communications
             </button>
@@ -596,7 +598,15 @@ const AdminDashboard = () => {
 
         {/* Audit Logs Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Audit Logs</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Audit Logs</h2>
+            <button
+              onClick={() => navigate('/admin/audit-logs')}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              View All Logs
+            </button>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
               <thead>
@@ -871,6 +881,31 @@ const AdminDashboard = () => {
               </div>
 
               <div className="space-y-6">
+                {/* Emergency Controls */}
+                <section className="bg-red-50 dark:bg-red-900/20 p-4 rounded-md border border-red-200 dark:border-red-800">
+                  <h3 className="text-lg font-semibold mb-3 text-red-700 dark:text-red-400 flex items-center gap-2">
+                    <LogOut className="h-5 w-5" />
+                    Emergency Controls
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">Maintenance Mode</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Prevent non-admin users from accessing the platform.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={systemSettings.maintenanceMode ?? false}
+                        onChange={(e) => setSystemSettings(s => ({ ...s, maintenanceMode: e.target.checked }))}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 dark:peer-focus:ring-red-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-red-600"></div>
+                    </label>
+                  </div>
+                </section>
+
                 {/* Branding */}
                 <section className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-3">Branding</h3>
@@ -1228,16 +1263,34 @@ const AdminDashboard = () => {
                         <label className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            checked={systemSettings.roles?.admin?.allowExport}
-                            onChange={(e) => setSystemSettings(s => ({ ...s, roles: { ...s.roles, admin: { ...s.roles.admin, allowExport: e.target.checked } } }))}
+                            checked={systemSettings.roles?.admin?.allowExport ?? false}
+                            onChange={(e) => setSystemSettings(s => ({
+                              ...s,
+                              roles: {
+                                ...s.roles,
+                                admin: {
+                                  ...(s.roles?.admin || { allowExport: true, allowImpersonate: false }),
+                                  allowExport: e.target.checked
+                                }
+                              }
+                            }))}
                           />
                           Allow export data
                         </label>
                         <label className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            checked={systemSettings.roles?.admin?.allowImpersonate}
-                            onChange={(e) => setSystemSettings(s => ({ ...s, roles: { ...s.roles, admin: { ...s.roles.admin, allowImpersonate: e.target.checked } } }))}
+                            checked={systemSettings.roles?.admin?.allowImpersonate ?? false}
+                            onChange={(e) => setSystemSettings(s => ({
+                              ...s,
+                              roles: {
+                                ...s.roles,
+                                admin: {
+                                  ...(s.roles?.admin || { allowExport: true, allowImpersonate: false }),
+                                  allowImpersonate: e.target.checked
+                                }
+                              }
+                            }))}
                           />
                           Allow impersonate users
                         </label>
@@ -1249,8 +1302,17 @@ const AdminDashboard = () => {
                         <label className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            checked={systemSettings.roles?.seller?.allowExport}
-                            onChange={(e) => setSystemSettings(s => ({ ...s, roles: { ...s.roles, seller: { ...s.roles.seller, allowExport: e.target.checked } } }))}
+                            checked={systemSettings.roles?.seller?.allowExport ?? false}
+                            onChange={(e) => setSystemSettings(s => ({
+                              ...s,
+                              roles: {
+                                ...s.roles,
+                                seller: {
+                                  ...(s.roles?.seller || { allowExport: true }),
+                                  allowExport: e.target.checked
+                                }
+                              }
+                            }))}
                           />
                           Allow export data
                         </label>
@@ -1262,8 +1324,17 @@ const AdminDashboard = () => {
                         <label className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            checked={systemSettings.roles?.viewer?.allowExport}
-                            onChange={(e) => setSystemSettings(s => ({ ...s, roles: { ...s.roles, viewer: { ...s.roles.viewer, allowExport: e.target.checked } } }))}
+                            checked={systemSettings.roles?.viewer?.allowExport ?? false}
+                            onChange={(e) => setSystemSettings(s => ({
+                              ...s,
+                              roles: {
+                                ...s.roles,
+                                viewer: {
+                                  ...(s.roles?.viewer || { allowExport: false }),
+                                  allowExport: e.target.checked
+                                }
+                              }
+                            }))}
                           />
                           Allow export data
                         </label>
@@ -1279,8 +1350,20 @@ const AdminDashboard = () => {
                     <label className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
-                        checked={systemSettings.shopsOrders.autoApproveShops}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, shopsOrders: { ...s.shopsOrders, autoApproveShops: e.target.checked } }))}
+                        checked={systemSettings.shopsOrders?.autoApproveShops ?? false}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          shopsOrders: {
+                            ...(s.shopsOrders || {
+                              autoApproveShops: false,
+                              unpaidAutoCancelMins: 30,
+                              otpExpiryMins: 10,
+                              maxFilesPerOrder: 5,
+                              maxPagesPerFile: 100
+                            }),
+                            autoApproveShops: e.target.checked
+                          }
+                        }))}
                       />
                       Auto-approve new shops
                     </label>
@@ -1289,8 +1372,20 @@ const AdminDashboard = () => {
                       <input
                         type="number"
                         min={1}
-                        value={systemSettings.shopsOrders.unpaidAutoCancelMins}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, shopsOrders: { ...s.shopsOrders, unpaidAutoCancelMins: Number(e.target.value) } }))}
+                        value={systemSettings.shopsOrders?.unpaidAutoCancelMins ?? 30}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          shopsOrders: {
+                            ...(s.shopsOrders || {
+                              autoApproveShops: false,
+                              unpaidAutoCancelMins: 30,
+                              otpExpiryMins: 10,
+                              maxFilesPerOrder: 5,
+                              maxPagesPerFile: 100
+                            }),
+                            unpaidAutoCancelMins: Number(e.target.value)
+                          }
+                        }))}
                         className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
                         aria-label="Unpaid order auto-cancel time in minutes"
                         title="Unpaid order auto-cancel time in minutes"
@@ -1301,8 +1396,20 @@ const AdminDashboard = () => {
                       <input
                         type="number"
                         min={1}
-                        value={systemSettings.shopsOrders.otpExpiryMins}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, shopsOrders: { ...s.shopsOrders, otpExpiryMins: Number(e.target.value) } }))}
+                        value={systemSettings.shopsOrders?.otpExpiryMins ?? 10}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          shopsOrders: {
+                            ...(s.shopsOrders || {
+                              autoApproveShops: false,
+                              unpaidAutoCancelMins: 30,
+                              otpExpiryMins: 10,
+                              maxFilesPerOrder: 5,
+                              maxPagesPerFile: 100
+                            }),
+                            otpExpiryMins: Number(e.target.value)
+                          }
+                        }))}
                         className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
                         aria-label="OTP expiry time in minutes"
                         title="OTP expiry time in minutes"
@@ -1313,8 +1420,20 @@ const AdminDashboard = () => {
                       <input
                         type="number"
                         min={1}
-                        value={systemSettings.shopsOrders.maxFilesPerOrder}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, shopsOrders: { ...s.shopsOrders, maxFilesPerOrder: Number(e.target.value) } }))}
+                        value={systemSettings.shopsOrders?.maxFilesPerOrder ?? 5}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          shopsOrders: {
+                            ...(s.shopsOrders || {
+                              autoApproveShops: false,
+                              unpaidAutoCancelMins: 30,
+                              otpExpiryMins: 10,
+                              maxFilesPerOrder: 5,
+                              maxPagesPerFile: 100
+                            }),
+                            maxFilesPerOrder: Number(e.target.value)
+                          }
+                        }))}
                         className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
                         aria-label="Maximum files allowed per order"
                         title="Maximum files allowed per order"
@@ -1325,8 +1444,20 @@ const AdminDashboard = () => {
                       <input
                         type="number"
                         min={1}
-                        value={systemSettings.shopsOrders.maxPagesPerFile}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, shopsOrders: { ...s.shopsOrders, maxPagesPerFile: Number(e.target.value) } }))}
+                        value={systemSettings.shopsOrders?.maxPagesPerFile ?? 100}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          shopsOrders: {
+                            ...(s.shopsOrders || {
+                              autoApproveShops: false,
+                              unpaidAutoCancelMins: 30,
+                              otpExpiryMins: 10,
+                              maxFilesPerOrder: 5,
+                              maxPagesPerFile: 100
+                            }),
+                            maxPagesPerFile: Number(e.target.value)
+                          }
+                        }))}
                         className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
                         aria-label="Maximum pages allowed per file"
                         title="Maximum pages allowed per file"
@@ -1344,8 +1475,14 @@ const AdminDashboard = () => {
                       <input
                         type="number"
                         min={1}
-                        value={systemSettings.dataCompliance.ordersRetentionDays}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, dataCompliance: { ...s.dataCompliance, ordersRetentionDays: Number(e.target.value) } }))}
+                        value={systemSettings.dataCompliance?.ordersRetentionDays ?? 30}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          dataCompliance: {
+                            ...(s.dataCompliance || { ordersRetentionDays: 30, logsRetentionDays: 90, piiMasking: false }),
+                            ordersRetentionDays: Number(e.target.value)
+                          }
+                        }))}
                         className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
                         aria-label="Orders retention period in days"
                         title="Orders retention period in days"
@@ -1356,8 +1493,14 @@ const AdminDashboard = () => {
                       <input
                         type="number"
                         min={1}
-                        value={systemSettings.dataCompliance.logsRetentionDays}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, dataCompliance: { ...s.dataCompliance, logsRetentionDays: Number(e.target.value) } }))}
+                        value={systemSettings.dataCompliance?.logsRetentionDays ?? 90}
+                        onChange={(e) => setSystemSettings(s => ({
+                          ...s,
+                          dataCompliance: {
+                            ...(s.dataCompliance || { ordersRetentionDays: 30, logsRetentionDays: 90, piiMasking: false }),
+                            logsRetentionDays: Number(e.target.value)
+                          }
+                        }))}
                         className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
                         aria-label="Logs retention period in days"
                         title="Logs retention period in days"
