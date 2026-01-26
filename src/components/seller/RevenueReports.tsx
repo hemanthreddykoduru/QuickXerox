@@ -50,6 +50,13 @@ const RevenueReports: React.FC = () => {
           shopId: data.shopId || ''
         });
       });
+      console.log('Revenue Reports - Fetched orders:', fetchedOrders.length);
+      console.log('Revenue Reports - Orders data:', fetchedOrders.map(o => ({
+        id: o.id.slice(-6),
+        status: o.status,
+        total: o.total,
+        timestamp: o.timestamp
+      })));
       setOrders(fetchedOrders);
       setLoading(false);
     }, (error) => {
@@ -118,8 +125,11 @@ const RevenueReports: React.FC = () => {
         revenue: Math.round(revenue),
         orders: orderCount
       });
+
+      console.log(`Week ${4 - i}: revenue=${revenue}, orders=${orderCount}`);
     }
 
+    console.log('Weekly data:', weeks);
     return weeks;
   };
 
