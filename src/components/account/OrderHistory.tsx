@@ -1,4 +1,7 @@
-import Skeleton from '../../common/Skeleton';
+import React from 'react';
+import { Printer, FileText, Clock, Shield } from 'lucide-react';
+import { Order } from '../../types';
+import Skeleton from '../common/Skeleton';
 
 interface OrderHistoryProps {
   orders: (Order & { otp?: string })[];

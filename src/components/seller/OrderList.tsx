@@ -3,7 +3,7 @@ import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye, Shield } from 
 import { Order, OrderStatus } from '../../types';
 import { toast } from 'react-hot-toast';
 import { getSignedUrl } from '../../services/storageService';
-import Skeleton from '../../common/Skeleton';
+import Skeleton from '../common/Skeleton';
 
 interface OrderListProps {
   orders: (Order & { otp?: string })[];

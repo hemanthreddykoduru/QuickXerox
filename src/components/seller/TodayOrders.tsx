@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
-import Skeleton from '../../common/Skeleton';
+import Skeleton from '../common/Skeleton';
 
 interface TodayOrdersProps {
   orders: Order[];

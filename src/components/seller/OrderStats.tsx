@@ -1,7 +1,7 @@
 import React from 'react';
 import { DollarSign, Clock, CheckCircle, IndianRupee } from 'lucide-react';
 import { Order } from '../../types';
-import Skeleton from '../../common/Skeleton';
+import Skeleton from '../common/Skeleton';
 
 interface OrderStatsProps {
   orders: Order[];
