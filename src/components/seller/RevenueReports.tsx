@@ -114,7 +114,11 @@ const RevenueReports: React.FC = () => {
         if (order.status !== 'completed') return;
 
         const orderDate = new Date(order.timestamp);
-        if (orderDate >= weekStart && orderDate < weekEnd) {
+        const matches = orderDate >= weekStart && orderDate < weekEnd;
+
+        console.log(`  Order ${order.id.slice(-6)}: ${orderDate.toISOString()}, matches=${matches}`);
+
+        if (matches) {
           revenue += order.total;
           orderCount += 1;
         }
