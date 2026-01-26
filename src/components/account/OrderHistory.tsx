@@ -1,12 +1,11 @@
-import React from 'react';
-import { Clock, Printer, FileText, Shield } from 'lucide-react';
-import { Order } from '../../types';
+import Skeleton from '../../common/Skeleton';
 
 interface OrderHistoryProps {
   orders: (Order & { otp?: string })[];
+  isLoading?: boolean;
 }
 
-const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
+const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
 
 
 
@@ -28,7 +27,35 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
       </div>
 
       <div className="divide-y divide-gray-200">
-        {orders.length === 0 ? (
+        {isLoading ? (
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className="p-4 sm:p-6 space-y-4">
+              <div className="flex justify-between">
+                <div className="flex space-x-3 w-1/2">
+                  <Skeleton width={20} height={20} variant="circular" />
+                  <div className="w-full space-y-2">
+                    <Skeleton width="60%" height={20} />
+                    <Skeleton width="40%" height={16} />
+                  </div>
+                </div>
+                <Skeleton width={80} height={24} className="rounded-full" />
+              </div>
+              <div className="space-y-3">
+                <div className="flex space-x-3">
+                  <Skeleton width={20} height={20} variant="circular" />
+                  <div className="w-3/4 space-y-1">
+                    <Skeleton width="50%" height={16} />
+                    <Skeleton width="30%" height={12} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between pt-2">
+                <Skeleton width={120} height={16} />
+                <Skeleton width={60} height={20} />
+              </div>
+            </div>
+          ))
+        ) : orders.length === 0 ? (
           <div className="p-4 sm:p-6 text-center text-gray-500">
             No orders yet
           </div>

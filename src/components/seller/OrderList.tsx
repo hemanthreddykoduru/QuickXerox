@@ -3,14 +3,16 @@ import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye, Shield } from 
 import { Order, OrderStatus } from '../../types';
 import { toast } from 'react-hot-toast';
 import { getSignedUrl } from '../../services/storageService';
+import Skeleton from '../../common/Skeleton';
 
 interface OrderListProps {
   orders: (Order & { otp?: string })[];
   onStatusChange: (orderId: string, status: OrderStatus) => void;
   onOTPVerificationComplete?: (orderId: string) => void; // kept for compatibility, not used
+  isLoading?: boolean;
 }
 
-const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVerificationComplete }) => {
+const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVerificationComplete, isLoading }) => {
 
 
 
@@ -84,9 +86,32 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
 
   return (
     <div className="bg-white shadow-sm rounded-lg divide-y divide-gray-200">
-      {orders.map((order) => (
-        <div key={order.id} className="p-6">
-          <div className="flex items-center justify-between">
+      {isLoading ? (
+        Array(3).fill(0).map((_, i) => (
+          <div key={i} className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-3 w-1/2">
+                <Skeleton width={20} height={20} variant="circular" />
+                <div>
+                  <Skeleton width={120} height={20} className="mb-1" />
+                  <Skeleton width={150} height={16} />
+                </div>
+              </div>
+              <Skeleton width={80} height={24} className="rounded-full" />
+            </div>
+            <div className="space-y-2 mb-4">
+              <Skeleton width={150} height={20} />
+              <Skeleton width="80%" height={24} />
+            </div>
+            <div className="flex justify-between items-center">
+              <Skeleton width={100} height={24} />
+              <Skeleton width={100} height={32} />
+            </div>
+          </div>
+        ))
+      ) : orders.map((order) => (
+        <div key={order.id} className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
             <div className="flex items-center space-x-3">
               {getStatusIcon(order.status)}
               <div>
@@ -99,7 +124,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
               </div>
             </div>
             <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadge(
+              className={`px-3 py-1 rounded-full text-sm font-medium self-start sm:self-auto ${getStatusBadge(
                 order.status
               )}`}
             >
@@ -111,12 +136,15 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
             <div className="text-sm text-gray-500">
               <p className="font-medium text-gray-900">{order.customerName}</p>
               {order.items.map((item) => (
-                <div key={item.id} className="mt-1 flex items-center space-x-2">
-                  <span>
-                    {item.fileName} - {item.copies} {item.copies === 1 ? 'copy' : 'copies'} •{' '}
-                    {item.isColor ? 'Color' : 'B&W'} • {item.pages} pages
-                  </span>
-                  <div className="flex space-x-2">
+                <div key={item.id} className="mt-2 flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div className="mb-2 sm:mb-0">
+                    <p className="font-medium text-gray-900">{item.fileName}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {item.copies} {item.copies === 1 ? 'copy' : 'copies'} •{' '}
+                      {item.isColor ? 'Color' : 'B&W'} • {item.pages} pages
+                    </p>
+                  </div>
+                  <div className="flex space-x-3">
                     {/* Download Button */}
                     <button
                       onClick={() => handleDownload(item.fileName, item.fileUrl, item.filePath)}
@@ -168,7 +196,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
             </div>
           )}
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-900">Total:</span>
               <span className="text-lg font-bold text-gray-900">
@@ -182,10 +210,10 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
             </div>
 
             {order.status === 'pending' && (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
                 <button
                   onClick={() => onStatusChange(order.id, 'processing')}
-                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Accept
@@ -194,10 +222,10 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
             )}
 
             {order.status === 'processing' && (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
                 <button
                   onClick={() => onStatusChange(order.id, 'completed')}
-                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  className="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Mark as Complete

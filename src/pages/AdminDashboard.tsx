@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Printer, Users, ShoppingBag, Settings, LogOut, BarChart, CreditCard, Mail, FileText, Globe, X, Moon, Sun } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../firebase';
-import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
+import Skeleton from '../components/common/Skeleton';
 
 interface RecentSeller {
   id: string;
@@ -369,6 +370,14 @@ const AdminDashboard = () => {
       a.download = "QuickXerox_Customers.csv";
       a.click();
       toast.success("Customers CSV Downloaded 📥");
+
+      // Log the export action
+      await addDoc(collection(db, 'auditLogs'), {
+        action: 'EXPORT_DATA',
+        adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
+        details: 'Exported customers list to CSV',
+        timestamp: serverTimestamp(),
+      });
     } catch (err) {
       toast.error("Failed to export CSV");
       console.error(err);
@@ -463,6 +472,12 @@ const AdminDashboard = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : isLoading ? (
+              <div className="w-full mt-3 border-t pt-3 space-y-2">
+                <Skeleton variant="text" width={80} height={12} className="mb-2" />
+                <Skeleton variant="text" width="100%" height={20} />
+                <Skeleton variant="text" width="100%" height={20} />
               </div>
             ) : (
               <p className="text-sm text-gray-500 mt-2">No recent sellers found.</p>
@@ -590,8 +605,13 @@ const AdminDashboard = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
-              Loading metrics...
+            <div className="flex gap-8 flex-wrap">
+              {Array(4).fill(0).map((_, i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center w-40">
+                  <Skeleton variant="text" width={80} height={16} className="mx-auto mb-2" />
+                  <Skeleton variant="text" width={40} height={32} className="mx-auto" />
+                </div>
+              ))}
             </div>
           )}
         </div>

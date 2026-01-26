@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
+import Skeleton from '../../common/Skeleton';
 
 interface TodayOrdersProps {
   orders: Order[];
   onStatusChange: (orderId: string, newStatus: OrderStatus) => void;
+  isLoading?: boolean;
 }
 
-const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange }) => {
+const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange, isLoading }) => {
   const [sortBy, setSortBy] = useState<'time' | 'amount'>('time');
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
 
@@ -111,40 +113,53 @@ const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange }) => 
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {sortedOrders.map((order) => (
-              <tr key={order.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  #{order.id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {order.customerName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  ₹{order.total.toFixed(2)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(order.status)}`}>
-                    {getStatusIcon(order.status)}
-                    <span className="ml-1">{order.status}</span>
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <select
-                    value={order.status}
-                    onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
-                    className="border border-gray-300 rounded-md shadow-sm py-1 px-2 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    aria-label={`Change status for order ${order.id}`}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </td>
-              </tr>
-            ))}
+            {isLoading ? (
+              Array(3).fill(0).map((_, i) => (
+                <tr key={i}>
+                  <td className="px-6 py-4"><Skeleton width={60} height={20} /></td>
+                  <td className="px-6 py-4"><Skeleton width={120} height={20} /></td>
+                  <td className="px-6 py-4"><Skeleton width={80} height={20} /></td>
+                  <td className="px-6 py-4"><Skeleton width={60} height={20} /></td>
+                  <td className="px-6 py-4"><Skeleton width={80} height={24} className="rounded-full" /></td>
+                  <td className="px-6 py-4"><Skeleton width={100} height={32} /></td>
+                </tr>
+              ))
+            ) : (
+              sortedOrders.map((order) => (
+                <tr key={order.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    #{order.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {order.customerName}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(order.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ₹{order.total.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(order.status)}`}>
+                      {getStatusIcon(order.status)}
+                      <span className="ml-1">{order.status}</span>
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <select
+                      value={order.status}
+                      onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
+                      className="border border-gray-300 rounded-md shadow-sm py-1 px-2 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      aria-label={`Change status for order ${order.id}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import { generateSampleOrders } from '../utils/sampleOrders';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import Skeleton from '../components/common/Skeleton';
 
 const AccountPage = () => {
   const navigate = useNavigate();
@@ -121,8 +122,51 @@ const AccountPage = () => {
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <Skeleton width={32} height={32} />
+              <Skeleton width={150} height={32} />
+            </div>
+          </div>
+        </header>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow p-6 space-y-4">
+                <div className="flex items-center space-x-4">
+                  <Skeleton width={64} height={64} variant="circular" />
+                  <div className="space-y-2">
+                    <Skeleton width={120} height={20} />
+                    <Skeleton width={180} height={16} />
+                  </div>
+                </div>
+                <div className="space-y-2 pt-4">
+                  <Skeleton width="100%" height={20} />
+                  <Skeleton width="100%" height={20} />
+                  <Skeleton width="80%" height={20} />
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow p-6">
+                <Skeleton width={150} height={24} className="mb-6" />
+                <div className="space-y-6">
+                  {Array(3).fill(0).map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <div className="flex justify-between">
+                        <Skeleton width={100} height={20} />
+                        <Skeleton width={80} height={24} className="rounded-full" />
+                      </div>
+                      <Skeleton width="100%" height={40} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -154,7 +198,7 @@ const AccountPage = () => {
             />
           </div>
           <div className="lg:col-span-2">
-            <OrderHistory orders={orders} />
+            <OrderHistory orders={orders} isLoading={isLoadingOrders} />
 
             {/* Debug Section - Remove before production final release */}
             <div className="mt-8 p-4 bg-gray-100 rounded-lg text-xs text-gray-500 font-mono">

@@ -1,12 +1,14 @@
 import React from 'react';
 import { DollarSign, Clock, CheckCircle, IndianRupee } from 'lucide-react';
 import { Order } from '../../types';
+import Skeleton from '../../common/Skeleton';
 
 interface OrderStatsProps {
   orders: Order[];
+  isLoading?: boolean;
 }
 
-const OrderStats: React.FC<OrderStatsProps> = ({ orders }) => {
+const OrderStats: React.FC<OrderStatsProps> = ({ orders, isLoading }) => {
   // Calculate statistics
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Start of today
@@ -62,6 +64,24 @@ const OrderStats: React.FC<OrderStatsProps> = ({ orders }) => {
       bgColor: 'bg-green-100',
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {Array(4).fill(0).map((_, i) => (
+          <div key={i} className="bg-white overflow-hidden shadow-sm rounded-lg p-5">
+            <div className="flex items-center">
+              <Skeleton width={40} height={40} variant="circular" />
+              <div className="ml-5 w-full">
+                <Skeleton width={100} height={16} className="mb-2" />
+                <Skeleton width={60} height={24} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

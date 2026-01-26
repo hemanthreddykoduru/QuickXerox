@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Download, Filter, ChevronRight, RefreshCw } from 'lu
 import { toast } from 'react-hot-toast';
 import { db } from '../firebase';
 import { collection, query, orderBy, limit, getDocs, startAfter, where, QueryConstraint } from 'firebase/firestore';
+import Skeleton from '../components/common/Skeleton';
 
 interface AuditLog {
     id: string;
@@ -345,12 +346,12 @@ const AdminAuditLogs = () => {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {loading ? (
-                                    Array.from({ length: 5 }).map((_, i) => (
-                                        <tr key={i} className="animate-pulse">
-                                            <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-40"></div></td>
-                                            <td className="px-6 py-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
-                                            <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-full"></div></td>
+                                    Array(5).fill(0).map((_, i) => (
+                                        <tr key={i} className="border-b border-gray-100 last:border-b-0 animate-pulse">
+                                            <td className="px-6 py-4"><Skeleton width="80%" height={20} /></td>
+                                            <td className="px-6 py-4"><Skeleton width="100%" height={20} /></td>
+                                            <td className="px-6 py-4"><Skeleton width={100} height={20} /></td>
+                                            <td className="px-6 py-4"><Skeleton width="100%" height={20} /></td>
                                         </tr>
                                     ))
                                 ) : logs.length === 0 ? (

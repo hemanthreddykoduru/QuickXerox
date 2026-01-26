@@ -19,6 +19,7 @@ import { toast } from 'react-hot-toast';
 
 
 import { useProfile } from '../hooks/useProfile'; // Import useProfile
+import Skeleton from '../components/common/Skeleton';
 
 function CustomerDashboard() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ function CustomerDashboard() {
   const [selectedShop, setSelectedShop] = useState<PrintShop | null>(null);
   const [showFloatingCart, setShowFloatingCart] = useState(false);
   const [printShops, setPrintShops] = useState<PrintShop[]>([]); // New state for dynamic shops
+  const [isLoadingShops, setIsLoadingShops] = useState(true);
   const [userLocation, setUserLocation] = useState<string>('Fetching location...');
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [selectedFileForAnalysis, setSelectedFileForAnalysis] = useState<File | null>(null);
@@ -107,9 +109,11 @@ function CustomerDashboard() {
       });
       console.log('Fetched shops (real-time):', fetchedShops.map(shop => ({ id: shop.id, name: shop.name, price: shop.price, perPageCostAdjustmentFetched: shop.perPageCostAdjustment, image: shop.image, isShopOpen: shop.isShopOpen })));
       setPrintShops(fetchedShops);
+      setIsLoadingShops(false);
     }, (error) => {
       console.error('Error fetching print shops in real-time:', error);
       toast.error('Failed to load print shops in real-time.');
+      setIsLoadingShops(false);
     });
 
     return () => unsubscribe();
@@ -335,19 +339,38 @@ function CustomerDashboard() {
         <div>
           <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-6">Nearby Print Shops</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {printShops.map((shop) => ( // Use printShops here
-              <PrintShopCard
-                key={shop.id}
-                shop={shop}
-                isSelected={selectedShop?.id === shop.id}
-                onSelect={() => {
-                  handleShopSelect(shop.id);
-                  if (printJobs.length > 0) {
-                    setIsCartOpen(true);
-                  }
-                }}
-              />
-            ))}
+            {isLoadingShops ? (
+              Array(6).fill(0).map((_, i) => (
+                <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                  <Skeleton width="100%" height={192} />
+                  <div className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <Skeleton width="60%" height={24} />
+                      <Skeleton width="20%" height={20} />
+                    </div>
+                    <Skeleton width="40%" height={16} />
+                    <div className="pt-2 flex justify-between">
+                      <Skeleton width="30%" height={32} />
+                      <Skeleton width="30%" height={32} />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              printShops.map((shop) => ( // Use printShops here
+                <PrintShopCard
+                  key={shop.id}
+                  shop={shop}
+                  isSelected={selectedShop?.id === shop.id}
+                  onSelect={() => {
+                    handleShopSelect(shop.id);
+                    if (printJobs.length > 0) {
+                      setIsCartOpen(true);
+                    }
+                  }}
+                />
+              ))
+            )}
           </div>
         </div>
 

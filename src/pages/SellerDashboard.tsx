@@ -524,7 +524,7 @@ const SellerDashboard: React.FC = () => {
         {/* Today's Orders Section */}
         {showTodayOrders && (
           <div className="mb-8">
-            <TodayOrders orders={orders} onStatusChange={handleStatusChange} />
+            <TodayOrders orders={orders} onStatusChange={handleStatusChange} isLoading={loading} />
           </div>
         )}
 
@@ -536,7 +536,7 @@ const SellerDashboard: React.FC = () => {
         )}
 
         {/* Stats */}
-        <OrderStats orders={orders} />
+        <OrderStats orders={orders} isLoading={loading} />
 
         {/* Orders */}
         <div className="mt-6 sm:mt-8">
@@ -569,6 +569,7 @@ const SellerDashboard: React.FC = () => {
             orders={filteredOrders}
             onStatusChange={handleStatusChange}
             onOTPVerificationComplete={handleOTPVerificationComplete}
+            isLoading={loading}
           />
         </div>
 
