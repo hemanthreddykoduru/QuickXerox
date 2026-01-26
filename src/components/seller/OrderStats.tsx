@@ -8,12 +8,30 @@ interface OrderStatsProps {
 
 const OrderStats: React.FC<OrderStatsProps> = ({ orders }) => {
   // Calculate statistics
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Start of today
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1); // Start of tomorrow
+
   const stats = {
     pending: orders.filter((order) => order.status === 'pending').length,
     processing: orders.filter((order) => order.status === 'processing').length,
     completed: orders.filter((order) => order.status === 'completed').length,
     totalRevenue: orders
-      .filter((order) => order.status === 'completed')
+      .filter((order) => {
+        if (order.status !== 'completed') return false;
+
+        // Parse order timestamp
+        const orderDate = order.completedAt
+          ? new Date(order.completedAt)
+          : order.timestamp
+            ? new Date(order.timestamp)
+            : new Date();
+
+        // Check if order is from today
+        return orderDate >= today && orderDate < tomorrow;
+      })
       .reduce((sum, order) => sum + order.total, 0),
   };
 
