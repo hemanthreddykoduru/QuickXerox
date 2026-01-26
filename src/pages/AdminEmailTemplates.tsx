@@ -53,7 +53,65 @@ const DEFAULT_TEMPLATES: TemplatesMap = {
     },
     'ORDER_CONFIRMATION': {
         subject: 'Order Confirmation - #{{orderId}}',
-        body: `<p>Your order #{{orderId}} has been confirmed.</p>`
+        body: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Order Confirmed!</h1>
+                            <p style="margin: 10px 0 0 0; color: #d1fae5; font-size: 16px;">Order #{{orderId}}</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hello <strong>{{name}}</strong>,</p>
+                            <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">Thank you for your order! We've received your request and are processing it.</p>
+                            
+                            <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 30px 0;">
+                                <h3 style="margin: 0 0 15px 0; color: #111827; font-size: 18px;">Order Details</h3>
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #6b7280;">Order ID:</td>
+                                        <td style="padding: 5px 0; color: #111827; font-weight: 600; text-align: right;">#{{orderId}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #6b7280;">Date:</td>
+                                        <td style="padding: 5px 0; color: #111827; font-weight: 600; text-align: right;">{{date}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #6b7280;">Total Amount:</td>
+                                        <td style="padding: 5px 0; color: #16a34a; font-weight: 700; text-align: right;">₹{{amount}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">You will receive another email when your order is ready for pickup/delivery.</p>
+                            
+                            <div style="margin: 30px 0; text-align: center;">
+                                <a href="{{link}}" style="background: #10b981; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 600;">Track Order</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0; color: #6b7280; font-size: 14px;">Questions? Contact us at <a href="mailto:support@quickxerox.com" style="color: #10b981; text-decoration: none;">support@quickxerox.com</a></p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
     }
 };
 
@@ -138,6 +196,8 @@ const AdminEmailTemplates = () => {
             .replace(/{{link}}/g, '#')
             .replace(/{{invitation_link}}/g, '#')
             .replace(/{{orderId}}/g, '12345')
+            .replace(/{{amount}}/g, '150.00')
+            .replace(/{{date}}/g, new Date().toLocaleDateString())
             .replace(/{{to_email}}/g, 'john@example.com')
             .replace(/{{from_name}}/g, 'QuickXerox Admin');
         return html;
