@@ -72,6 +72,9 @@ const RevenueReports: React.FC = () => {
     });
 
     orders.forEach(order => {
+      // Only count completed orders
+      if (order.status !== 'completed') return;
+
       const orderDate = new Date(order.timestamp);
       if (orderDate >= last7Days && orderDate <= now) {
         const dayName = daysOfWeek[orderDate.getDay()];
@@ -100,6 +103,9 @@ const RevenueReports: React.FC = () => {
       let orderCount = 0;
 
       orders.forEach(order => {
+        // Only count completed orders
+        if (order.status !== 'completed') return;
+
         const orderDate = new Date(order.timestamp);
         if (orderDate >= weekStart && orderDate < weekEnd) {
           revenue += order.total;
@@ -131,6 +137,9 @@ const RevenueReports: React.FC = () => {
       let orderCount = 0;
 
       orders.forEach(order => {
+        // Only count completed orders
+        if (order.status !== 'completed') return;
+
         const orderDate = new Date(order.timestamp);
         if (orderDate.getMonth() === monthDate.getMonth() &&
           orderDate.getFullYear() === monthDate.getFullYear()) {
@@ -163,6 +172,9 @@ const RevenueReports: React.FC = () => {
       let orderCount = 0;
 
       orders.forEach(order => {
+        // Only count completed orders
+        if (order.status !== 'completed') return;
+
         const orderDate = new Date(order.timestamp);
         if (orderDate.toDateString() === currentDate.toDateString()) {
           revenue += order.total;
@@ -227,8 +239,8 @@ const RevenueReports: React.FC = () => {
           <button
             onClick={() => setTimeRange('daily')}
             className={`px-4 py-2 rounded-md ${timeRange === 'daily'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             Daily
@@ -236,8 +248,8 @@ const RevenueReports: React.FC = () => {
           <button
             onClick={() => setTimeRange('weekly')}
             className={`px-4 py-2 rounded-md ${timeRange === 'weekly'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             Weekly
@@ -245,8 +257,8 @@ const RevenueReports: React.FC = () => {
           <button
             onClick={() => setTimeRange('monthly')}
             className={`px-4 py-2 rounded-md ${timeRange === 'monthly'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             Monthly
@@ -254,8 +266,8 @@ const RevenueReports: React.FC = () => {
           <button
             onClick={handleCustomRangeSelect}
             className={`px-4 py-2 rounded-md ${timeRange === 'custom'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             Custom Range
