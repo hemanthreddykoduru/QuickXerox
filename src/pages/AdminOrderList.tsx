@@ -10,6 +10,7 @@ interface Order {
   customerId: string;
   customerName: string;
   customerEmail: string;
+  shopId: string;
   totalAmount: number;
   status: string;
   createdAt: string;
@@ -34,6 +35,7 @@ const AdminOrderList = () => {
           customerId: doc.data().userId || doc.data().customerId || 'N/A',
           customerName: doc.data().customerName || 'N/A',
           customerEmail: doc.data().customerEmail || 'N/A',
+          shopId: doc.data().shopId || 'N/A',
           totalAmount: doc.data().total || doc.data().totalAmount || 0,
           status: doc.data().status || 'Unknown',
           createdAt: doc.data().timestamp ? new Date(doc.data().timestamp).toLocaleString() : (doc.data().createdAt?.toDate().toLocaleString() || new Date().toLocaleString()),
@@ -64,8 +66,8 @@ const AdminOrderList = () => {
   const exportCSV = () => {
     if (orders.length === 0) return toast.error('No orders to export!');
     const csv = [
-      ['Order ID', 'Customer Name', 'Customer Email', 'Total Amount', 'Status', 'Order Date'].join(','),
-      ...orders.map(o => [o.id, o.customerName, o.customerEmail, o.totalAmount, o.status, o.createdAt].join(','))
+      ['Order ID', 'Customer Name', 'Customer Email', 'Shop ID', 'Total Amount', 'Status', 'Order Date'].join(','),
+      ...orders.map(o => [o.id, o.customerName, o.customerEmail, o.shopId, o.totalAmount, o.status, o.createdAt].join(','))
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -145,6 +147,7 @@ const AdminOrderList = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer Name</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Shop ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Amount</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order Date</th>
@@ -154,7 +157,7 @@ const AdminOrderList = () => {
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                       No orders found.
                     </td>
                   </tr>
@@ -164,6 +167,7 @@ const AdminOrderList = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{order.id}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.customerName}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.customerEmail}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.shopId}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">₹{order.totalAmount.toFixed(2)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'completed' ? 'bg-green-100 text-green-800' : order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
@@ -206,8 +210,8 @@ const AdminOrderList = () => {
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{order.id}</p>
                   </div>
                   <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
                     {order.status}
                   </span>
@@ -269,8 +273,8 @@ const AdminOrderList = () => {
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Status</p>
                   <span className={`inline-block mt-1 px-3 py-1 text-sm font-semibold rounded-full ${selectedOrder.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                    selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
                     {selectedOrder.status}
                   </span>
