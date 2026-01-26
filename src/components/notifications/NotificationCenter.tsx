@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertCircle, Info, CheckCircle, Clock } from 'lucide-react';
+import { Bell, X, Check, AlertCircle, Info, CheckCircle, Clock, Package, PackageCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { db, auth } from '../../firebase';
 
 interface Notification {
   id: string;
@@ -11,6 +13,7 @@ interface Notification {
   isRead: boolean;
   actionUrl?: string;
   actionText?: string;
+  orderId?: string;
 }
 
 interface NotificationCenterProps {
@@ -23,90 +26,148 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    // Load notifications from localStorage or API
-    const savedNotifications = localStorage.getItem('quickxerox_notifications');
-    if (savedNotifications) {
-      const parsed = JSON.parse(savedNotifications);
-      setNotifications(parsed);
-      setUnreadCount(parsed.filter((n: Notification) => !n.isRead).length);
-    } else {
-      // Initialize with sample notifications
-      const sampleNotifications: Notification[] = [
-        {
-          id: '1',
-          type: 'success',
-          title: 'Order Completed',
-          message: 'Your print order #12345 is ready for pickup',
-          timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-          isRead: false,
-          actionUrl: '/orders/12345',
-          actionText: 'View Order'
-        },
-        {
-          id: '2',
-          type: 'info',
-          title: 'New Print Shop Available',
-          message: 'A new print shop has opened near your location',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          isRead: false
-        },
-        {
-          id: '3',
-          type: 'warning',
-          title: 'Payment Pending',
-          message: 'Your payment for order #12344 is still pending',
-          timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-          isRead: true,
-          actionUrl: '/payment/12344',
-          actionText: 'Complete Payment'
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    // Load read notifications from localStorage
+    const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+
+    // Listen to real-time order changes for this customer
+    const ordersQuery = query(
+      collection(db, 'orders'),
+      where('customerId', '==', currentUser.uid),
+      orderBy('timestamp', 'desc'),
+      limit(20) // Only show last 20 orders
+    );
+
+    const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+      const orderNotifications: Notification[] = [];
+
+      snapshot.forEach((doc) => {
+        const order = doc.data();
+        const orderId = doc.id;
+        const timestamp = order.timestamp || new Date().toISOString();
+
+        // Create notification based on order status
+        let notification: Notification | null = null;
+
+        if (order.status === 'pending' && order.paymentStatus === 'success') {
+          notification = {
+            id: `order-pending-${orderId}`,
+            type: 'info',
+            title: 'New Order Placed',
+            message: `Order #${orderId.slice(-6)} has been placed and is waiting for shop confirmation`,
+            timestamp: timestamp,
+            isRead: readNotifications.includes(`order-pending-${orderId}`),
+            actionUrl: `/customer/orders/${orderId}`,
+            actionText: 'View Order',
+            orderId
+          };
+        } else if (order.status === 'processing') {
+          notification = {
+            id: `order-processing-${orderId}`,
+            type: 'warning',
+            title: 'Order Accepted',
+            message: `Order #${orderId.slice(-6)} is being processed by ${order.shopName}`,
+            timestamp: timestamp,
+            isRead: readNotifications.includes(`order-processing-${orderId}`),
+            actionUrl: `/customer/orders/${orderId}`,
+            actionText: 'View Order',
+            orderId
+          };
+        } else if (order.status === 'completed') {
+          notification = {
+            id: `order-completed-${orderId}`,
+            type: 'success',
+            title: 'Order Ready for Pickup',
+            message: `Order #${orderId.slice(-6)} is ready! Pick it up from ${order.shopName}`,
+            timestamp: order.completedAt || timestamp,
+            isRead: readNotifications.includes(`order-completed-${orderId}`),
+            actionUrl: `/customer/orders/${orderId}`,
+            actionText: 'View Order',
+            orderId
+          };
+        } else if (order.status === 'rejected') {
+          notification = {
+            id: `order-rejected-${orderId}`,
+            type: 'error',
+            title: 'Order Rejected',
+            message: `Order #${orderId.slice(-6)} was rejected by the shop`,
+            timestamp: timestamp,
+            isRead: readNotifications.includes(`order-rejected-${orderId}`),
+            actionUrl: `/customer/orders/${orderId}`,
+            actionText: 'View Order',
+            orderId
+          };
         }
-      ];
-      setNotifications(sampleNotifications);
-      setUnreadCount(2);
-      localStorage.setItem('quickxerox_notifications', JSON.stringify(sampleNotifications));
-    }
+
+        if (notification) {
+          orderNotifications.push(notification);
+        }
+      });
+
+      // Sort by timestamp (newest first)
+      orderNotifications.sort((a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      setNotifications(orderNotifications);
+      setUnreadCount(orderNotifications.filter(n => !n.isRead).length);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => {
-      const updated = prev.map(n => 
+    setNotifications(prev =>
+      prev.map(n =>
         n.id === notificationId ? { ...n, isRead: true } : n
-      );
-      localStorage.setItem('quickxerox_notifications', JSON.stringify(updated));
-      return updated;
-    });
-    setUnreadCount(prev => prev - 1);
+      )
+    );
+
+    // Save to localStorage
+    const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+    if (!readNotifications.includes(notificationId)) {
+      readNotifications.push(notificationId);
+      localStorage.setItem('read_notifications', JSON.stringify(readNotifications));
+    }
+
+    setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => {
-      const updated = prev.map(n => ({ ...n, isRead: true }));
-      localStorage.setItem('quickxerox_notifications', JSON.stringify(updated));
-      return updated;
-    });
+    const allIds = notifications.map(n => n.id);
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+
+    const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+    const updatedRead = [...new Set([...readNotifications, ...allIds])];
+    localStorage.setItem('read_notifications', JSON.stringify(updatedRead));
+
     setUnreadCount(0);
     toast.success('All notifications marked as read');
   };
 
   const deleteNotification = (notificationId: string) => {
-    setNotifications(prev => {
-      const updated = prev.filter(n => n.id !== notificationId);
-      localStorage.setItem('quickxerox_notifications', JSON.stringify(updated));
-      return updated;
-    });
-    toast.success('Notification deleted');
+    // Mark as read instead of deleting (since these are real orders)
+    markAsRead(notificationId);
+    toast.success('Notification marked as read');
+  };
+
+  const clearAll = () => {
+    // Just mark all as read
+    markAllAsRead();
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <PackageCheck className="h-5 w-5 text-green-500" />;
       case 'warning':
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+        return <Package className="h-5 w-5 text-yellow-500" />;
       case 'error':
         return <AlertCircle className="h-5 w-5 text-red-500" />;
       default:
-        return <Info className="h-5 w-5 text-blue-500" />;
+        return <Clock className="h-5 w-5 text-blue-500" />;
     }
   };
 
@@ -127,7 +188,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -173,28 +234,29 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
           {notifications.length === 0 ? (
             <div className="text-center py-8">
               <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No notifications yet</p>
+              <p className="text-gray-500">No order notifications yet</p>
+              <p className="text-sm text-gray-400 mt-2">
+                Place your first order to start receiving updates!
+              </p>
             </div>
           ) : (
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 rounded-lg border ${
-                  notification.isRead 
-                    ? 'bg-gray-50 border-gray-200' 
+                className={`p-4 rounded-lg border ${notification.isRead
+                    ? 'bg-gray-50 border-gray-200'
                     : getNotificationBgColor(notification.type)
-                }`}
+                  }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-1">
                     {getNotificationIcon(notification.type)}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className={`text-sm font-medium ${
-                        notification.isRead ? 'text-gray-600' : 'text-gray-900'
-                      }`}>
+                      <h4 className={`text-sm font-medium ${notification.isRead ? 'text-gray-600' : 'text-gray-900'
+                        }`}>
                         {notification.title}
                       </h4>
                       <div className="flex items-center space-x-2">
@@ -214,23 +276,28 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
                         <button
                           onClick={() => deleteNotification(notification.id)}
                           className="text-gray-400 hover:text-gray-600"
-                          title="Delete notification"
-                          aria-label="Delete notification"
+                          title="Dismiss"
+                          aria-label="Dismiss"
                         >
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
-                    
-                    <p className={`text-sm mt-1 ${
-                      notification.isRead ? 'text-gray-500' : 'text-gray-700'
-                    }`}>
+
+                    <p className={`text-sm mt-1 ${notification.isRead ? 'text-gray-500' : 'text-gray-700'
+                      }`}>
                       {notification.message}
                     </p>
-                    
+
                     {notification.actionUrl && notification.actionText && (
-                      <button className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
-                        {notification.actionText}
+                      <button
+                        onClick={() => {
+                          // In a real app, navigate to the order page
+                          window.location.href = notification.actionUrl;
+                        }}
+                        className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        {notification.actionText} →
                       </button>
                     )}
                   </div>
@@ -244,19 +311,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
-              {notifications.length} total notifications
+              {notifications.length} order notification{notifications.length !== 1 ? 's' : ''}
             </p>
-            <button
-              onClick={() => {
-                setNotifications([]);
-                setUnreadCount(0);
-                localStorage.removeItem('quickxerox_notifications');
-                toast.success('All notifications cleared');
-              }}
-              className="text-sm text-red-600 hover:text-red-700 font-medium"
-            >
-              Clear All
-            </button>
+            {notifications.length > 0 && (
+              <button
+                onClick={clearAll}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Mark All Read
+              </button>
+            )}
           </div>
         </div>
       </div>
