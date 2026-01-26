@@ -10,6 +10,7 @@ interface RecentSeller {
   id: string;
   name: string;
   shopName?: string;
+  createdAt: Date;
 }
 
 interface AuditLog {
@@ -250,17 +251,30 @@ const AdminDashboard = () => {
         const adminDoc = await getDoc(doc(db, 'admins', user.uid));
         if (adminDoc.exists() && adminDoc.data().role === 'admin') {
           setAdminProfile({ email: user.email || '', role: adminDoc.data().role });
-          // Fetch recent sellers
-          const q = query(collection(db, 'shopOwners'), orderBy('createdAt', 'desc'), limit(5));
+
+          // Fetch recent sellers (last 30 minutes only)
+          const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
+          const q = query(
+            collection(db, 'shopOwners'),
+            orderBy('createdAt', 'desc'),
+            limit(10) // Fetch more, then filter by time
+          );
           const querySnapshot = await getDocs(q);
-          const fetchedRecentSellers: RecentSeller[] = querySnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              name: data.name || data.shopName || data.email || 'Unnamed Seller',
-              shopName: data.shopName || data.name || 'No shop name',
-            };
-          });
+
+          // Filter to only include sellers from last 30 minutes
+          const fetchedRecentSellers: RecentSeller[] = querySnapshot.docs
+            .map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                name: data.name || data.shopName || data.email || 'Unnamed Seller',
+                shopName: data.shopName || data.name || 'No shop name',
+                createdAt: data.createdAt?.toDate() || new Date(),
+              };
+            })
+            .filter(seller => seller.createdAt >= thirtyMinutesAgo) // Only last 30 min
+            .slice(0, 5); // Limit to 5 after filtering
+
           setRecentSellers(fetchedRecentSellers);
           // Fetch metrics and audit logs in parallel with timeout
           const timeoutPromise = new Promise<never>((_, reject) =>
