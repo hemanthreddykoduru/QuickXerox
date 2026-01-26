@@ -20,16 +20,16 @@ const OrderStats: React.FC<OrderStatsProps> = ({ orders }) => {
     completed: orders.filter((order) => order.status === 'completed').length,
     totalRevenue: orders
       .filter((order) => {
+        // Must be completed
         if (order.status !== 'completed') return false;
 
-        // Parse order timestamp
-        const orderDate = order.completedAt
-          ? new Date(order.completedAt)
-          : order.timestamp
-            ? new Date(order.timestamp)
-            : new Date();
+        // Must have completedAt field (ignore old orders without completion timestamp)
+        if (!order.completedAt) return false;
 
-        // Check if order is from today
+        // Parse completion date
+        const orderDate = new Date(order.completedAt);
+
+        // Check if order was completed TODAY
         return orderDate >= today && orderDate < tomorrow;
       })
       .reduce((sum, order) => sum + order.total, 0),
