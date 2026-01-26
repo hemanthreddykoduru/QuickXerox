@@ -44,10 +44,10 @@ const OTPDemo: React.FC = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">OTP Verification Demo</h1>
         <p className="text-gray-600 mb-6">
-          This demo shows how the 4-digit OTP verification system works between customers and sellers, 
+          This demo shows how the 4-digit OTP verification system works between customers and sellers,
           similar to Uber/Rapido pickup verification.
         </p>
-        
+
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-900 mb-2">How it works:</h3>
           <ul className="text-blue-800 text-sm space-y-1">
@@ -85,8 +85,8 @@ const OTPDemo: React.FC = () => {
                   <div key={item.id} className="flex items-center justify-between text-sm">
                     <span className="text-gray-700">{item.fileName}</span>
                     <span className="text-gray-500">
-                      {item.copies} {item.copies === 1 ? 'copy' : 'copies'} • 
-                      {item.isColor ? ' Color' : ' B&W'} • 
+                      {item.copies} {item.copies === 1 ? 'copy' : 'copies'} •
+                      {item.isColor ? ' Color' : ' B&W'} •
                       {item.pages} pages
                     </span>
                   </div>
@@ -99,7 +99,14 @@ const OTPDemo: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <Clock className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-500">
-                    {new Date(order.timestamp).toLocaleString()}
+                    {new Date(order.timestamp).toLocaleString('en-US', {
+                      month: '2-digit',
+                      day: '2-digit',
+                      year: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
                   </span>
                 </div>
                 <div className="text-sm font-medium text-gray-900">

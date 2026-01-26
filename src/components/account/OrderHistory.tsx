@@ -41,7 +41,14 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders }) => {
                   <div>
                     <p className="font-medium text-gray-900 text-sm sm:text-base">Order #{order.id}</p>
                     <p className="text-xs sm:text-sm text-gray-500">
-                      {new Date(order.timestamp).toLocaleDateString()}
+                      {new Date(order.timestamp).toLocaleString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
                     </p>
                   </div>
                 </div>

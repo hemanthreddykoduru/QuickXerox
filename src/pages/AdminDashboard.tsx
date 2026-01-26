@@ -813,7 +813,14 @@ const AdminDashboard = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Login</label>
                     <p className="text-gray-900 dark:text-gray-100">
-                      {selectedCustomer.lastLogin ? new Date(selectedCustomer.lastLogin).toLocaleString() : 'Never'}
+                      {selectedCustomer.lastLogin ? new Date(selectedCustomer.lastLogin).toLocaleString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      }) : 'Never'}
                     </p>
                   </div>
                 </div>

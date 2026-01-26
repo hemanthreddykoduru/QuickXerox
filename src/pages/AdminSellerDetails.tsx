@@ -97,7 +97,14 @@ const AdminSellerDetails = () => {
             email: data.settings?.shop?.email || data.email || 'N/A',
             mobile: data.mobile || data.settings?.shop?.mobile || 'N/A',
             status: data.status || 'pending',
-            createdAt: data.createdAt?.toDate().toLocaleString() || 'N/A',
+            createdAt: data.createdAt?.toDate().toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }) || 'N/A',
             shopName: data.settings?.shop?.name || 'N/A',
             address: data.settings?.shop?.address || data.address || 'N/A',
             city: data.city || 'N/A',
@@ -248,10 +255,10 @@ const AdminSellerDetails = () => {
                       if (day === 'isShopOpen') return null;
                       const dayHours = hours as { open: boolean; start: string; end: string; };
                       return (
-                        <DetailItem 
-                          key={day} 
-                          label={day.charAt(0).toUpperCase() + day.slice(1)} 
-                          value={dayHours.open ? `${dayHours.start} - ${dayHours.end}` : 'Closed'} 
+                        <DetailItem
+                          key={day}
+                          label={day.charAt(0).toUpperCase() + day.slice(1)}
+                          value={dayHours.open ? `${dayHours.start} - ${dayHours.end}` : 'Closed'}
                         />
                       );
                     })}

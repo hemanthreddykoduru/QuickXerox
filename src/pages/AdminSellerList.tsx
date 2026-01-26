@@ -41,7 +41,21 @@ const AdminSellerList = () => {
             email: data.settings?.shop?.email || data.email || 'N/A',
             mobile: data.mobile || '',
             status: data.status || 'pending',
-            createdAt: data.createdAt?.toDate().toLocaleString() || new Date().toLocaleString(),
+            createdAt: data.createdAt?.toDate().toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }) || new Date().toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }),
             shopName: data.settings?.shop?.name || 'N/A',
             ownerName: data.settings?.shop?.ownerName || 'N/A',
             ...data, // include all raw fields

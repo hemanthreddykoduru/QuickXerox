@@ -38,7 +38,30 @@ const AdminOrderList = () => {
           shopId: doc.data().shopId || 'N/A',
           totalAmount: doc.data().total || doc.data().totalAmount || 0,
           status: doc.data().status || 'Unknown',
-          createdAt: doc.data().timestamp ? new Date(doc.data().timestamp).toLocaleString() : (doc.data().createdAt?.toDate().toLocaleString() || new Date().toLocaleString()),
+          createdAt: doc.data().timestamp
+            ? new Date(doc.data().timestamp).toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            })
+            : doc.data().createdAt?.toDate().toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }) || new Date().toLocaleString('en-US', {
+              month: '2-digit',
+              day: '2-digit',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }),
         }));
         setOrders(fetchedOrders);
       } catch (err: any) {
