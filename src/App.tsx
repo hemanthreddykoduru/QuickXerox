@@ -15,7 +15,7 @@ import AdminSellerDetails from './pages/AdminSellerDetails';
 import AdminAuditLogs from './pages/AdminAuditLogs';
 import AdminEmailTemplates from './pages/AdminEmailTemplates';
 import IpBlocked from './pages/IpBlocked';
-import PWAInstallPrompt from './components/PWAInstallPrompt';
+
 
 const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
   const location = useLocation();
@@ -127,7 +127,7 @@ function App() {
           }
         />
       </Routes>
-      <PWAInstallPrompt />
+
     </Router>
   );
 }
