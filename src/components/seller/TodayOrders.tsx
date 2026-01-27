@@ -88,7 +88,7 @@ const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange, isLoa
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto hidden md:block">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -162,6 +162,60 @@ const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange, isLoa
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          Array(3).fill(0).map((_, i) => (
+            <div key={i} className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="flex justify-between">
+                <Skeleton width={80} height={20} />
+                <Skeleton width={60} height={20} />
+              </div>
+              <Skeleton width={150} height={16} />
+              <div className="flex justify-between items-center">
+                <Skeleton width={80} height={24} className="rounded-full" />
+                <Skeleton width={100} height={32} />
+              </div>
+            </div>
+          ))
+        ) : (
+          sortedOrders.map((order) => (
+            <div key={order.id} className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <span className="text-sm font-medium text-gray-900">#{order.id}</span>
+                  <p className="text-sm text-gray-500">{order.customerName}</p>
+                </div>
+                <div className="text-right">
+                  <span className="block text-sm font-medium text-gray-900">₹{order.total.toFixed(2)}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(order.timestamp).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(order.status)}`}>
+                  {getStatusIcon(order.status)}
+                  <span className="ml-1">{order.status}</span>
+                </span>
+
+                <select
+                  value={order.status}
+                  onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
+                  className="border border-gray-300 rounded-md shadow-sm py-1 px-2 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Change status for order ${order.id}`}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {sortedOrders.length === 0 && (
