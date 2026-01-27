@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, Users, ShoppingBag, Settings, LogOut, BarChart, CreditCard, Mail, FileText, Globe, X, Moon, Sun } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { auth, db } from '../firebase';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { auth, db, functions } from '../firebase';
 import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
 import Skeleton from '../components/common/Skeleton';
 
@@ -68,29 +69,29 @@ const AdminDashboard = () => {
     pwa: {
       enable: boolean;
     };
-    roles?: {
+    roles: {
       admin: { allowExport: boolean; allowImpersonate: boolean; };
       seller: { allowExport: boolean; };
       viewer: { allowExport: boolean; };
     };
-    shopsOrders?: {
+    shopsOrders: {
       autoApproveShops: boolean;
       unpaidAutoCancelMins: number;
       otpExpiryMins: number;
       maxFilesPerOrder: number;
       maxPagesPerFile: number;
     };
-    dataCompliance?: {
+    dataCompliance: {
       ordersRetentionDays: number;
       logsRetentionDays: number;
       piiMasking: boolean;
     };
-    webhooks?: {
+    webhooks: {
       enabled: boolean;
       endpointUrl: string;
       signingSecret: string;
     };
-    featureFlags?: {
+    featureFlags: {
       aiAnalyzerEnabled: boolean;
       biometricEnabled: boolean;
       newCheckoutEnabled: boolean;
@@ -151,6 +152,7 @@ const AdminDashboard = () => {
   const [savingSystemSettings, setSavingSystemSettings] = useState(false);
   const [currentPublicIP, setCurrentPublicIP] = useState<string | null>(null);
   const [fetchingIP, setFetchingIP] = useState(false);
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   // Deep-merge helper to keep defaults when loading from Firestore
   const mergeSystemSettings = (base: SystemSettings, loaded: Partial<SystemSettings>): SystemSettings => {
@@ -1235,6 +1237,40 @@ const AdminDashboard = () => {
                       Push on order completed
                     </label>
                   </div>
+
+                  <div className="mt-4">
+                    <button
+                      onClick={async () => {
+                        const email = adminProfile?.email || auth.currentUser?.email;
+                        if (!email) {
+                          toast.error('No email found for current user');
+                          return;
+                        }
+                        setSendingTestEmail(true);
+                        try {
+                          const sendTestEmail = httpsCallable(functions, 'sendTestEmail');
+                          await sendTestEmail({ email });
+                          toast.success(`Test email sent to ${email}`);
+                        } catch (error: any) {
+                          console.error('Error sending test email:', error);
+                          // Fallback for demo/dev if functions not deployed
+                          if (error.message.includes('internal') || error.code === 'functions/internal' || error.message.includes('Method not found') || error.code === 'functions/not-found') {
+                            toast.error('Backend function not deployed. Check console.');
+                          } else {
+                            toast.error('Failed to send test email');
+                          }
+                        } finally {
+                          setSendingTestEmail(false);
+                        }
+                      }}
+                      disabled={sendingTestEmail}
+                      className="text-sm bg-blue-100 text-blue-700 px-3 py-1.5 rounded-md hover:bg-blue-200 transition-colors flex items-center gap-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      {sendingTestEmail ? 'Sending...' : 'Send Test Email'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-1">Sends a test email to your logged-in address ({adminProfile?.email || auth.currentUser?.email})</p>
+                  </div>
                 </section>
 
                 {/* Analytics */}
@@ -1639,9 +1675,9 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div >
       )}
-    </div>
+    </div >
   );
 };
 

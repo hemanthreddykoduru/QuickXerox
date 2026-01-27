@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, RefreshCw, Eye, Send } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -50,11 +50,96 @@ const DEFAULT_TEMPLATES: TemplatesMap = {
     </table>
 </body>
 </html>`
+    },
+    'WELCOME_USER': {
+        subject: 'Welcome to QuickXerox!',
+        body: `<!DOCTYPE html>
+<html lang="en">
+<body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f3f4f6;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+                    <tr>
+                        <td style="background: #2563eb; padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff;">Welcome, {{name}}!</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p>We're excited to have you on board. Start ordering your prints online with ease!</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
+    },
+    'ORDER_PLACED': {
+        subject: 'Order Confirmation #{{order_id}}',
+        body: `<!DOCTYPE html>
+<html lang="en">
+<body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f3f4f6;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+                    <tr>
+                        <td style="background: #2563eb; padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff;">Order Placed!</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p>Hello {{name}},</p>
+                            <p>Your order #{{order_id}} for {{amount}} has been placed successfully.</p>
+                            <a href="{{link}}">View Order</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
+    },
+    'ORDER_STATUS_UPDATE': {
+        subject: 'Update on Order #{{order_id}}',
+        body: `<!DOCTYPE html>
+<html lang="en">
+<body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f3f4f6;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+                    <tr>
+                        <td style="background: #2563eb; padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff;">Order Update</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p>Hello {{name}},</p>
+                            <p>Your order #{{order_id}} is now <strong>{{status}}</strong>.</p>
+                            <a href="{{link}}">Track Order</a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
     }
 };
 
 const TEMPLATE_OPTIONS = [
-    { id: 'SELLER_INVITE', name: 'Seller Invitation' }
+    { id: 'SELLER_INVITE', name: 'Seller Invitation' },
+    { id: 'WELCOME_USER', name: 'Welcome User' },
+    { id: 'ORDER_PLACED', name: 'Order Confirmation' },
+    { id: 'ORDER_STATUS_UPDATE', name: 'Order Status Update' }
 ];
 
 const AdminEmailTemplates = () => {

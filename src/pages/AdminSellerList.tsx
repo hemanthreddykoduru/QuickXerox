@@ -4,6 +4,7 @@ import { collection, getDocs, query, where, documentId } from 'firebase/firestor
 import { db } from '../firebase';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
+import Skeleton from '../components/common/Skeleton';
 
 interface Seller {
   id: string;
@@ -76,8 +77,53 @@ const AdminSellerList = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-lg text-gray-700">Loading Sellers...</p>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Skeleton variant="circular" width={20} height={20} />
+              <Skeleton variant="text" width={150} height={24} />
+            </div>
+            <Skeleton variant="text" width={200} height={32} />
+            <div className="w-8"></div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
+            <Skeleton variant="rectangular" width="100%" height={42} className="sm:w-64" />
+            <Skeleton variant="rectangular" width="100%" height={42} className="sm:w-48" />
+            <Skeleton variant="rectangular" width={120} height={42} />
+          </div>
+
+          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                      <th key={i} className="px-6 py-3 text-left">
+                        <Skeleton variant="text" width={80} height={16} />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <tr key={i}>
+                      <td className="px-6 py-4"><Skeleton variant="text" width={100} height={20} /></td>
+                      <td className="px-6 py-4"><Skeleton variant="text" width={120} height={20} /></td>
+                      <td className="px-6 py-4"><Skeleton variant="text" width={150} height={20} /></td>
+                      <td className="px-6 py-4"><Skeleton variant="text" width={100} height={20} /></td>
+                      <td className="px-6 py-4"><Skeleton variant="text" width={80} height={24} className="rounded-full" /></td>
+                      <td className="px-6 py-4"><Skeleton variant="text" width={80} height={20} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

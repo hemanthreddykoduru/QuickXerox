@@ -484,3 +484,33 @@ async function sendNewOrderNotificationToSeller(email: string, customerName: str
   await transporter.sendMail(mailOptions);
   console.log('New order notification sent to seller:', email);
 }
+
+export const sendTestEmail = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+  }
+
+  const { email } = data;
+
+  const mailOptions = {
+    from: 'QuickXerox <noreply@quickxerox.com>',
+    to: email,
+    subject: 'Test Email from QuickXerox',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="color: #3B82F6;">Test Email</h2>
+        <p>This is a test email sent from the QuickXerox Admin Dashboard.</p>
+        <p>If you received this, the email system is working correctly!</p>
+        <p>Time: ${new Date().toLocaleString()}</p>
+      </div>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true, message: 'Test email sent successfully' };
+  } catch (error: any) {
+    console.error('Error sending test email:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to send test email', error.message);
+  }
+});
