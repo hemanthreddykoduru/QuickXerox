@@ -456,7 +456,7 @@ const LoginPage = () => {
                 </div>
                 <div className="flex items-center justify-center">
                   <Phone className="h-4 w-4 mr-2 text-blue-600" />
-                  <span>+91 9966659900</span>
+                  <span>+91 9876543210</span>
                 </div>
               </div>
             </div>
