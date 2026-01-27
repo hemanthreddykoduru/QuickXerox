@@ -7,29 +7,6 @@ import { auth, provider, githubProvider, db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UserProfile } from '../types/profile';
 
-const features = [
-  {
-    icon: <CheckCircle className="w-7 h-7 text-blue-500 mb-2" />,
-    title: 'No Waiting',
-    description: 'Order online, pick up fast.',
-  },
-  {
-    icon: <MapPin className="w-7 h-7 text-blue-500 mb-2" />,
-    title: 'Nearby Pickup',
-    description: 'Find print shops close to you.',
-  },
-  {
-    icon: <CreditCard className="w-7 h-7 text-blue-500 mb-2" />,
-    title: 'Multiple Payments',
-    description: 'Pay with cards, UPI, wallets, and more.',
-  },
-  {
-    icon: <Shield className="w-7 h-7 text-blue-500 mb-2" />,
-    title: 'Secure & Private',
-    description: 'Your files and payments are always safe.',
-  },
-];
-
 const LoginPage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -288,7 +265,6 @@ const LoginPage = () => {
       const user = result.user;
 
       if (!user.emailVerified) {
-        // Note: GitHub emails are usually verified, but good to check
         if (user.providerData[0].providerId === 'password') {
           setLoadingStep('Sending verification email...');
           await sendEmailVerification(user);
@@ -406,83 +382,77 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 flex flex-col">
-      <main className="flex-1 flex flex-col lg:flex-row gap-0">
-        {/* Left Side - Landing Content */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-12 lg:py-0 lg:border-r lg:border-blue-200">
-          <div className="max-w-md w-full">
-            <div className="flex justify-center mb-6">
-              <Printer className="h-12 w-12 lg:h-14 lg:w-14 text-blue-600 animate-pulse-slow" />
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Navbar */}
+      <nav className="border-b border-gray-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-600 p-1.5 rounded-lg">
+              <Printer className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4 text-center tracking-tight">
-              QuickXerox
+            <span className="text-xl font-bold text-gray-900 tracking-tight">QuickXerox</span>
+          </div>
+          <button
+            onClick={() => {
+              setIsLogin(true);
+              navigate('/login');
+            }}
+            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Login
+          </button>
+        </div>
+      </nav>
+
+      <main className="flex-1 flex flex-col lg:flex-row">
+        {/* Left Side - Hero/Welcome */}
+        <div className="w-full lg:w-1/2 bg-indigo-50 relative overflow-hidden flex flex-col items-center justify-center p-12 text-center lg:min-h-[600px]">
+          <div className="relative z-10 max-w-lg">
+            <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 font-display">
+              {isLogin ? 'Welcome Back!' : 'Start Printing Now'}
             </h1>
-            <h2 className="text-xl lg:text-2xl font-bold text-gray-800 mb-3 text-center">
-              Get Your Prints, Fast and Easy.
-            </h2>
-            <p className="text-sm lg:text-base text-gray-600 mb-8 text-center">
-              Upload your files, choose print settings, and pick them up at a nearby shop.
+            <p className="text-lg text-gray-600 mb-12 leading-relaxed">
+              {isLogin
+                ? 'Sign in to access your dashboard, track orders, and experience the fastest printing service.'
+                : 'Join QuickXerox today to upload files from anywhere and pick them up at your convenience.'}
             </p>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-              {features.map((feature, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white/70 rounded-lg p-4 flex flex-col items-center shadow-sm hover:shadow-md transition-shadow"
-                >
-                  {feature.icon}
-                  <h3 className="text-sm lg:text-base font-semibold text-blue-700 mb-1 text-center">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-500 text-center text-xs lg:text-sm">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Contact Info */}
-            <div className="bg-white/80 rounded-lg p-6 text-center">
-              <p className="text-sm text-gray-600 mb-4">
-                <strong>Quick Support</strong>
-              </p>
-              <div className="flex flex-col gap-3 text-sm text-gray-600">
-                <div className="flex items-center justify-center">
-                  <Mail className="h-4 w-4 mr-2 text-blue-600" />
-                  <a href="mailto:help-contact@quickxerox.app" className="hover:text-blue-600">
-                    help-contact@quickxerox.app
-                  </a>
-                </div>
-                <div className="flex items-center justify-center">
-                  <Phone className="h-4 w-4 mr-2 text-blue-600" />
-                  <span>+91 9876543210</span>
-                </div>
+            {/* Visual Decoration */}
+            <div className="relative w-64 h-64 mx-auto perspective-1000">
+              <div className="absolute inset-0 bg-blue-600 rounded-2xl shadow-2xl transform rotate-y-12 rotate-x-12 opacity-90 animate-float"></div>
+              <div className="absolute inset-0 bg-white border-2 border-blue-100 rounded-2xl shadow-xl transform -rotate-y-12 translate-z-12 flex items-center justify-center">
+                <Printer className="w-32 h-32 text-blue-600 opacity-80" />
               </div>
             </div>
           </div>
+
+          {/* Abstract shapes */}
+          <div className="absolute top-0 left-0 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
         </div>
 
-        {/* Right Side - Login/Signup Form */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-12 lg:py-0">
-          <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              {isLogin ? 'Sign in to your account' : 'Create your account'}
-            </h2>
-            <p className="text-sm text-gray-600 mb-8">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setPassword('');
-                }}
-                className="font-medium text-blue-600 hover:text-blue-500 hover:underline transition-colors"
-              >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
-            </p>
+        {/* Right Side - Form */}
+        <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 lg:p-12">
+          <div className="w-full max-w-md space-y-8">
+            <div className="text-left">
+              <h2 className="text-3xl font-bold text-gray-900 mt-0">
+                {isLogin ? 'Sign in to your account' : 'Create your account'}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setPassword('');
+                  }}
+                  className="font-medium text-blue-600 hover:text-blue-500 hover:underline transition-colors"
+                >
+                  {isLogin ? 'Sign up' : 'Sign in'}
+                </button>
+              </p>
+            </div>
 
-            <form className="space-y-6" onSubmit={handleEmailPasswordLogin}>
+            <form className="mt-8 space-y-6" onSubmit={handleEmailPasswordLogin}>
               {!isLogin && (
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -494,7 +464,7 @@ const LoginPage = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="John Doe"
                   />
                 </div>
@@ -510,7 +480,7 @@ const LoginPage = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="you@example.com"
                 />
               </div>
@@ -526,13 +496,13 @@ const LoginPage = () => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -541,24 +511,23 @@ const LoginPage = () => {
                     )}
                   </button>
                 </div>
+                {isLogin && (
+                  <div className="mt-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => setIsResetPasswordModalOpen(true)}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {isLogin && (
-                <div className="flex items-center justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setIsResetPasswordModalOpen(true)}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-500 hover:underline"
-                  >
-                    Forgot your password?
-                  </button>
-                </div>
-              )}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
+                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5"
               >
                 {isLoading ? (
                   <>
@@ -572,7 +541,7 @@ const LoginPage = () => {
               </button>
             </form>
 
-            <div className="mt-8">
+            <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200" />
@@ -589,7 +558,7 @@ const LoginPage = () => {
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                   type="button"
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200 shadow-sm hover:shadow active:scale-[0.99]"
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200"
                 >
                   <img
                     src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -603,7 +572,7 @@ const LoginPage = () => {
                   onClick={handleGithubLogin}
                   disabled={isLoading}
                   type="button"
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-lg bg-[#24292e] text-white hover:bg-[#2f363d] font-medium transition-all duration-200 shadow-sm hover:shadow active:scale-[0.99]"
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-lg bg-[#24292e] text-white hover:bg-[#2f363d] font-medium transition-all duration-200"
                 >
                   <Github className="w-5 h-5" />
                   <span>Sign in with GitHub</span>
@@ -614,8 +583,70 @@ const LoginPage = () => {
         </div>
       </main>
 
-      <footer className="w-full py-4 text-center text-gray-500 text-sm border-t border-gray-200 bg-white/50">
-        <p>Owned & Operated by Hemanth Reddy Koduru</p>
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-blue-600 p-1 rounded-md">
+                  <Printer className="h-4 w-4 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">QuickXerox</h3>
+              </div>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Your one-stop destination for fast, reliable, and secure printing services.
+                Upload files from anywhere and collect them from your nearest shop.
+              </p>
+              <div className="flex space-x-4 mt-6">
+                {/* Social Placeholders if needed */}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Quick Links</h4>
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Home</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">My Purchases</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Wishlist</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Support</h4>
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Contact Us</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Refund Policy</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Contact</h4>
+              <ul className="space-y-3 text-sm text-gray-600">
+                <li className="flex items-start">
+                  <MapPin className="h-5 w-5 mr-2 text-blue-600 shrink-0" />
+                  <span>Gitam University, Bengaluru, India</span>
+                </li>
+                <li className="flex items-center">
+                  <Phone className="h-4 w-4 mr-2 text-blue-600 shrink-0" />
+                  <span>+91 9876543210</span>
+                </li>
+                <li className="flex items-center">
+                  <Mail className="h-4 w-4 mr-2 text-blue-600 shrink-0" />
+                  <a href="mailto:help-contact@quickxerox.app" className="hover:text-blue-600">help-contact@quickxerox.app</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-8 text-center text-sm text-gray-500">
+            <p>&copy; {new Date().getFullYear()} QuickXerox. All rights reserved.</p>
+            <p className="mt-2 text-xs text-gray-400">Owned & Operated by Hemanth Reddy Koduru</p>
+          </div>
+        </div>
       </footer>
 
       {/* Reset Password Modal */}
@@ -670,12 +701,39 @@ const LoginPage = () => {
       )}
 
       <style>{`
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.6; }
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
         }
-        .animate-pulse-slow {
-          animation: pulse-slow 2s cubic-bezier(.4,0,.6,1) infinite;
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+        .rotate-y-12 {
+          transform: rotateY(12deg);
+        }
+        .-rotate-y-12 {
+          transform: rotateY(-12deg);
+        }
+        .rotate-x-12 {
+          transform: rotateX(12deg);
+        }
+        .translate-z-12 {
+          transform: translateZ(20px);
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotateY(12deg) rotateX(12deg); }
+          50% { transform: translateY(-10px) rotateY(12deg) rotateX(12deg); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
         }
       `}</style>
     </div>
