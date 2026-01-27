@@ -15,6 +15,10 @@ import AdminSellerDetails from './pages/AdminSellerDetails';
 import AdminAuditLogs from './pages/AdminAuditLogs';
 import AdminEmailTemplates from './pages/AdminEmailTemplates';
 import IpBlocked from './pages/IpBlocked';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import RefundPage from './pages/RefundPage';
+import ContactPage from './pages/ContactPage';
 
 
 const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
@@ -51,6 +55,10 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/seller/login" element={<SellerLoginPage />} />
         <Route path="/ip-blocked" element={<IpBlocked />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/refund" element={<RefundPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route
           path="/customerdashboard"
           element={
