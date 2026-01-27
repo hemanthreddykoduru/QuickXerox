@@ -47,9 +47,12 @@ const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNo
   return <>{children}</>;
 };
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
