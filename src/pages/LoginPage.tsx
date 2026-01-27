@@ -591,9 +591,7 @@ const LoginPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="bg-blue-600 p-1 rounded-md">
-                  <Printer className="h-4 w-4 text-white" />
-                </div>
+                <Printer className="h-6 w-6 text-blue-600" strokeWidth={1.5} />
                 <h3 className="text-lg font-bold text-gray-900">QuickXerox</h3>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed">
