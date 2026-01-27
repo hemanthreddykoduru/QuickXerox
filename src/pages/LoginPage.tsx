@@ -419,13 +419,14 @@ const LoginPage = () => {
             </p>
 
             {/* Visual Decoration */}
-            <div className="relative mt-8">
-              <div className="bg-white p-8 lg:p-12 rounded-3xl shadow-xl flex items-center justify-center transform hover:scale-105 transition-transform duration-500 ease-out">
-                <Printer className="w-24 h-24 lg:w-32 lg:h-32 text-blue-600" strokeWidth={1.5} />
-              </div>
+            <div className="relative mt-12 flex justify-center">
+              <div className="relative transform hover:scale-105 transition-transform duration-500 ease-out">
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-20 rounded-full scale-150"></div>
 
-              {/* Subtle glow behind */}
-              <div className="absolute inset-0 bg-blue-400 blur-3xl opacity-20 -z-10 transform translate-y-4"></div>
+                {/* Icon without white background */}
+                <Printer className="relative w-32 h-32 lg:w-40 lg:h-40 text-blue-600 drop-shadow-lg" strokeWidth={1.5} />
+              </div>
             </div>
           </div>
 
