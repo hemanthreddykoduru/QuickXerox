@@ -667,6 +667,10 @@ const LoginPage = () => {
         </div>
       </main>
 
+      <footer className="w-full py-4 text-center text-gray-500 text-sm border-t border-gray-200 bg-white/50">
+        <p>Owned & Operated by Hemanth Reddy Koduru</p>
+      </footer>
+
       {/* Reset Password Modal */}
       {isResetPasswordModalOpen && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4 z-50">
