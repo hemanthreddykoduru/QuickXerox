@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, User, ArrowRight, Eye, EyeOff, Lock, Mail, CheckCircle, MapPin, CreditCard, Shield, Phone, Github } from 'lucide-react';
+import { Printer, Eye, EyeOff, Mail, CheckCircle, MapPin, CreditCard, Shield, Phone, Github } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { auth, provider, githubProvider, db } from '../firebase';
@@ -465,9 +465,21 @@ const LoginPage = () => {
 
         {/* Right Side - Login/Signup Form */}
         <div className="w-full lg:w-1/2 flex flex-col items-center justify-center px-4 py-12 lg:py-0">
-          <div className="w-full max-w-md bg-white/95 rounded-2xl p-6 lg:p-8 shadow-xl">
-            <p className="text-center text-base lg:text-lg text-gray-600 mb-8">
-              {isLogin ? 'Welcome back! Please sign in.' : 'Join us! Create your account.'}
+          <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              {isLogin ? 'Sign in to your account' : 'Create your account'}
+            </h2>
+            <p className="text-sm text-gray-600 mb-8">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setPassword('');
+                }}
+                className="font-medium text-blue-600 hover:text-blue-500 hover:underline transition-colors"
+              >
+                {isLogin ? 'Sign up' : 'Sign in'}
+              </button>
             </p>
 
             <form className="space-y-6" onSubmit={handleEmailPasswordLogin}>
@@ -476,64 +488,51 @@ const LoginPage = () => {
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
                   </label>
-                  <div className="mt-1 relative rounded-lg shadow-sm">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="name"
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 block w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors duration-200"
-                      placeholder="John Doe"
-                    />
-                  </div>
+                  <input
+                    id="name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="John Doe"
+                  />
                 </div>
               )}
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
+                  Email address
                 </label>
-                <div className="mt-1 relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 block w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors duration-200"
-                    placeholder="you@example.com"
-                  />
-                </div>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="you@example.com"
+                />
               </div>
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
-                <div className="mt-1 relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
+                <div className="relative">
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 block w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors duration-200"
+                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -542,126 +541,74 @@ const LoginPage = () => {
                     )}
                   </button>
                 </div>
-                {isLogin && (
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <input
-                        id="remember-me"
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors duration-200"
-                      />
-                      <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                        Remember me
-                      </label>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsResetPasswordModalOpen(true)}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                )}
               </div>
+
+              {isLogin && (
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsResetPasswordModalOpen(true)}
+                    className="text-sm font-medium text-blue-600 hover:text-blue-500 hover:underline"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              )}
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200 transform hover:-translate-y-0.5"
+                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {isLoading ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    {loadingStep || (isLogin ? 'Signing in...' : 'Creating account...')}
+                    {loadingStep || (isLogin ? 'Signing In...' : 'Creating Account...')}
                   </>
-                ) : (isLogin ? 'Sign in' : 'Create account')}
-                {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
+                ) : (isLogin ? 'Sign In' : 'Sign Up')}
               </button>
             </form>
 
             <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-gray-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-3 bg-white text-gray-500 font-medium">
+                  <span className="px-4 bg-white text-gray-500">
                     Or continue with
                   </span>
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 space-y-3">
                 <button
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-100 shadow-sm transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200 shadow-sm hover:shadow active:scale-[0.99]"
                 >
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin h-6 w-6 text-gray-600" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span className="text-base font-medium">{loadingStep || 'Connecting...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <img
-                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                        alt="Google"
-                        className="w-6 h-6"
-                      />
-                      <span className="text-base font-medium">Google</span>
-                    </>
-                  )}
+                  <img
+                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                    alt="Google"
+                    className="w-5 h-5"
+                  />
+                  <span>Sign in with Google</span>
                 </button>
-              </div>
 
-              <div className="mt-4">
                 <button
                   onClick={handleGithubLogin}
                   disabled={isLoading}
                   type="button"
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-[#24292e] text-white hover:bg-[#1b1f23] shadow-sm transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-lg bg-[#24292e] text-white hover:bg-[#2f363d] font-medium transition-all duration-200 shadow-sm hover:shadow active:scale-[0.99]"
                 >
-                  {isLoading && loadingStep.includes('GitHub') ? (
-                    <>
-                      <svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span className="text-base font-medium">{loadingStep || 'Connecting...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Github className="w-6 h-6" />
-                      <span className="text-base font-medium">Sign in with GitHub</span>
-                    </>
-                  )}
+                  <Github className="w-5 h-5" />
+                  <span>Sign in with GitHub</span>
                 </button>
               </div>
-            </div>
-
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setPassword('');
-                }}
-                disabled={isLoading}
-                type="button"
-                className="text-blue-600 hover:text-blue-700 text-sm lg:text-base font-medium transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLogin ? 'Create new account' : 'Sign in with existing account'}
-              </button>
             </div>
           </div>
         </div>
