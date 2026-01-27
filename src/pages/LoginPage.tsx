@@ -387,9 +387,7 @@ const LoginPage = () => {
       <nav className="border-b border-gray-100 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-600 p-1.5 rounded-lg">
-              <Printer className="h-6 w-6 text-white" />
-            </div>
+            <Printer className="h-8 w-8 text-blue-600" strokeWidth={1.5} />
             <span className="text-xl font-bold text-gray-900 tracking-tight">QuickXerox</span>
           </div>
           <button
