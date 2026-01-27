@@ -407,7 +407,7 @@ const LoginPage = () => {
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* Left Side - Hero/Welcome */}
         {/* Left Side - Hero/Welcome */}
-        <div className="w-full lg:w-1/2 bg-indigo-50 relative overflow-hidden flex flex-col items-center justify-center p-8 lg:p-12 text-center lg:min-h-[600px]">
+        <div className="w-full lg:w-1/2 bg-white relative overflow-hidden flex flex-col items-center justify-center p-8 lg:p-12 text-center lg:min-h-[600px]">
           <div className="relative z-10 max-w-lg">
             <h1 className="text-3xl lg:text-5xl font-extrabold text-gray-900 mb-6 font-display">
               {isLogin ? 'Welcome Back!' : 'Start Printing Now'}
