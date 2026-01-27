@@ -588,7 +588,7 @@ const LoginPage = () => {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="bg-blue-600 p-1 rounded-md">
@@ -605,15 +605,7 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Quick Links</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Home</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">My Purchases</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Wishlist</a></li>
-              </ul>
-            </div>
+
 
             <div>
               <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Support</h4>
