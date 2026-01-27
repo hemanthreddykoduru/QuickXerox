@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, Eye, EyeOff, Mail, CheckCircle, MapPin, CreditCard, Shield, Phone, Github } from 'lucide-react';
+import { Printer, Eye, EyeOff, Mail, MapPin, Phone, Github } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
 import { auth, provider, githubProvider, db } from '../firebase';
@@ -418,17 +418,19 @@ const LoginPage = () => {
             </p>
 
             {/* Visual Decoration */}
-            <div className="relative w-64 h-64 mx-auto perspective-1000">
-              <div className="absolute inset-0 bg-blue-600 rounded-2xl shadow-2xl transform rotate-y-12 rotate-x-12 opacity-90 animate-float"></div>
-              <div className="absolute inset-0 bg-white border-2 border-blue-100 rounded-2xl shadow-xl transform -rotate-y-12 translate-z-12 flex items-center justify-center">
-                <Printer className="w-32 h-32 text-blue-600 opacity-80" />
+            <div className="relative mt-8">
+              <div className="bg-white p-12 rounded-3xl shadow-xl flex items-center justify-center transform hover:scale-105 transition-transform duration-500 ease-out">
+                <Printer className="w-32 h-32 text-blue-600" strokeWidth={1.5} />
               </div>
+
+              {/* Subtle glow behind */}
+              <div className="absolute inset-0 bg-blue-400 blur-3xl opacity-20 -z-10 transform translate-y-4"></div>
             </div>
           </div>
 
-          {/* Abstract shapes */}
-          <div className="absolute top-0 left-0 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          {/* Subtle background gradients, less intrusive */}
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-200/30 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-200/30 rounded-full blur-3xl pointer-events-none"></div>
         </div>
 
         {/* Right Side - Form */}
