@@ -406,12 +406,13 @@ const LoginPage = () => {
 
       <main className="flex-1 flex flex-col lg:flex-row">
         {/* Left Side - Hero/Welcome */}
-        <div className="w-full lg:w-1/2 bg-indigo-50 relative overflow-hidden flex flex-col items-center justify-center p-12 text-center lg:min-h-[600px]">
+        {/* Left Side - Hero/Welcome */}
+        <div className="w-full lg:w-1/2 bg-indigo-50 relative overflow-hidden flex flex-col items-center justify-center p-8 lg:p-12 text-center lg:min-h-[600px]">
           <div className="relative z-10 max-w-lg">
-            <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 font-display">
+            <h1 className="text-3xl lg:text-5xl font-extrabold text-gray-900 mb-6 font-display">
               {isLogin ? 'Welcome Back!' : 'Start Printing Now'}
             </h1>
-            <p className="text-lg text-gray-600 mb-12 leading-relaxed">
+            <p className="text-base lg:text-lg text-gray-600 mb-8 lg:mb-12 leading-relaxed">
               {isLogin
                 ? 'Sign in to access your dashboard, track orders, and experience the fastest printing service.'
                 : 'Join QuickXerox today to upload files from anywhere and pick them up at your convenience.'}
@@ -419,8 +420,8 @@ const LoginPage = () => {
 
             {/* Visual Decoration */}
             <div className="relative mt-8">
-              <div className="bg-white p-12 rounded-3xl shadow-xl flex items-center justify-center transform hover:scale-105 transition-transform duration-500 ease-out">
-                <Printer className="w-32 h-32 text-blue-600" strokeWidth={1.5} />
+              <div className="bg-white p-8 lg:p-12 rounded-3xl shadow-xl flex items-center justify-center transform hover:scale-105 transition-transform duration-500 ease-out">
+                <Printer className="w-24 h-24 lg:w-32 lg:h-32 text-blue-600" strokeWidth={1.5} />
               </div>
 
               {/* Subtle glow behind */}
@@ -429,12 +430,12 @@ const LoginPage = () => {
           </div>
 
           {/* Subtle background gradients, less intrusive */}
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-200/30 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-200/30 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[300px] h-[300px] lg:w-[500px] lg:h-[500px] bg-blue-200/30 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] lg:w-[500px] lg:h-[500px] bg-indigo-200/30 rounded-full blur-3xl pointer-events-none"></div>
         </div>
 
         {/* Right Side - Form */}
-        <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-8 lg:p-12">
+        <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 lg:p-12">
           <div className="w-full max-w-md space-y-8">
             <div className="text-left">
               <h2 className="text-3xl font-bold text-gray-900 mt-0">
