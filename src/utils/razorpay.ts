@@ -74,8 +74,7 @@ export const initializeRazorpayPayment = async (
     const order = await createRazorpayOrder(amount);
 
     const options = {
-      // FORCE LIVE KEY for debugging - bypassing backend response for a moment
-      key: 'rzp_live_S9JWpPDcPhalbL',
+      key: order.key_id || RAZORPAY_KEY, // Use backend key if available, else fallback
       amount: order.amount,
       currency: order.currency,
       name: 'QuickXerox',
@@ -120,9 +119,8 @@ export const initializeRazorpayPayment = async (
       },
     };
 
-    // DEBUG: Log the key being used (Console Only)
-    console.error(`DEBUG INFO: Key Used: ${options.key}`);
-    console.log('Razorpay Options:', options);
+    // CRITICAL DEBUG: Tell the user exactly what key the backend sent
+    alert(`BACKEND KEY REPORT:\nThe Backend sent this Key ID:\n${order.key_id}\n\nIf this starts with 'rzp_test', your Railway Variables are WRONG.`);
 
     const razorpay = new window.Razorpay(options);
     razorpay.on('payment.failed', onError);
