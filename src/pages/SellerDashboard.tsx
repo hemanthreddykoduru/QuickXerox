@@ -217,12 +217,18 @@ const SellerDashboard: React.FC = () => {
       if (user) {
         fetchSellerDetails(user.uid);
       } else {
-        localStorage.removeItem('isSellerAuthenticated');
-        localStorage.removeItem('sellerId');
-        localStorage.removeItem('sellerBankDetails');
-        localStorage.removeItem('sellerSettings');
-        navigate('/seller/login', { replace: true });
-        toast.error('You must be logged in to view the seller dashboard.');
+        // Only redirect if we currently believe we are authenticated
+        if (localStorage.getItem('isSellerAuthenticated')) {
+          console.log("SellerDashboard: Auth state lost, cleaning up.");
+          localStorage.removeItem('isSellerAuthenticated');
+          localStorage.removeItem('sellerId');
+          // Don't clear settings/bank details immediately to prevent data loss on accidental logouts
+          navigate('/seller/login', { replace: true });
+          // toast.error('Session expired. Please log in again.'); // Reduced spam
+        } else {
+          // Not authenticated anyway, ensure we are at login
+          // navigate('/seller/login', { replace: true });
+        }
       }
     });
 
