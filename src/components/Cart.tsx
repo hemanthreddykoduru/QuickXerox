@@ -8,6 +8,18 @@ import { UserProfile } from '../types';
 import { uploadFile } from '../services/storageService';
 import { auth } from '../firebase';
 
+interface CartProps {
+  items: PrintJob[];
+  onRemove: (id: string) => void;
+  basePrice: number;
+  isOpen: boolean;
+  onClose: () => void;
+  selectedShop: PrintShop | null;
+  onShopSelect: (id: string) => void;
+  shops: PrintShop[];
+  userProfile: UserProfile | null;
+}
+
 const Cart: React.FC<CartProps> = ({
   items,
   onRemove,
@@ -76,19 +88,7 @@ const Cart: React.FC<CartProps> = ({
     }
   };
 
-  const generateOTP = (existingOrderId?: string) => {
-    // Generate a 4-digit OTP
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    const orderId = existingOrderId || `ORD-${Date.now()}`;
 
-    // Store OTP in localStorage for seller to access
-    localStorage.setItem(`otp_${orderId}`, otp);
-    localStorage.setItem(`otp_${orderId}_timestamp`, Date.now().toString());
-    localStorage.setItem(`otp_${orderId}_customer_phone`, '+91 98765 43210'); // In real app, get from user profile
-    localStorage.setItem(`otp_${orderId}_seller_phone`, '+91 87654 32109'); // In real app, get from shop details
-
-    return { otp, orderId };
-  };
 
   const handlePaymentSuccess = (response: any) => {
     console.log('Payment successful:', response);
@@ -124,14 +124,14 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-0 sm:p-6">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4 sm:p-6">
       <div className="bg-white rounded-lg shadow-xl max-w-full md:max-w-2xl w-full max-h-[calc(100vh-32px)] sm:max-h-[90vh] flex flex-col overflow-hidden">
         <div className="sticky top-0 bg-white z-10 px-4 py-3 border-b flex-shrink-0">
           <div className="flex justify-between items-center">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Cart</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500"
+              className="text-gray-400 hover:text-gray-500 p-1"
               aria-label="Close cart"
             >
               <X className="h-6 w-6" />
@@ -148,22 +148,22 @@ const Cart: React.FC<CartProps> = ({
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-2 sm:p-4 bg-gray-50 rounded-lg cursor-pointer"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg cursor-pointer gap-3 sm:gap-0"
                     onClick={() => {
                       setFileToPreview(item.file);
                       setShowFilePreviewModal(true);
                     }}
                   >
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 w-full sm:w-auto overflow-hidden">
                       {item.file.type.startsWith('image/') ? (
                         <ImagePreview file={item.file} />
                       ) : item.file.type === 'application/pdf' ? (
-                        <FileText className="h-6 w-6 text-red-600" />
+                        <FileText className="h-6 w-6 text-red-600 flex-shrink-0" />
                       ) : (
-                        <FileText className="h-6 w-6 text-gray-600" />
+                        <FileText className="h-6 w-6 text-gray-600 flex-shrink-0" />
                       )}
-                      <div>
-                        <p className="font-medium text-gray-900">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 truncate">
                           {item.file.name}
                         </p>
                         <p className="text-sm text-gray-500">
@@ -177,7 +177,7 @@ const Cart: React.FC<CartProps> = ({
                         e.stopPropagation();
                         onRemove(item.id);
                       }}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 text-sm font-medium self-end sm:self-center"
                     >
                       Remove
                     </button>
@@ -193,33 +193,36 @@ const Cart: React.FC<CartProps> = ({
                   {shops.map((shop) => (
                     <div
                       key={shop.id}
-                      className={`p-2 sm:p-4 border rounded-lg cursor-pointer ${selectedShop?.id === shop.id
+                      className={`p-3 sm:p-4 border rounded-lg cursor-pointer ${selectedShop?.id === shop.id
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200'
                         }`}
                       onClick={() => onShopSelect(shop.id.toString())}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                         <div>
                           <h4 className="font-medium text-gray-900">
                             {shop.name}
                           </h4>
-                          <div className="flex items-center space-x-2 sm:space-x-4 mt-1">
+                          <div className="flex items-center space-x-4 mt-1">
                             <div className="flex items-center text-sm text-gray-500">
-                              <MapPin className="h-4 w-4 mr-1" />
+                              <MapPin className="h-3.5 w-3.5 mr-1" />
                               {shop.distance} km
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
-                              <Clock className="h-4 w-4 mr-1" />
+                              <Clock className="h-3.5 w-3.5 mr-1" />
                               {shop.eta} min
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium text-gray-900">
-                            ₹{shop.price.toFixed(2)}
-                          </p>
-                          <p className="text-sm text-gray-500">per page</p>
+                        <div className="flex justify-between sm:block items-center border-t sm:border-t-0 pt-2 sm:pt-0 sm:text-right">
+                          <span className="sm:hidden text-sm text-gray-500">Price/Page</span>
+                          <div>
+                            <p className="font-medium text-gray-900 text-lg sm:text-base">
+                              ₹{shop.price.toFixed(2)}
+                            </p>
+                            <p className="hidden sm:block text-sm text-gray-500">per page</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -251,17 +254,17 @@ const Cart: React.FC<CartProps> = ({
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Uploading Files...
+                        Uploading...
                       </>
                     ) : isProcessing ? (
-                      'Processing Payment...'
+                      'Processing...'
                     ) : (
                       'Proceed to Checkout'
                     )}
                   </button>
                 ) : (
-                  <p className="text-center text-red-600">
-                    Please select a print shop to continue
+                  <p className="text-center text-red-600 text-sm">
+                    Select a print shop to continue
                   </p>
                 )}
               </div>
@@ -284,7 +287,7 @@ const Cart: React.FC<CartProps> = ({
             })))}
             shopId={selectedShop.id.toString()}
             generatedOrderId={orderId}
-            userProfile={userProfile}
+            userProfile={userProfile || undefined}
             onSuccess={handlePaymentSuccess}
             onError={handlePaymentError}
           />
@@ -300,16 +303,16 @@ const Cart: React.FC<CartProps> = ({
         {/* OTP Display Modal */}
         {showOTPDisplay && (
           <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-100 rounded-full">
+                  <div className="p-2 bg-green-100 rounded-full flex-shrink-0">
                     <CheckCircle className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Payment Successful!</h3>
-                    <p className="text-sm text-gray-500">Your order is confirmed</p>
+                    <p className="text-sm text-gray-500">Order confirmed</p>
                   </div>
                 </div>
                 <button
@@ -317,7 +320,7 @@ const Cart: React.FC<CartProps> = ({
                     setShowOTPDisplay(false);
                     onClose();
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1"
                   aria-label="Close"
                 >
                   <X className="h-6 w-6" />
@@ -325,15 +328,11 @@ const Cart: React.FC<CartProps> = ({
               </div>
 
               {/* Order Info */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <div className="text-center">
-                  <p className="font-medium text-gray-900">Order #{orderId}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Total Amount: ₹{totalAmount.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Shop: {selectedShop?.name}
-                  </p>
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-center">
+                <p className="font-medium text-gray-900">Order #{orderId}</p>
+                <div className="flex justify-center space-x-4 mt-2 text-sm text-gray-500">
+                  <span className="flex items-center"><Printer className="h-3 w-3 mr-1" /> {selectedShop?.name}</span>
+                  <span>₹{totalAmount.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -341,24 +340,24 @@ const Cart: React.FC<CartProps> = ({
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center space-x-2 mb-3">
                   <Shield className="h-5 w-5 text-blue-600" />
-                  <h4 className="font-semibold text-gray-900">Your Verification Code</h4>
+                  <h4 className="font-semibold text-gray-900">Verification Code</h4>
                 </div>
 
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
-                  <div className="flex justify-center space-x-2 mb-3">
+                  <div className="flex justify-center space-x-2 sm:space-x-3 mb-3">
                     {generatedOTP.split('').map((digit, index) => (
                       <div
                         key={index}
-                        className="w-12 h-12 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center"
+                        className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center"
                       >
-                        <span className="text-2xl font-bold text-blue-600">
+                        <span className="text-xl sm:text-2xl font-bold text-blue-600">
                           {digit}
                         </span>
                       </div>
                     ))}
                   </div>
-                  <p className="text-sm text-blue-700">
-                    Show this code to the seller for verification
+                  <p className="text-xs sm:text-sm text-blue-700">
+                    Show this code to collection point
                   </p>
                 </div>
 
@@ -367,32 +366,30 @@ const Cart: React.FC<CartProps> = ({
                     navigator.clipboard.writeText(generatedOTP);
                     toast.success('OTP copied to clipboard!');
                   }}
-                  className="flex items-center justify-center space-x-2 mx-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm"
                 >
                   <Copy className="h-4 w-4" />
-                  <span>Copy OTP</span>
+                  <span>Copy Code</span>
                 </button>
               </div>
 
               {/* Instructions */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <h5 className="font-medium text-yellow-900 mb-2">Important Instructions:</h5>
-                <ul className="text-sm text-yellow-800 space-y-1">
-                  <li>• Both you and the seller have received the same OTP</li>
-                  <li>• Show this OTP to the seller when collecting your prints</li>
-                  <li>• The seller will verify this OTP to confirm your order</li>
-                  <li>• Keep this OTP safe until you collect your order</li>
+                <h5 className="font-medium text-yellow-900 mb-2 text-sm">Important:</h5>
+                <ul className="text-xs sm:text-sm text-yellow-800 space-y-1 text-left list-disc pl-4">
+                  <li>Show this OTP to the seller to collect prints.</li>
+                  <li>Keep this OTP safe.</li>
                 </ul>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex space-x-3">
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
                 <button
                   onClick={() => {
                     setShowOTPDisplay(false);
                     onClose();
                   }}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Close
                 </button>
@@ -401,9 +398,9 @@ const Cart: React.FC<CartProps> = ({
                     // Navigate to order tracking or account page
                     setShowOTPDisplay(false);
                     onClose();
-                    toast.success('You can track your order in the Account section');
+                    toast.success('Track your order in My Account');
                   }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Track Order
                 </button>

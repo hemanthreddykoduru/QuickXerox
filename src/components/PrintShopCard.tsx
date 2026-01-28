@@ -54,7 +54,7 @@ const PrintShopCard: React.FC<PrintShopCardProps> = ({ shop, isSelected, onSelec
           </span>
           <button
             onClick={onSelect}
-            className={`px-3 py-1.5 rounded-md transition-colors ${isSelected
+            className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${isSelected
               ? 'bg-green-600 hover:bg-green-700 text-white'
               : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}

@@ -588,7 +588,7 @@ const AdminDashboard = () => {
         <div className="mt-10 mb-8">
           <h2 className="text-xl font-bold mb-4">Dashboard Metrics</h2>
           {metrics ? (
-            <div className="flex gap-8 flex-wrap">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
                 <div className="text-gray-500 dark:text-gray-400 text-sm">Total Sellers</div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics?.sellers ?? 0}</div>
@@ -607,9 +607,9 @@ const AdminDashboard = () => {
               </div>
             </div>
           ) : (
-            <div className="flex gap-8 flex-wrap">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {Array(4).fill(0).map((_, i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center w-40">
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
                   <Skeleton variant="text" width={80} height={16} className="mx-auto mb-2" />
                   <Skeleton variant="text" width={40} height={32} className="mx-auto" />
                 </div>

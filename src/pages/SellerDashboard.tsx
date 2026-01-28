@@ -601,55 +601,55 @@ const SellerDashboard: React.FC = () => {
             </div>
 
             {/* Settings Tabs */}
-            <div className="flex flex-wrap space-x-2 sm:space-x-4 mb-4 sm:mb-6 border-b">
+            <div className="flex overflow-x-auto whitespace-nowrap space-x-2 sm:space-x-4 mb-4 sm:mb-6 border-b pb-1 no-scrollbar">
               <button
                 onClick={() => setActiveSettingsTab('shop')}
-                className={`pb-2 px-2 sm:px-4 text-sm sm:text-base ${activeSettingsTab === 'shop'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                className={`pb-2 px-3 sm:px-4 text-sm sm:text-base border-b-2 transition-colors ${activeSettingsTab === 'shop'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                <Globe className="h-5 w-5 inline-block mr-2" />
+                <Globe className="h-4 w-4 sm:h-5 sm:w-5 inline-block mr-2" />
                 Shop Details
               </button>
               <button
                 onClick={() => setActiveSettingsTab('notifications')}
-                className={`pb-2 px-2 sm:px-4 text-sm sm:text-base ${activeSettingsTab === 'notifications'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                className={`pb-2 px-3 sm:px-4 text-sm sm:text-base border-b-2 transition-colors ${activeSettingsTab === 'notifications'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                <BellRing className="h-5 w-5 inline-block mr-2" />
+                <BellRing className="h-4 w-4 sm:h-5 sm:w-5 inline-block mr-2" />
                 Notifications
               </button>
               <button
                 onClick={() => setActiveSettingsTab('hours')}
-                className={`pb-2 px-2 sm:px-4 text-sm sm:text-base ${activeSettingsTab === 'hours'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                className={`pb-2 px-3 sm:px-4 text-sm sm:text-base border-b-2 transition-colors ${activeSettingsTab === 'hours'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                <Clock className="h-5 w-5 inline-block mr-2" />
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 inline-block mr-2" />
                 Business Hours
               </button>
               <button
                 onClick={() => setActiveSettingsTab('preferences')}
-                className={`pb-2 px-2 sm:px-4 text-sm sm:text-base ${activeSettingsTab === 'preferences'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                className={`pb-2 px-3 sm:px-4 text-sm sm:text-base border-b-2 transition-colors ${activeSettingsTab === 'preferences'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                <Shield className="h-5 w-5 inline-block mr-2" />
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 inline-block mr-2" />
                 Preferences
               </button>
               <button
                 onClick={() => setActiveSettingsTab('security')}
-                className={`pb-2 px-2 sm:px-4 text-sm sm:text-base ${activeSettingsTab === 'security'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                className={`pb-2 px-3 sm:px-4 text-sm sm:text-base border-b-2 transition-colors ${activeSettingsTab === 'security'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                <Shield className="h-5 w-5 inline-block mr-2" />
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 inline-block mr-2" />
                 Security
               </button>
             </div>
