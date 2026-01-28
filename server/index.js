@@ -64,8 +64,12 @@ console.log("Environment:", {
 // Razorpay configuration
 // Initialize Razorpay with Live Keys
 const Razorpay = require("razorpay");
-const RAZORPAY_KEY_ID = "rzp_live_S6XepASGgegRT0";
-const RAZORPAY_KEY_SECRET = "6EJvog3s6eToAejysxYGzTWk";
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+
+if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+  console.error("Missing Razorpay credentials in environment variables");
+}
 
 const razorpay = new Razorpay({
   key_id: RAZORPAY_KEY_ID,

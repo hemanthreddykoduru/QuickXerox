@@ -1,5 +1,6 @@
 // Razorpay configuration
-export const RAZORPAY_KEY = 'rzp_live_S6XepASGgegRT0';
+// Razorpay configuration
+export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY || 'rzp_live_S6XepASGgegRT0'; // Fallback for safety, but check .env
 
 // API Configuration
 // In production, this should point to your Railway Backend URL
