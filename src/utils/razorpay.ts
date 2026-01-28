@@ -1,5 +1,6 @@
 import { PaymentMethod } from '../types';
 import { RAZORPAY_KEY } from '../config/constants';
+import { API_BASE_URL } from '../config/constants';
 
 declare global {
   interface Window {
@@ -29,8 +30,6 @@ interface CreateOrderResponse {
   currency: string;
   key_id?: string;
 }
-
-import { API_BASE_URL } from '../config/constants';
 
 // Call backend to create order
 const createRazorpayOrder = async (amount: number): Promise<CreateOrderResponse> => {
@@ -119,6 +118,9 @@ export const initializeRazorpayPayment = async (
         onSuccess(response);
       },
     };
+
+    // DEBUG: Alert the key being used
+    alert(`DEBUG INFO:\nKey Used: ${options.key}\nBackend Order ID: ${order.id}`);
 
     const razorpay = new window.Razorpay(options);
     razorpay.on('payment.failed', onError);
