@@ -21,8 +21,8 @@ const transporter = nodemailer.createTransport({
 
 // Initialize Razorpay with Test Keys (Provided by User)
 // TODO: For production, move these to functions.config()
-const RAZORPAY_KEY_ID = 'rzp_test_S6aPHcOZKR3AO2';
-const RAZORPAY_KEY_SECRET = 'QIEynkcicrhIUO8fm3SkhICq';
+const RAZORPAY_KEY_ID = 'rzp_live_S6XepASGgegRT0';
+const RAZORPAY_KEY_SECRET = '6EJvog3s6eToAejysxYGzTWk';
 const RAZORPAY_WEBHOOK_SECRET = 'your_webhook_secret_here'; // Get this from Razorpay Dashboard
 
 const razorpay = new Razorpay({

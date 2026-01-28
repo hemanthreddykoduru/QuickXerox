@@ -1,5 +1,5 @@
 // Razorpay configuration
-export const RAZORPAY_KEY = 'rzp_test_S6aPHcOZKR3AO2';
+export const RAZORPAY_KEY = 'rzp_live_S6XepASGgegRT0';
 
 export const PAYMENT_METHODS = [
   {
