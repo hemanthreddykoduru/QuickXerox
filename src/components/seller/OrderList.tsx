@@ -46,16 +46,10 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
           toast.loading(`Securing access for ${fileName}...`);
           downloadUrl = await getSignedUrl(filePath);
           toast.dismiss();
-        } catch (signedUrlError) {
+        } catch (signedUrlError: any) {
           console.error('Signed URL generation failed:', signedUrlError);
           toast.dismiss();
-          // If signed URL fails, fallback to fileUrl if available
-          if (fileUrl) {
-            toast.success('Using direct file link');
-            downloadUrl = fileUrl;
-          } else {
-            throw new Error('File path not accessible and no fallback URL available');
-          }
+          throw new Error(signedUrlError.message || "Failed to generate signed URL");
         }
       }
 
@@ -69,20 +63,16 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVeri
         link.click();
         document.body.removeChild(link);
       } else {
-        toast.error("File not found or access denied.");
+        throw new Error("File URL not found");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Download Error:", error);
       toast.dismiss();
-      toast.error("Unable to access file. The file may have been deleted or moved.");
+      toast.error(error.message || "Unable to access file.");
     }
   };
 
-  const handleView = (fileName: string) => {
-    // Open the file in a new tab or show the file preview
-    const fileUrl = `/files/${fileName}`; // Replace with actual URL or file path
-    window.open(fileUrl, '_blank');
-  };
+
 
   return (
     <div className="bg-white shadow-sm rounded-lg divide-y divide-gray-200">

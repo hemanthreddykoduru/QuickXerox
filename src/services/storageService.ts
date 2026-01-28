@@ -63,11 +63,11 @@ export const getSignedUrl = async (filePath: string): Promise<string> => {
 
         if (error) {
             console.error('Supabase Signed URL Error:', error);
-            throw error;
+            throw new Error(`Supabase Error: ${error.message}`);
         }
 
         return data.signedUrl;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error generating signed URL:', error);
         throw error;
     }
