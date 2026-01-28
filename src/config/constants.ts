@@ -5,7 +5,7 @@ export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY;
 // API Configuration
 // In production, this should point to your Railway Backend URL
 export const API_BASE_URL = import.meta.env.PROD
-  ? 'https://quickxerox-server.up.railway.app' // REPLACE THIS with your actual Railway URL
+  ? 'https://quickxerox-production.up.railway.app' // Updated to match user's Railway URL
   : '/api';
 
 export const PAYMENT_METHODS = [
