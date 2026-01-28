@@ -59,7 +59,7 @@ export const getSignedUrl = async (filePath: string): Promise<string> => {
     try {
         const { data, error } = await supabase.storage
             .from('print-files')
-            .createSignedUrl(filePath, 60 * 60 * 24); // 24 hours (1 day) expiry
+            .createSignedUrl(filePath, 60 * 60 * 24 * 3); // 72 hours (3 days) expiry
 
         if (error) {
             console.error('Supabase Signed URL Error:', error);

@@ -51,8 +51,8 @@ const SellerDashboard: React.FC = () => {
             const now = new Date().getTime();
             const hoursPassed = (now - completedTime) / (1000 * 60 * 60);
 
-            // If more than 24 hours have passed, delete the files
-            if (hoursPassed > 24 && order.items) {
+            // If more than 72 hours (3 days) have passed, delete the files
+            if (hoursPassed > 72 && order.items) {
               console.log(`Cleaning up files for order ${order.id} (completed ${hoursPassed.toFixed(1)} hours ago)`);
               await Promise.all(order.items.map(async (item) => {
                 if (item.filePath) {
