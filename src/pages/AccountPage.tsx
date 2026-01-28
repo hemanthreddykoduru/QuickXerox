@@ -7,9 +7,8 @@ import EditProfileModal from '../components/account/EditProfileModal';
 import { useProfile } from '../hooks/useProfile';
 import { Order } from '../types';
 import { toast } from 'react-hot-toast';
-import { generateSampleOrders } from '../utils/sampleOrders';
 import { db } from '../firebase';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import Skeleton from '../components/common/Skeleton';
 
 const AccountPage = () => {
@@ -101,7 +100,7 @@ const AccountPage = () => {
       }
     };
 
-    const cleanup = startFetching();
+    startFetching();
     return () => {
       // cleanup handled by onSnapshot return if async wasn't wrapped, 
       // but here startFetching returns a promise.
@@ -200,14 +199,7 @@ const AccountPage = () => {
           <div className="lg:col-span-2">
             <OrderHistory orders={orders} isLoading={isLoadingOrders} />
 
-            {/* Debug Section - Remove before production final release */}
-            <div className="mt-8 p-4 bg-gray-100 rounded-lg text-xs text-gray-500 font-mono">
-              <p><strong>Debug Info:</strong></p>
-              <p>Profile Mobile: {profile.mobile}</p>
-              <p>Stored Mobile: {localStorage.getItem('userPhone')}</p>
-              <p>Searching for: {profile.mobile ? [profile.mobile, profile.mobile.replace(/\D/g, '').slice(-10)].join(', ') : 'No Phone'}</p>
-              <p>Orders Found: {orders.length}</p>
-            </div>
+
           </div>
         </div>
       </main>
