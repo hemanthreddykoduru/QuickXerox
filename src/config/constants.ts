@@ -1,6 +1,12 @@
 // Razorpay configuration
 export const RAZORPAY_KEY = 'rzp_live_S6XepASGgegRT0';
 
+// API Configuration
+// In production, this should point to your Railway Backend URL
+export const API_BASE_URL = import.meta.env.PROD
+  ? 'https://quickxerox-server.up.railway.app' // REPLACE THIS with your actual Railway URL
+  : '/api';
+
 export const PAYMENT_METHODS = [
   {
     id: 'upi',

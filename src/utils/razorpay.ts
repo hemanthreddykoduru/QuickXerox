@@ -29,14 +29,37 @@ interface CreateOrderResponse {
   currency: string;
 }
 
-// In a real app, this would be an API call to your backend
+import { API_BASE_URL } from '../config/constants';
+
+// Call backend to create order
 const createRazorpayOrder = async (amount: number): Promise<CreateOrderResponse> => {
-  // Simulate API call
-  return {
-    id: 'order_' + Math.random().toString(36).substr(2, 9),
-    amount: amount * 100, // Convert to paise
-    currency: 'INR'
-  };
+  try {
+    const response = await fetch(`${API_BASE_URL}/create-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount, // in INR
+        currency: 'INR',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create order');
+    }
+
+    const data = await response.json();
+    return {
+      id: data.orderId,
+      amount: data.amount,
+      currency: data.currency
+    };
+  } catch (error) {
+    console.error("Error creating Razorpay order:", error);
+    throw error;
+  }
 };
 
 export const initializeRazorpayPayment = async (
@@ -90,7 +113,7 @@ export const initializeRazorpayPayment = async (
           }
         }
       },
-      handler: function(response: any) {
+      handler: function (response: any) {
         onSuccess(response);
       },
     };
