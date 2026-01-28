@@ -173,35 +173,37 @@ const SellerDashboard: React.FC = () => {
 
   // Move fetchSellerDetails out of useEffect
   const fetchSellerDetails = async (uid: string) => {
-    const sellerDocRef = doc(db, 'shopOwners', uid);
-    const docSnap = await getDoc(sellerDocRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (data.bankDetails) {
-        setBankDetails(data.bankDetails);
+    try {
+      const sellerDocRef = doc(db, 'shopOwners', uid);
+      const docSnap = await getDoc(sellerDocRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.bankDetails) {
+          setBankDetails(data.bankDetails);
+        } else {
+          setBankDetails({
+            accountNumber: '',
+            bankName: '',
+            ifscCode: '',
+            accountHolderName: '',
+            branchName: '',
+            accountType: 'savings',
+            mobileNumber: '',
+            isVerified: false
+          });
+        }
+        if (data.settings) {
+          setSettings(data.settings);
+          console.log('Fetched seller settings:', data.settings);
+        }
       } else {
-        setBankDetails({
-          accountNumber: '',
-          bankName: '',
-          ifscCode: '',
-          accountHolderName: '',
-          branchName: '',
-          accountType: 'savings',
-          mobileNumber: '',
-          isVerified: false
-        });
+        console.error("Seller profile not found for UID:", uid);
+        toast.error('Seller profile not found.');
+        // Optional: Logout here if we are SURE. But for now, let's be safe.
       }
-      if (data.settings) {
-        setSettings(data.settings);
-        console.log('Fetched seller settings:', data.settings);
-      }
-    } else {
-      localStorage.removeItem('isSellerAuthenticated');
-      localStorage.removeItem('sellerId');
-      localStorage.removeItem('sellerBankDetails');
-      localStorage.removeItem('sellerSettings');
-      navigate('/seller/login', { replace: true });
-      toast.error('Seller profile not found. Please log in again.');
+    } catch (err) {
+      console.error("Error fetching seller details:", err);
+      toast.error('Failed to load seller details. Please checks your connection.');
     }
   };
 
@@ -217,17 +219,19 @@ const SellerDashboard: React.FC = () => {
       if (user) {
         fetchSellerDetails(user.uid);
       } else {
-        // Only redirect if we currently believe we are authenticated
+        // Debounce logout to prevent flickering
         if (localStorage.getItem('isSellerAuthenticated')) {
-          console.log("SellerDashboard: Auth state lost, cleaning up.");
-          localStorage.removeItem('isSellerAuthenticated');
-          localStorage.removeItem('sellerId');
-          // Don't clear settings/bank details immediately to prevent data loss on accidental logouts
-          navigate('/seller/login', { replace: true });
-          // toast.error('Session expired. Please log in again.'); // Reduced spam
-        } else {
-          // Not authenticated anyway, ensure we are at login
-          // navigate('/seller/login', { replace: true });
+          setTimeout(() => {
+            // Check again after 1 second
+            if (!auth.currentUser) {
+              console.log("SellerDashboard: Auth confirmed lost after delay. Logging out.");
+              localStorage.removeItem('isSellerAuthenticated');
+              localStorage.removeItem('sellerId');
+              navigate('/seller/login', { replace: true });
+            } else {
+              console.log("SellerDashboard: Auth restored within grace period.");
+            }
+          }, 1000);
         }
       }
     });
