@@ -74,7 +74,8 @@ export const initializeRazorpayPayment = async (
     const order = await createRazorpayOrder(amount);
 
     const options = {
-      key: order.key_id || RAZORPAY_KEY, // Use backend key if available, else fallback
+      // FORCE LIVE KEY for debugging - bypassing backend response for a moment
+      key: 'rzp_live_S9JWpPDcPhalbL',
       amount: order.amount,
       currency: order.currency,
       name: 'QuickXerox',
