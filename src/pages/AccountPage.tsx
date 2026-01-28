@@ -51,7 +51,7 @@ const AccountPage = () => {
       }
 
       console.log("Fetching orders for customer:", userPhone);
-      const userEmail = profile.email || localStorage.getItem('userEmail');
+
 
       // Handle potential format mismatches
       const rawPhone = userPhone.replace(/\D/g, '').slice(-10);
