@@ -119,8 +119,9 @@ export const initializeRazorpayPayment = async (
       },
     };
 
-    // DEBUG: Alert the key being used
-    alert(`DEBUG INFO:\nKey Used: ${options.key}\nBackend Order ID: ${order.id}`);
+    // DEBUG: Log the key being used (Console Only)
+    console.error(`DEBUG INFO: Key Used: ${options.key}`);
+    console.log('Razorpay Options:', options);
 
     const razorpay = new window.Razorpay(options);
     razorpay.on('payment.failed', onError);
