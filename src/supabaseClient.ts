@@ -10,4 +10,23 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Create a single supabase client for interacting with your database
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+// Create a single supabase client for interacting with your database
+const createSafeClient = () => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.warn('Supabase URL or Anon Key is missing. Supabase features will be disabled.');
+        // Return a dummy object that matches the shape but throws on use
+        return {
+            storage: {
+                from: () => ({
+                    upload: async () => ({ error: new Error("Supabase is not configured. Please check .env file.") }),
+                    createSignedUrl: async () => ({ error: new Error("Supabase is not configured.") }),
+                    remove: async () => ({ error: new Error("Supabase is not configured.") }),
+                    getPublicUrl: () => ({ data: { publicUrl: "" } })
+                })
+            }
+        } as any;
+    }
+    return createClient(supabaseUrl, supabaseAnonKey);
+};
+
+export const supabase = createSafeClient();
