@@ -27,6 +27,7 @@ interface CreateOrderResponse {
   id: string;
   amount: number;
   currency: string;
+  key_id?: string;
 }
 
 import { API_BASE_URL } from '../config/constants';
@@ -54,7 +55,8 @@ const createRazorpayOrder = async (amount: number): Promise<CreateOrderResponse>
     return {
       id: data.orderId,
       amount: data.amount,
-      currency: data.currency
+      currency: data.currency,
+      key_id: data.key_id // Get key_id from backend response
     };
   } catch (error) {
     console.error("Error creating Razorpay order:", error);
@@ -73,7 +75,7 @@ export const initializeRazorpayPayment = async (
     const order = await createRazorpayOrder(amount);
 
     const options = {
-      key: RAZORPAY_KEY,
+      key: order.key_id || RAZORPAY_KEY, // Use backend key if available, else fallback
       amount: order.amount,
       currency: order.currency,
       name: 'QuickXerox',
