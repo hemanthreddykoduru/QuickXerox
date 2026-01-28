@@ -61,53 +61,8 @@ console.log("Environment:", {
   // TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
 });
 
-// Razorpay configuration
-// Initialize Razorpay with Live Keys
-const Razorpay = require("razorpay");
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
-
-if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
-  console.error("Missing Razorpay credentials in environment variables");
-}
-
-const razorpay = new Razorpay({
-  key_id: RAZORPAY_KEY_ID,
-  key_secret: RAZORPAY_KEY_SECRET,
-});
-
-// Create Order Endpoint
-app.post("/api/create-order", async (req, res) => {
-  try {
-    const { amount, currency = "INR", receipt, notes } = req.body;
-    
-    console.log("Creating Razorpay order:", { amount, currency });
-
-    const options = {
-      amount: amount * 100, // amount in the smallest currency unit
-      currency,
-      receipt,
-      notes,
-    };
-
-    const order = await razorpay.orders.create(options);
-    console.log("Order created:", order);
-
-    res.json({
-      success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      key_id: RAZORPAY_KEY_ID
-    });
-  } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to create order"
-    });
-  }
-});
+// Twilio configuration
+// Twilio configuration (Removed)
 
 // In-memory storage for OTPs (Removed)
 

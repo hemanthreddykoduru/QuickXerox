@@ -394,11 +394,6 @@ function CustomerDashboard() {
         </div>
       </main>
 
-      {/* Version Indicator */}
-      <div className="fixed bottom-2 left-2 text-xs text-gray-400 z-50 pointer-events-none">
-        v1.4 (Debug Alert)
-      </div>
-
       {/* Floating Cart Button */}
       <FloatingCartButton
         itemCount={printJobs.length}
