@@ -8,11 +8,10 @@ import Skeleton from '../common/Skeleton';
 interface OrderListProps {
   orders: (Order & { otp?: string })[];
   onStatusChange: (orderId: string, status: OrderStatus) => void;
-  onOTPVerificationComplete?: (orderId: string) => void; // kept for compatibility, not used
   isLoading?: boolean;
 }
 
-const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, onOTPVerificationComplete, isLoading }) => {
+const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading }) => {
 
 
 

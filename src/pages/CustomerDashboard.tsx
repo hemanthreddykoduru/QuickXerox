@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Printer, MapPin, Clock, CreditCard, CheckCircle, LogOut, User, Bell, Zap, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Printer, MapPin, Clock, CreditCard, CheckCircle, LogOut, User, Bell, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import PrintShopCard from '../components/PrintShopCard';
 import FileUpload from '../components/FileUpload';
@@ -14,7 +14,7 @@ import OTPVerification from '../components/orders/OTPVerification';
 import NotificationCenter from '../components/notifications/NotificationCenter';
 import { PrintJob, PrintShop, Order } from '../types';
 import { db } from '../firebase'; // Import db
-import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore'; // Import Firestore functions
+import { collection, onSnapshot, query, where } from 'firebase/firestore'; // Import Firestore functions
 import { toast } from 'react-hot-toast';
 
 
@@ -23,7 +23,7 @@ import Skeleton from '../components/common/Skeleton';
 
 function CustomerDashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
+
   const { profile } = useProfile(); // Initialize profile to ensure session data is loaded
   const [printJobs, setPrintJobs] = useState<PrintJob[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -77,7 +77,7 @@ function CustomerDashboard() {
             setUserLocation('Unknown location');
           }
         },
-        (error) => {
+        () => {
           setUserLocation('Location permission denied');
         }
       );
@@ -203,9 +203,7 @@ function CustomerDashboard() {
     setSelectedShop(shop || null);
   };
 
-  const handleFileAnalysis = (file: File) => {
-    setSelectedFileForAnalysis(file);
-  };
+
 
   const handleAnalysisComplete = (analysis: any) => {
     console.log('Document analysis completed:', analysis);
@@ -224,15 +222,7 @@ function CustomerDashboard() {
     toast.success('Document optimized successfully!');
   };
 
-  const handleTrackOrder = (order: Order) => {
-    setCurrentOrder(order);
-    setShowOrderTracking(true);
-  };
 
-  const handleOTPVerification = (order: Order) => {
-    setSelectedOrderForOTP(order);
-    setShowOTPVerification(true);
-  };
 
   const handleOTPVerificationSuccess = () => {
     if (selectedOrderForOTP) {

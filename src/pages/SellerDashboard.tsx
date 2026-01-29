@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, IndianRupee, Bell, Settings, LogOut, BarChart, CreditCard, Clock, BellRing, Globe, Shield, X, MapPin } from 'lucide-react';
+import { Printer, MapPin, Bell, CreditCard, BarChart, X, Globe, BellRing, Shield, Settings, LogOut, Clock } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc, query, collection, onSnapshot, where, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
@@ -91,17 +91,7 @@ const SellerDashboard: React.FC = () => {
     return order.status === filter;
   });
 
-  const [sellerDetails, setSellerDetails] = useState({
-    name: 'QuickPrint Pro',
-    address: 'Gitam University, State',
-    mobile: '9876543210',
-    email: '',
-    bankDetails: {
-      accountNumber: '123456789012',
-      bankName: 'State Bank of India',
-      ifscCode: 'SBIN0001234',
-    },
-  });
+
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
@@ -253,7 +243,7 @@ const SellerDashboard: React.FC = () => {
             setSellerLocation('Unknown location');
           }
         },
-        (error) => {
+        () => {
           setSellerLocation('Location permission denied');
         }
       );
@@ -340,12 +330,7 @@ const SellerDashboard: React.FC = () => {
     }
   };
 
-  const handleOTPVerificationComplete = (orderId: string) => {
-    setOrders(orders.map(order =>
-      order.id === orderId ? { ...order, otpVerified: true, status: 'completed' as OrderStatus } : order
-    ));
-    toast.success('Order verified and completed successfully!');
-  };
+
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilter(e.target.value as OrderStatus | 'all');
@@ -578,7 +563,6 @@ const SellerDashboard: React.FC = () => {
           <OrderList
             orders={filteredOrders}
             onStatusChange={handleStatusChange}
-            onOTPVerificationComplete={handleOTPVerificationComplete}
             isLoading={loading}
           />
         </div>

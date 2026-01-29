@@ -14,6 +14,7 @@ interface Order {
   totalAmount: number;
   status: string;
   createdAt: string;
+  paymentId?: string;
 }
 
 const AdminOrderList = () => {
@@ -38,6 +39,7 @@ const AdminOrderList = () => {
           shopId: doc.data().shopId || 'N/A',
           totalAmount: doc.data().total || doc.data().totalAmount || 0,
           status: doc.data().status || 'Unknown',
+          paymentId: doc.data().paymentId || 'N/A',
           createdAt: doc.data().timestamp
             ? new Date(doc.data().timestamp).toLocaleString('en-US', {
               month: '2-digit',
@@ -89,8 +91,8 @@ const AdminOrderList = () => {
   const exportCSV = () => {
     if (orders.length === 0) return toast.error('No orders to export!');
     const csv = [
-      ['Order ID', 'Customer Name', 'Customer Email', 'Shop ID', 'Total Amount', 'Status', 'Order Date'].join(','),
-      ...orders.map(o => [o.id, o.customerName, o.customerEmail, o.shopId, o.totalAmount, o.status, o.createdAt].join(','))
+      ['Order ID', 'Customer Name', 'Customer Email', 'Shop ID', 'Total Amount', 'Status', 'Payment ID', 'Order Date'].join(','),
+      ...orders.map(o => [o.id, o.customerName, o.customerEmail, o.shopId, o.totalAmount, o.status, o.paymentId || 'N/A', o.createdAt].join(','))
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -280,6 +282,10 @@ const AdminOrderList = () => {
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Order ID</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.id}</p>
+                </div>
+                <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Payment ID</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono tracking-wide">{selectedOrder.paymentId || 'N/A'}</p>
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Customer Name</p>

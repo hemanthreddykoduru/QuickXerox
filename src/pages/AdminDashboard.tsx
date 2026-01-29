@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, Users, ShoppingBag, Settings, LogOut, BarChart, CreditCard, Mail, FileText, Globe, X, Moon, Sun } from 'lucide-react';
+import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Printer, Mail } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -362,7 +362,7 @@ const AdminDashboard = () => {
 
       snap.forEach(doc => {
         const d = doc.data();
-        csv += `${d.name || ""},${d.email || ""},${d.mobile || ""},${d.city || ""},${d.state || ""},${d.pincode || ""},${d.role || ""},${d.isActive || ""},${d.createdAt || ""},${d.lastLogin || ""}\n`;
+        csv += `${d.name || ""},${d.email || ""},${d.mobile || ""},${d.city || ""},${d.state || ""},${d.pincode || ""},${d.role || ""},${d.isActive || ""},${d.createdAt || ""},${d.lastLogin || ""} \n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv" });
@@ -760,10 +760,10 @@ const AdminDashboard = () => {
                             {[customer.city, customer.state, customer.pincode].filter(Boolean).join(', ') || 'N/A'}
                           </td>
                           <td className="px-4 py-3 text-sm">
-                            <span className={`px-2 py-1 rounded-full text-xs ${customer.isActive === false
+                            <span className={`px - 2 py - 1 rounded - full text - xs ${customer.isActive === false
                               ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                               : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              }`}>
+                              } `}>
                               {customer.isActive === false ? 'Inactive' : 'Active'}
                             </span>
                           </td>
@@ -852,7 +852,7 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                    <p className={`${selectedCustomer.isActive === false ? 'text-red-600' : 'text-green-600'}`}>
+                    <p className={`${selectedCustomer.isActive === false ? 'text-red-600' : 'text-green-600'} `}>
                       {selectedCustomer.isActive === false ? 'Inactive' : 'Active'}
                     </p>
                   </div>
@@ -1071,14 +1071,14 @@ const AdminDashboard = () => {
                             if (!response.ok) throw new Error('Failed to fetch IP');
                             const data = await response.json();
                             setCurrentPublicIP(data.ip);
-                            toast.success(`Your public IP: ${data.ip}`);
+                            toast.success(`Your public IP: ${data.ip} `);
                           } catch (error) {
                             try {
                               const response = await fetch('https://api.ipify.org?format=json');
                               if (!response.ok) throw new Error('Failed to fetch IP');
                               const data = await response.json();
                               setCurrentPublicIP(data.ip);
-                              toast.success(`Your public IP: ${data.ip}`);
+                              toast.success(`Your public IP: ${data.ip} `);
                             } catch {
                               toast.error('Failed to fetch your IP');
                             }
@@ -1250,7 +1250,7 @@ const AdminDashboard = () => {
                         try {
                           const sendTestEmail = httpsCallable(functions, 'sendTestEmail');
                           await sendTestEmail({ email });
-                          toast.success(`Test email sent to ${email}`);
+                          toast.success(`Test email sent to ${email} `);
                         } catch (error: any) {
                           console.error('Error sending test email:', error);
                           // Fallback for demo/dev if functions not deployed
