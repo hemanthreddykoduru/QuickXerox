@@ -96,10 +96,9 @@ const Cart: React.FC<CartProps> = ({
     // Use OTP from RazorpayCheckout callback
     const otp = response.otp || '';
 
-    // Update order ID to match the one used in DB (Razorpay Order ID)
-    if (response.orderId) {
-      setOrderId(response.orderId);
-    }
+    // Keep the generated Order ID (ORD-...) as set by the state
+    // if (response.orderId) { setOrderId(response.orderId); } 
+
     setGeneratedOTP(otp);
 
     // Show OTP display
@@ -278,7 +277,7 @@ const Cart: React.FC<CartProps> = ({
           <RazorpayCheckout
             amount={totalAmount}
             currency="INR"
-            receipt={`order_${Date.now()}`}
+            receipt={orderId} // Use the generated ORD-... ID as receipt
             // Use the itemsWithUrls if available (from upload), otherwise fallback to mapping items (shouldn't happen with new flow but safe)
             printJobs={JSON.stringify(itemsWithUrls.length > 0 ? itemsWithUrls : items.map(item => ({
               id: item.id,
