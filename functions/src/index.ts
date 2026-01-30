@@ -14,16 +14,16 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // use STARTTLS
   auth: {
-    user: '7eb48d5db8bdd2',
-    pass: '20e0c928132dd6'
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || ''
   }
 });
 
 // Initialize Razorpay with Test Keys (Provided by User)
 // TODO: For production, move these to functions.config()
-const RAZORPAY_KEY_ID = 'rzp_test_S6aPHcOZKR3AO2';
-const RAZORPAY_KEY_SECRET = 'QIEynkcicrhIUO8fm3SkhICq';
-const RAZORPAY_WEBHOOK_SECRET = 'your_webhook_secret_here'; // Get this from Razorpay Dashboard
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || '';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
+const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || '';
 
 const razorpay = new Razorpay({
   key_id: RAZORPAY_KEY_ID,
