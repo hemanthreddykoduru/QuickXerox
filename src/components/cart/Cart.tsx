@@ -93,12 +93,14 @@ const Cart: React.FC<CartProps> = ({
   const handlePaymentSuccess = (response: any) => {
     console.log('Payment successful:', response);
 
-    // Use OTP from RazorpayCheckout callback (generated and saved to Firestore)
+    // Use OTP from RazorpayCheckout callback
     const otp = response.otp || '';
 
-    // Store order details
+    // Update order ID to match the one used in DB (Razorpay Order ID)
+    if (response.orderId) {
+      setOrderId(response.orderId);
+    }
     setGeneratedOTP(otp);
-    // setOrderId(newOrderId); // Already set during checkout start
 
     // Show OTP display
     setIsProcessing(false);
