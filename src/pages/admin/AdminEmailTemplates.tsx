@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, RefreshCw, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 
 interface EmailTemplate {
     subject: string;

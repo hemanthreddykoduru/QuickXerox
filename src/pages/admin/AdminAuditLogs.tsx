@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Download, Filter, ChevronRight, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { collection, query, orderBy, limit, getDocs, startAfter, where, QueryConstraint } from 'firebase/firestore';
-import Skeleton from '../components/common/Skeleton';
+import Skeleton from '../../components/common/Skeleton';
 
 interface AuditLog {
     id: string;

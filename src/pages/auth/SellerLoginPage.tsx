@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, Mail, Lock, ArrowRight, Eye, EyeOff, Building2, Shield } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { auth, db } from '../firebase';
+import { auth, db } from '../../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 

@@ -1,24 +1,24 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import CustomerDashboard from './pages/CustomerDashboard';
-import SellerDashboard from './pages/SellerDashboard';
-import LoginPage from './pages/LoginPage';
-import SellerLoginPage from './pages/SellerLoginPage';
-import AccountPage from './pages/AccountPage';
-import SellerInvitation from './components/SellerInvitation';
-import SellerInvitationAccept from './pages/SellerInvitationAccept';
-import AdminLoginPage from './pages/AdminLoginPage';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminOrderList from './pages/AdminOrderList';
-import AdminSellerList from './pages/AdminSellerList';
-import AdminSellerDetails from './pages/AdminSellerDetails';
-import AdminAuditLogs from './pages/AdminAuditLogs';
-import AdminEmailTemplates from './pages/AdminEmailTemplates';
-import IpBlocked from './pages/IpBlocked';
-import TermsPage from './pages/TermsPage';
-import PrivacyPage from './pages/PrivacyPage';
-import RefundPage from './pages/RefundPage';
-import ContactPage from './pages/ContactPage';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import SellerDashboard from './pages/seller/SellerDashboard';
+import LoginPage from './pages/auth/LoginPage';
+import SellerLoginPage from './pages/auth/SellerLoginPage';
+import AccountPage from './pages/customer/AccountPage';
+import SellerInvitation from './pages/admin/SellerInvitation';
+import SellerInvitationAccept from './pages/auth/SellerInvitationAccept';
+import AdminLoginPage from './pages/auth/AdminLoginPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminOrderList from './pages/admin/AdminOrderList';
+import AdminSellerList from './pages/admin/AdminSellerList';
+import AdminSellerDetails from './pages/admin/AdminSellerDetails';
+import AdminAuditLogs from './pages/admin/AdminAuditLogs';
+import AdminEmailTemplates from './pages/admin/AdminEmailTemplates';
+import IpBlocked from './pages/legal/IpBlocked';
+import TermsPage from './pages/legal/TermsPage';
+import PrivacyPage from './pages/legal/PrivacyPage';
+import RefundPage from './pages/legal/RefundPage';
+import ContactPage from './pages/legal/ContactPage';
 
 
 const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
@@ -47,7 +47,7 @@ const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNo
   return <>{children}</>;
 };
 
-import ScrollToTop from './components/ScrollToTop';
+import ScrollToTop from './components/common/ScrollToTop';
 
 function App() {
   return (

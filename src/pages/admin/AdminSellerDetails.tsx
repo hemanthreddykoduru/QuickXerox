@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, Clock, BellRing, Package, Users, Image } from 'lucide-react';
 

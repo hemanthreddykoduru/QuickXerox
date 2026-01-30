@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { createPayment, verifyPayment } from '../services/paymentService';
+import { createPayment, verifyPayment } from '../../services/paymentService';
 import { toast } from 'react-hot-toast';
-import { db, auth } from '../firebase';
+import { db, auth } from '../../firebase';
 import { setDoc, doc } from 'firebase/firestore';
 
 interface RazorpayCheckoutProps {

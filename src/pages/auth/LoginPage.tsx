@@ -3,9 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Printer, Eye, EyeOff, Mail, MapPin, Phone, Github } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
-import { auth, provider, githubProvider, db } from '../firebase';
+import { auth, provider, githubProvider, db } from '../../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { UserProfile } from '../types/profile';
+import { UserProfile } from '../../types/profile';
 
 const LoginPage = () => {
   const navigate = useNavigate();

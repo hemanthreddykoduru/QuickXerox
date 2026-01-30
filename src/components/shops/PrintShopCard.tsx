@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, Clock, MapPin } from 'lucide-react';
-import { PrintShop } from '../types';
+import { PrintShop } from '../../types';
 
 interface PrintShopCardProps {
   shop: PrintShop;

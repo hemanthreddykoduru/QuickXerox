@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, query, where, documentId } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
-import Skeleton from '../components/common/Skeleton';
+import Skeleton from '../../components/common/Skeleton';
 
 interface Seller {
   id: string;

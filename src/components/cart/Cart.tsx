@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy } from 'lucide-react';
-import { PrintJob, PrintShop } from '../types';
+import { PrintJob, PrintShop } from '../../types';
 import RazorpayCheckout from './RazorpayCheckout';
 import { toast } from 'react-hot-toast';
-import { UserProfile } from '../types';
-import { uploadFile } from '../services/storageService';
-import { auth } from '../firebase';
+import { UserProfile } from '../../types';
+import { uploadFile } from '../../services/storageService';
+import { auth } from '../../firebase';
 
 interface CartProps {
   items: PrintJob[];

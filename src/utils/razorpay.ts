@@ -62,7 +62,7 @@ export const initializeRazorpayPayment = async (
                 method
             },
             theme: {
-                color: '#2563EB'
+                color: '#a9adb4ff'
             },
             modal: {
                 confirm_close: true,

@@ -4,9 +4,9 @@ import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Printer, 
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions } from '../firebase';
-import AnalyticsDashboard from '../components/admin/AnalyticsDashboard';
-import Skeleton from '../components/common/Skeleton';
+import { auth, db, functions } from '../../firebase';
+import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard';
+import Skeleton from '../../components/common/Skeleton';
 
 interface RecentSeller {
   id: string;

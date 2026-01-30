@@ -26,13 +26,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.razorpayWebhook = exports.verifyRazorpayPayment = exports.createRazorpayOrderHttp = exports.createRazorpayOrder = exports.sendSellerInvitation = void 0;
+exports.sendTestEmail = exports.razorpayWebhook = exports.verifyRazorpayPayment = exports.createRazorpayOrderHttp = exports.createRazorpayOrder = exports.sendSellerInvitation = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const nodemailer = __importStar(require("nodemailer"));
 const razorpay_1 = __importDefault(require("razorpay"));
 const cors_1 = __importDefault(require("cors"));
 const crypto = __importStar(require("crypto"));
+const dotenv = __importStar(require("dotenv"));
+const path = __importStar(require("path"));
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 admin.initializeApp();
 // Configure nodemailer with MailTrap SMTP
 const transporter = nodemailer.createTransport({
@@ -40,15 +43,15 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: '7eb48d5db8bdd2',
-        pass: '20e0c928132dd6'
+        user: process.env.MAILTRAP_USER,
+        pass: process.env.MAILTRAP_PASS
     }
 });
 // Initialize Razorpay with Test Keys (Provided by User)
 // TODO: For production, move these to functions.config()
-const RAZORPAY_KEY_ID = 'rzp_test_S6aPHcOZKR3AO2';
-const RAZORPAY_KEY_SECRET = 'QIEynkcicrhIUO8fm3SkhICq';
-const RAZORPAY_WEBHOOK_SECRET = 'your_webhook_secret_here'; // Get this from Razorpay Dashboard
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_S6aPHcOZKR3AO2';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
+const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'your_webhook_secret_here'; // Get this from Razorpay Dashboard
 const razorpay = new razorpay_1.default({
     key_id: RAZORPAY_KEY_ID,
     key_secret: RAZORPAY_KEY_SECRET,
@@ -111,10 +114,19 @@ exports.sendSellerInvitation = functions.firestore
     }
 });
 exports.createRazorpayOrder = functions.https.onCall(async (data, context) => {
+    console.log('🔥 createRazorpayOrder called');
     if (!context.auth) {
+        console.warn('⚠️ User not authenticated');
         throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
     const { amount, currency, receipt, notes } = data;
+    // Debug Logging
+    console.log('📦 Data received:', { amount, currency, receipt });
+    console.log('🔑 Env Check:', {
+        keyIdLength: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.length : 0,
+        secretLength: RAZORPAY_KEY_SECRET ? RAZORPAY_KEY_SECRET.length : 0,
+        keyIdStart: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.substring(0, 4) : 'MISSING'
+    });
     try {
         const order = await razorpay.orders.create({
             amount: amount * 100,
@@ -122,10 +134,13 @@ exports.createRazorpayOrder = functions.https.onCall(async (data, context) => {
             receipt,
             notes,
         });
+        console.log('✅ Razorpay order created:', order.id);
         return { orderId: order.id, amount: order.amount, currency: order.currency, key_id: RAZORPAY_KEY_ID };
     }
     catch (error) {
-        console.error('Error creating Razorpay order:', error);
+        console.error('❌ Error creating Razorpay order:', error);
+        // Log the full error object struct if possible
+        console.error('❌ Razorpay Error Details:', JSON.stringify(error, null, 2));
         throw new functions.https.HttpsError('internal', 'Failed to create Razorpay order', error.message);
     }
 });
@@ -456,4 +471,31 @@ async function sendNewOrderNotificationToSeller(email, customerName, orderId) {
     await transporter.sendMail(mailOptions);
     console.log('New order notification sent to seller:', email);
 }
+exports.sendTestEmail = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    const { email } = data;
+    const mailOptions = {
+        from: 'QuickXerox <noreply@quickxerox.com>',
+        to: email,
+        subject: 'Test Email from QuickXerox',
+        html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="color: #3B82F6;">Test Email</h2>
+        <p>This is a test email sent from the QuickXerox Admin Dashboard.</p>
+        <p>If you received this, the email system is working correctly!</p>
+        <p>Time: ${new Date().toLocaleString()}</p>
+      </div>
+    `
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true, message: 'Test email sent successfully' };
+    }
+    catch (error) {
+        console.error('Error sending test email:', error);
+        throw new functions.https.HttpsError('internal', 'Failed to send test email', error.message);
+    }
+});
 //# sourceMappingURL=index.js.map

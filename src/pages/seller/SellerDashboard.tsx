@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, MapPin, Bell, CreditCard, BarChart, X, Globe, BellRing, Shield, Settings, LogOut, Clock } from 'lucide-react';
-import { auth, db } from '../firebase';
+import { auth, db } from '../../firebase';
 import { doc, setDoc, getDoc, query, collection, onSnapshot, where, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { onAuthStateChanged } from 'firebase/auth';
 
-import OrderList from '../components/seller/OrderList';
-import OrderStats from '../components/seller/OrderStats';
-import RevenueReports from '../components/seller/RevenueReports';
-import TodayOrders from '../components/seller/TodayOrders';
-import { Order, OrderStatus } from '../types';
-import { deleteFile } from '../services/storageService';
+import OrderList from '../../components/seller/OrderList';
+import OrderStats from '../../components/seller/OrderStats';
+import RevenueReports from '../../components/seller/RevenueReports';
+import TodayOrders from '../../components/seller/TodayOrders';
+import { Order, OrderStatus } from '../../types';
+import { deleteFile } from '../../services/storageService';
 // Ensure updateDoc is imported in the firestore import above (checked manually, it might need explicit check)
 
 const SellerDashboard: React.FC = () => {

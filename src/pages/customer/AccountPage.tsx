@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import AccountDetails from '../components/account/AccountDetails';
-import OrderHistory from '../components/account/OrderHistory';
-import EditProfileModal from '../components/account/EditProfileModal';
-import { useProfile } from '../hooks/useProfile';
-import { Order } from '../types';
+import AccountDetails from '../../components/account/AccountDetails';
+import OrderHistory from '../../components/account/OrderHistory';
+import EditProfileModal from '../../components/account/EditProfileModal';
+import { useProfile } from '../../hooks/useProfile';
+import { Order } from '../../types';
 import { toast } from 'react-hot-toast';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import Skeleton from '../components/common/Skeleton';
+import Skeleton from '../../components/common/Skeleton';
 
 const AccountPage = () => {
   const navigate = useNavigate();

@@ -2,24 +2,24 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, MapPin, Clock, CreditCard, CheckCircle, LogOut, User, Bell, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import PrintShopCard from '../components/PrintShopCard';
-import FileUpload from '../components/FileUpload';
-import PrintJobList from '../components/PrintJobList';
-import Cart from '../components/Cart';
-import CartButton from '../components/CartButton';
-import FloatingCartButton from '../components/FloatingCartButton';
-import DocumentAnalyzer from '../components/ai/DocumentAnalyzer';
-import OrderTracking from '../components/orders/OrderTracking';
-import OTPVerification from '../components/orders/OTPVerification';
-import NotificationCenter from '../components/notifications/NotificationCenter';
-import { PrintJob, PrintShop, Order } from '../types';
-import { db } from '../firebase'; // Import db
+import PrintShopCard from '../../components/shops/PrintShopCard';
+import FileUpload from '../../components/common/FileUpload';
+import PrintJobList from '../../components/shops/PrintJobList';
+import Cart from '../../components/cart/Cart';
+import CartButton from '../../components/cart/CartButton';
+import FloatingCartButton from '../../components/cart/FloatingCartButton';
+import DocumentAnalyzer from '../../components/ai/DocumentAnalyzer';
+import OrderTracking from '../../components/orders/OrderTracking';
+import OTPVerification from '../../components/orders/OTPVerification';
+import NotificationCenter from '../../components/notifications/NotificationCenter';
+import { PrintJob, PrintShop, Order } from '../../types';
+import { db } from '../../firebase'; // Import db
 import { collection, onSnapshot, query, where } from 'firebase/firestore'; // Import Firestore functions
 import { toast } from 'react-hot-toast';
 
 
-import { useProfile } from '../hooks/useProfile'; // Import useProfile
-import Skeleton from '../components/common/Skeleton';
+import { useProfile } from '../../hooks/useProfile'; // Import useProfile
+import Skeleton from '../../components/common/Skeleton';
 
 function CustomerDashboard() {
   const navigate = useNavigate();

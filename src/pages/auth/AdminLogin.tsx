@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { getCurrentIP, isIPAllowed } from '../utils/ipUtils';
+import { db } from '../../firebase';
+import { getCurrentIP, isIPAllowed } from '../../utils/ipUtils';
 
 const AdminLogin = () => {
     const [isCheckingIP, setIsCheckingIP] = useState(true);

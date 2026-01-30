@@ -1,6 +1,6 @@
 import React from 'react';
 import { File as FileIcon, X } from 'lucide-react';
-import { PrintJob } from '../types';
+import { PrintJob } from '../../types';
 
 interface PrintJobListProps {
   jobs: PrintJob[];
