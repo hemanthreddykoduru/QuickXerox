@@ -24,7 +24,14 @@ const AccountPage = () => {
       navigate('/login', { replace: true });
       return;
     }
-  }, [navigate]);
+
+    // CRITICAL: If initialized but no profile data (Ghost Login), force logout
+    if (isInitialized && !profile.email && !profile.mobile) {
+      console.log("Ghost login detected (Auth=true but no profile). Redirecting to login.");
+      localStorage.removeItem('isAuthenticated');
+      navigate('/login', { replace: true });
+    }
+  }, [navigate, isInitialized, profile.email, profile.mobile]);
 
   // State for orders
   const [orders, setOrders] = useState<Order[]>([]);

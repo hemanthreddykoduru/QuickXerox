@@ -193,6 +193,8 @@ export const useProfile = () => {
         sessionStorage.removeItem('userName');
         sessionStorage.removeItem('userPhone');
         sessionStorage.removeItem('userEmail');
+        // CRITICAL FIX: Also clear the auth persistence flag
+        localStorage.removeItem('isAuthenticated');
         setIsInitialized(true); // Initialized as "no user"
       }
     });
