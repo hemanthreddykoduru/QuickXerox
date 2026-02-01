@@ -247,6 +247,11 @@ export const useProfile = () => {
 
       // Update session storage for current tab
       setProfile(persistedProfile);
+
+      // Update Cache to prevent stale data on refresh
+      const cacheKey = `${CACHE_KEYS.USER_PROFILE}_${currentUser.uid}`;
+      userCache.set(cacheKey, persistedProfile);
+
       sessionStorage.setItem('userProfile', JSON.stringify(persistedProfile));
       sessionStorage.setItem('userName', persistedProfile.name);
       sessionStorage.setItem('userPhone', persistedProfile.mobile);
