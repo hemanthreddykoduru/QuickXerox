@@ -130,13 +130,14 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
           placeholder="10-digit number"
         />
         <FormInput
-          label="Email"
+          label="Email (Cannot be changed)"
           type="email"
           name="email"
           value={formData.email || ''}
           onChange={handleChange}
           error={errors.email}
           maxLength={100}
+          disabled={true}
         />
         <FormInput
           label="Address"
