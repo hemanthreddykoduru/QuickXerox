@@ -25,7 +25,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
     console.log('Profile updated in EditProfileForm:', profile);
     console.log('Profile keys:', Object.keys(profile || {}));
     console.log('Profile values:', profile);
-    
+
     setFormData({
       name: profile?.name || '',
       email: profile?.email || '',
@@ -39,19 +39,19 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name?.trim()) {
       newErrors.name = 'Name is required';
     }
-    
+
     if (!formData.mobile || !/^\d{10}$/.test(formData.mobile)) {
       newErrors.mobile = 'Mobile number must be 10 digits';
     }
-    
+
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    
+
     if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = 'Pincode must be 6 digits';
     }
@@ -64,7 +64,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -78,10 +78,10 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
 
       console.log('Submitting profile update:', updatedProfile);
       await updateProfile(updatedProfile);
-      
+
       // Refresh the profile data to ensure we have the latest
       await refreshProfile();
-      
+
       onClose(); // Close the modal after successful update
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -106,8 +106,8 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
         <FormInput
           label="Name"
           type="text"
