@@ -1,31 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useProfile } from '../../hooks/useProfile';
 import FormInput from '../common/FormInput';
-import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../types';
 
 interface EditProfileFormProps {
   onClose: () => void;
+  profile: UserProfile;
+  onSave: (data: UserProfile) => Promise<void> | void;
 }
 
-const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
-  const { profile, updateProfile, refreshProfile } = useProfile();
+const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onSave }) => {
+  // Removed internal useProfile to avoid state desync
+
   const [formData, setFormData] = useState<Partial<UserProfile>>({
-    name: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-    mobile: '',
+    name: profile?.name || '',
+    email: profile?.email || '',
+    address: profile?.address || '',
+    city: profile?.city || '',
+    state: profile?.state || '',
+    pincode: profile?.pincode || '',
+    mobile: profile?.mobile || '',
   });
 
-  // Update form data when profile changes
+  // Update form data when profile prop changes
   useEffect(() => {
-    console.log('Profile updated in EditProfileForm:', profile);
-    console.log('Profile keys:', Object.keys(profile || {}));
-    console.log('Profile values:', profile);
-
     setFormData({
       name: profile?.name || '',
       email: profile?.email || '',
@@ -71,21 +68,22 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
 
     try {
       const updatedProfile = {
+        ...profile, // Merge with existing profile
         ...formData,
         mobile: formData.mobile || profile.mobile || '',
         createdAt: profile.createdAt,
+        updatedAt: new Date().toISOString()
       } as UserProfile;
 
       console.log('Submitting profile update:', updatedProfile);
-      await updateProfile(updatedProfile);
 
-      // Refresh the profile data to ensure we have the latest
-      await refreshProfile();
+      // Call parent handler (AccountPage) to execute update and refresh local state
+      await onSave(updatedProfile);
 
       onClose(); // Close the modal after successful update
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      // toast handled by parent or hook
     }
   };
 

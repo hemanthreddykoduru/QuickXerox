@@ -23,6 +23,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       title="Edit Profile"
     >
       <EditProfileForm
+        profile={profile}
+        onSave={onSave}
         onClose={onClose}
       />
     </Modal>
