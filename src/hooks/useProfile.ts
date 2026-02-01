@@ -177,10 +177,10 @@ export const useProfile = () => {
     };
 
     // Listen for auth state changes
-    const unsubscribe = auth.onAuthStateChanged(user => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         if (!isInitialized || !profile.email || !profile.mobile) {
-          fetchProfile(user.uid);
+          await fetchProfile(user.uid);
         }
         setIsInitialized(true);
       } else {
