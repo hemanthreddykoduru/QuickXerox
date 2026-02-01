@@ -243,8 +243,14 @@ const SellerDashboard: React.FC = () => {
             setSellerLocation('Unknown location');
           }
         },
-        () => {
-          setSellerLocation('Location permission denied');
+        (error) => {
+          console.error("Geolocation error:", error);
+          setSellerLocation('Location unavailable');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
         }
       );
     } else {

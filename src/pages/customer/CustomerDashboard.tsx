@@ -77,8 +77,17 @@ function CustomerDashboard() {
             setUserLocation('Unknown location');
           }
         },
-        () => {
-          setUserLocation('Location permission denied');
+        (error) => {
+          console.error("Geolocation error:", error);
+          let errorMsg = 'Location unavailable';
+          if (error.code === error.TIMEOUT) errorMsg = 'Location timeout';
+          if (error.code === error.PERMISSION_DENIED) errorMsg = 'Location denied';
+          setUserLocation(errorMsg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000, // Wait max 10 seconds
+          maximumAge: 60000 // Accept cached location up to 1 minute old
         }
       );
     } else {
