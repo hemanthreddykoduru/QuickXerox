@@ -35,7 +35,7 @@ const AccountPage = () => {
 
   useEffect(() => {
     // Wait for validation - prevent fetching if we don't have a user identifier
-    if (!profile.mobile && !profile.email && isInitialized) {
+    if (!profile.email && !profile.mobile && isInitialized) {
       setIsLoadingOrders(false);
       return;
     }
@@ -44,33 +44,23 @@ const AccountPage = () => {
     if (!isInitialized) return;
 
     const startFetching = async () => {
-      // Use mobile OR email to find orders. 
-      // Ideally orders are linked by ID, but legacy system uses Phone.
-      const userIdentifier = profile.mobile || localStorage.getItem('userPhone');
+      // Use EMAIL to find orders as per user request
+      const userEmail = profile.email || localStorage.getItem('userEmail');
 
-      if (!userIdentifier) {
+      if (!userEmail) {
+        console.log("No email found for order history");
         setOrders([]);
         setIsLoadingOrders(false);
         return;
       }
 
       setIsLoadingOrders(true);
-      console.log("Fetching orders for customer:", userIdentifier);
-
-      // Handle potential format mismatches
-      const rawPhone = userIdentifier.replace(/\D/g, '').slice(-10);
-      const phoneVariations = [
-        userIdentifier,
-        rawPhone,
-        `+91${rawPhone}`,
-        `91${rawPhone}`
-      ];
-      const uniquePhones = [...new Set(phoneVariations)].filter(p => p); // Remove empty
+      console.log("Fetching orders for customer email:", userEmail);
 
       try {
         const q = query(
           collection(db, 'orders'),
-          where('customerPhone', 'in', uniquePhones)
+          where('customerEmail', '==', userEmail)
         );
 
         const unsubscribe = onSnapshot(q, (querySnapshot: any) => {
@@ -87,7 +77,7 @@ const AccountPage = () => {
           setIsLoadingOrders(false);
         }, (error: any) => {
           console.error("Error fetching order history:", error);
-          // toast.error("Failed to load order history"); // Silent fail is better than loop spam
+          // toast.error("Failed to load order history"); // Silent fail
           setIsLoadingOrders(false);
         });
 
@@ -103,7 +93,7 @@ const AccountPage = () => {
       // cleanup
     };
 
-  }, [profile.mobile, profile.email, isInitialized]);
+  }, [profile.email, isInitialized]);
 
   const handleProfileUpdate = (updatedProfile: typeof profile) => {
     updateProfile(updatedProfile);
