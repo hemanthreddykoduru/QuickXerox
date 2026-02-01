@@ -6,7 +6,6 @@ import OrderHistory from '../../components/account/OrderHistory';
 import EditProfileModal from '../../components/account/EditProfileModal';
 import { useProfile } from '../../hooks/useProfile';
 import { Order } from '../../types';
-import { toast } from 'react-hot-toast';
 import { db, auth } from '../../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import Skeleton from '../../components/common/Skeleton';
@@ -97,7 +96,6 @@ const AccountPage = () => {
 
   const handleProfileUpdate = (updatedProfile: typeof profile) => {
     updateProfile(updatedProfile);
-    toast.success('Profile updated successfully!');
   };
 
   const handleBack = () => {
