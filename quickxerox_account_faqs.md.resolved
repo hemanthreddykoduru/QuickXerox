@@ -1,0 +1,41 @@
+# QuickXerox Account FAQs & Support Guide
+
+## User Profile Management
+
+### Q: How do I update my profile details?
+**A:** Go to the "My Account" page (`/account`) and click "Edit Profile". You can update your **Name**, **Mobile Number**, **Address**, **City**, **State**, and **Pincode**. 
+*   **Note:** Changes are saved **instantly**. You do not need to refresh the page to see updates.
+
+### Q: Why can't I change my Email Address?
+**A:** The email field is **locked (read-only)**. This is by design to ensure the security of your account and to maintain a consistent link to your **Order History**. If you absolutely must change it, you would need to create a new account or contact support.
+
+### Q: I saved my changes but they reverted back. Why?
+**A:** This was a known issue that has been **fixed**. The system now updates its internal cache immediately upon saving. If you still encounter this, simply refresh the page to fetch the latest data from the server.
+
+---
+
+## Order History & Tracking
+
+### Q: Why can't I see my past orders?
+**A:** Order History is linked strictly to your **Email Address**.
+1.  Verify that the email in your profile (`My Account`) matches the email you used when placing the orders.
+2.  If you previously placed orders using only a mobile number (without an email associated), they might not appear in the new view. The system was recently updated to prioritize Email for better accuracy.
+
+### Q: Does the system use my Mobile Number to find orders?
+**A:** **No.** As of the latest update, the system relies on your **Email Address** (`customerEmail`) to fetch your order history. This is to prevent issues with mobile number formatting (e.g., `+91` prefix variations).
+
+---
+
+## Troubleshooting
+
+### Q: I see an "Account Error" message saying "We couldn't load your profile setup".
+**A:** This happens when your login session exists, but your profile data is incomplete or "ghosted" (empty).
+*   **Fix:** Click the **"Sign Out & Try Again"** button on that screen. This will clear your session and allow you to log in freshly, which guarantees your profile is loaded correctly.
+
+### Q: I see two "Success" notifications when I save my profile.
+**A:** This has been resolved. You should now only see a single "Profile updated successfully!" notification.
+
+### Q: The location finder is stuck on "Fetching location...".
+**A:** We have optimized the location service. It now has a **10-second timeout**.
+*   If it cannot find you within 10 seconds (e.g., GPS signal is weak), it will stop waiting and let you enter your location manually.
+*   Your location is cached for **1 minute**, so reloading the page won't force you to wait again.
