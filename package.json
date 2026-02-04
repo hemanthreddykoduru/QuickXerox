@@ -68,5 +68,8 @@
     "url": "https://github.com/hemanthreddykoduru/QuickPrint2_2/issues"
   },
   "homepage": "https://github.com/hemanthreddykoduru/QuickPrint2_2#readme",
-  "description": ""
+  "description": "",
+  "overrides": {
+    "fast-xml-parser": "^5.3.4"
+  }
 }
