@@ -13,6 +13,12 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+
+  const allowedDomains = ['@gmail.com', '@gitam.in'];
+
+  const validateEmailDomain = (email: string) => {
+    return allowedDomains.some(domain => email.toLowerCase().endsWith(domain));
+  };
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,6 +113,12 @@ const LoginPage = () => {
           return;
         }
 
+        if (!validateEmailDomain(email)) {
+          toast.error('Only @gmail.com and @gitam.in email addresses are allowed.');
+          setIsLoading(false);
+          return;
+        }
+
         const result = await createUserWithEmailAndPassword(auth, email, password);
         const user = result.user;
 
@@ -175,6 +187,14 @@ const LoginPage = () => {
       setLoadingStep('Connecting to Google...');
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
+      if (user.email && !validateEmailDomain(user.email)) {
+        await auth.signOut();
+        toast.error('Only @gmail.com and @gitam.in email addresses are allowed.');
+        setIsLoading(false);
+        setLoadingStep('');
+        return;
+      }
 
       if (!user.emailVerified) {
         setLoadingStep('Sending verification email...');
@@ -263,6 +283,14 @@ const LoginPage = () => {
       setLoadingStep('Connecting to GitHub...');
       const result = await signInWithPopup(auth, githubProvider);
       const user = result.user;
+
+      if (user.email && !validateEmailDomain(user.email)) {
+        await auth.signOut();
+        toast.error('Only @gmail.com and @gitam.in email addresses are allowed.');
+        setIsLoading(false);
+        setLoadingStep('');
+        return;
+      }
 
       if (!user.emailVerified) {
         if (user.providerData[0].providerId === 'password') {
