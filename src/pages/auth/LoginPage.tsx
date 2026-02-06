@@ -17,7 +17,7 @@ const LoginPage = () => {
   const allowedDomains = ['@gmail.com', '@gitam.in', '@yahoo.com', '@outlook.com'];
 
   const validateEmailDomain = (email: string) => {
-    return allowedDomains.some(domain => email.toLowerCase().endsWith(domain));
+    return allowedDomains.some(domain => email.trim().toLowerCase().endsWith(domain));
   };
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -114,7 +114,7 @@ const LoginPage = () => {
         }
 
         if (!validateEmailDomain(email)) {
-          toast.error('Only @gmail.com and @gitam.in email addresses are allowed.');
+          toast.error('Only Gmail (@gmail.com), Gitam (@gitam.in), Yahoo, and Outlook emails are allowed.');
           setIsLoading(false);
           return;
         }
@@ -190,7 +190,7 @@ const LoginPage = () => {
 
       if (user.email && !validateEmailDomain(user.email)) {
         await auth.signOut();
-        toast.error('Only @gmail.com and @gitam.in email addresses are allowed.');
+        toast.error('Only Gmail (@gmail.com), Gitam (@gitam.in), Yahoo, and Outlook emails are allowed.');
         setIsLoading(false);
         setLoadingStep('');
         return;
@@ -286,7 +286,7 @@ const LoginPage = () => {
 
       if (user.email && !validateEmailDomain(user.email)) {
         await auth.signOut();
-        toast.error('Only @gmail.com and @gitam.in email addresses are allowed.');
+        toast.error('Only Gmail (@gmail.com), Gitam (@gitam.in), Yahoo, and Outlook emails are allowed.');
         setIsLoading(false);
         setLoadingStep('');
         return;
