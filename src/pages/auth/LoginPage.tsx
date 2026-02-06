@@ -14,7 +14,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
-  const allowedDomains = ['@gmail.com', '@gitam.in'];
+  const allowedDomains = ['@gmail.com', '@gitam.in', '@yahoo.com', '@outlook.com'];
 
   const validateEmailDomain = (email: string) => {
     return allowedDomains.some(domain => email.toLowerCase().endsWith(domain));
