@@ -13,8 +13,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create a single supabase client for interacting with your database
 const createSafeClient = () => {
     // Attempt to get from env, or fallback to hardcoded values (provided by user)
-    const url = import.meta.env.VITE_SUPABASE_URL || 'https://tkwazltvxdztaunerksd.supabase.co';
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrd2F6bHR2eGR6dGF1bmVya3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNTA0NzYsImV4cCI6MjA4NDgyNjQ3Nn0.x0fdlqIIE_iRMfsiIyMDHYysx61eHLRbrxRilC1JGmQ';
+    const url = import.meta.env.VITE_SUPABASE_URL || '';
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
     if (!url || !key) {
         console.warn('Supabase URL or Anon Key is missing. Supabase features will be disabled.');
