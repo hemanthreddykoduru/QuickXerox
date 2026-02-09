@@ -31,3 +31,6 @@ server/serviceAccountKey.json
 src/services/twilio.service.ts
 # Vercel API
 vercel-api/
+
+# Firebase
+functions/.runtimeconfig.json
