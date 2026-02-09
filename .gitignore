@@ -34,3 +34,4 @@ vercel-api/
 
 # Firebase
 functions/.runtimeconfig.json
+*.bak
