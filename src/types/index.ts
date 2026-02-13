@@ -57,6 +57,7 @@ export interface Order {
   otp?: string;
   otpGeneratedAt?: string;
   completedAt?: string;
+  paymentId?: string;
 }
 
 export type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';

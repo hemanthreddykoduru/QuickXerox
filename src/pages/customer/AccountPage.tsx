@@ -120,20 +120,20 @@ const AccountPage = () => {
     );
   }
 
-  // Fallback if initialized but empty (The "Ghost" state, but handled gracefully)
+  // Fallback if initialized but empty (First-time user or data sync issue)
   if (isInitialized && !profile.email && !profile.mobile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Account Error</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Welcome to QuickXerox!</h2>
           <p className="text-gray-600 mb-6">
-            We couldn't load your profile setup. You might need to sign in again.
+            It looks like this is your first time using the app. Please sign in with your mobile number to get started.
           </p>
           <button
             onClick={handleLogout}
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            Sign Out & Try Again
+            Sign In to Continue
           </button>
         </div>
       </div>
@@ -167,7 +167,11 @@ const AccountPage = () => {
             />
           </div>
           <div className="lg:col-span-2">
-            <OrderHistory orders={orders} isLoading={isLoadingOrders} />
+            <OrderHistory
+              orders={orders}
+              isLoading={isLoadingOrders}
+              userEmail={profile.email}
+            />
 
 
           </div>

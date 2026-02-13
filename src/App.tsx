@@ -19,6 +19,8 @@ import TermsPage from './pages/legal/TermsPage';
 import PrivacyPage from './pages/legal/PrivacyPage';
 import RefundPage from './pages/legal/RefundPage';
 import ContactPage from './pages/legal/ContactPage';
+import LandingPage from './pages/LandingPage';
+import SellerLandingPage from './pages/seller/SellerLandingPage';
 
 
 const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
@@ -56,12 +58,19 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
+
+        // ...
+
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/seller/login" element={<SellerLoginPage />} />
+        <Route path="/seller/landingpage" element={<SellerLandingPage />} />
         <Route path="/ip-blocked" element={<IpBlocked />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/refund" element={<RefundPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/landingpage" element={<LandingPage />} />
         <Route
           path="/customerdashboard"
           element={

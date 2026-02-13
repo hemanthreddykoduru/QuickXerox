@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Printer, Eye, EyeOff, Mail, MapPin, Phone, Github } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendEmailVerification } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { auth, provider, githubProvider, db } from '../../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UserProfile } from '../../types/profile';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialMode = searchParams.get('mode');
+  const [isLogin, setIsLogin] = useState(initialMode !== 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -61,6 +64,9 @@ const LoginPage = () => {
     setIsLoading(true);
     setLoadingStep('Authenticating...');
     try {
+      // Enable Firebase Auth persistence across browser sessions
+      await setPersistence(auth, browserLocalPersistence);
+
       if (isLogin) {
         const result = await signInWithEmailAndPassword(auth, email, password);
         const user = result.user;
@@ -89,7 +95,8 @@ const LoginPage = () => {
           const userSessionData = {
             userProfile: JSON.stringify(userData),
             userName: userData.name,
-            userEmail: userData.email
+            userEmail: userData.email,
+            userPhone: userData.mobile || ''
           };
           Object.entries(userSessionData).forEach(([key, value]) => {
             sessionStorage.setItem(key, value);

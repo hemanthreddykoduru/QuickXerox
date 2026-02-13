@@ -24,6 +24,8 @@
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.3.2",
     "framer-motion": "^10.16.4",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.292.0",
     "mysql2": "^3.14.1",
     "nodemailer": "^8.0.0",

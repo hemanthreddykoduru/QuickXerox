@@ -7,6 +7,7 @@
     "source": "functions"
   },
   "hosting": {
+    "site": "otp-project-aafc6",
     "public": "dist",
     "ignore": [
       "firebase.json",

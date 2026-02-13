@@ -110,6 +110,9 @@ export const useProfile = () => {
           sessionStorage.setItem(key, value);
         });
 
+        console.log("✅ fetchProfile SUCCESS - Profile loaded:", fetchedProfile);
+        console.log("✅ Session storage updated with userPhone:", fetchedProfile.mobile);
+
         return fetchedProfile;
       } else {
         const defaultProfile: UserProfile = {
