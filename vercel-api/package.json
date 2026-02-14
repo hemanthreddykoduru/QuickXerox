@@ -1,0 +1,17 @@
+{
+    "name": "quickxerox-api",
+    "version": "1.0.0",
+    "description": "Payment backend for QuickXerox on Vercel",
+    "main": "api/index.js",
+    "dependencies": {
+        "razorpay": "^2.9.2",
+        "firebase-admin": "^11.11.1",
+        "nodemailer": "^6.9.7",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "typescript": "^5.3.0"
+    }
+}

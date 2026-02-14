@@ -22,7 +22,7 @@ const getBase64ImageFromURL = (url: string): Promise<string> => {
     });
 };
 
-export const generateInvoice = async (order: Order, userEmail?: string) => {
+export const generateInvoice = async (order: Order, userEmail?: string, returnBlob: boolean = false) => {
     const doc = new jsPDF();
 
     // Company Logo
@@ -116,5 +116,15 @@ export const generateInvoice = async (order: Order, userEmail?: string) => {
     doc.text('This is a computer-generated invoice.', 14, finalY + 26);
 
 
-    doc.save(`Invoice_QuickXerox_${order.id}.pdf`);
+    // Footer
+    doc.setFontSize(10);
+    doc.text('Thank you for choosing QuickXerox!', 14, finalY + 20);
+    doc.text('This is a computer-generated invoice.', 14, finalY + 26);
+
+
+    if (returnBlob) {
+        return doc.output('blob');
+    } else {
+        doc.save(`Invoice_QuickXerox_${order.id}.pdf`);
+    }
 };

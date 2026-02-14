@@ -3,6 +3,8 @@ import { Printer, FileText, Clock, Shield, Download } from 'lucide-react';
 import { generateInvoice } from '../../utils/invoiceGenerator';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
+import { toast } from 'react-hot-toast';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface OrderHistoryProps {
   orders: (Order & { otp?: string })[];
@@ -30,6 +32,55 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmai
       rejected: 'bg-red-100 text-red-800'
     };
     return colors[status as keyof typeof colors] || colors.pending;
+  };
+
+  const handleInvoice = async (order: Order) => {
+    try {
+      if (!userEmail) {
+        toast.error("User email not found.");
+        return;
+      }
+
+      toast.loading("Generating and emailing invoice...", { id: 'email-invoice' });
+
+      // 1. Generate PDF Blob
+      const pdfBlob = await generateInvoice(order, userEmail, true) as Blob;
+
+      if (!pdfBlob) {
+        throw new Error("Failed to generate PDF blob");
+      }
+
+      // 2. Upload to Firebase Storage
+      const storage = getStorage();
+      const storageRef = ref(storage, `invoices/Invoice_${order.id}_${Date.now()}.pdf`);
+      await uploadBytes(storageRef, pdfBlob);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // 3. Call Vercel API
+      const response = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          orderId: order.id,
+          pdfUrl: downloadURL,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("Invoice emailed successfully!", { id: 'email-invoice' });
+      } else {
+        throw new Error(result.error || "Failed to send email");
+      }
+
+    } catch (error: any) {
+      console.error("Error emailing invoice:", error);
+      toast.error(error.message || "Failed to email invoice.", { id: 'email-invoice' });
+    }
   };
 
 
@@ -146,11 +197,11 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmai
               {order.isPaid && (
                 <div className="mt-3 flex justify-end">
                   <button
-                    onClick={() => generateInvoice(order, userEmail)}
+                    onClick={() => handleInvoice(order)}
                     className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
                   >
                     <Download className="h-4 w-4" />
-                    <span>Download Invoice</span>
+                    <span>Email Invoice</span>
                   </button>
                 </div>
               )}
