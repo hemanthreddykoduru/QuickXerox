@@ -1,9 +1,7 @@
 import React from 'react';
-import { Printer, FileText, Clock, Shield, Download } from 'lucide-react';
-import { generateInvoice } from '../../utils/invoiceGenerator';
+import { Printer, FileText, Clock, Shield, Eye } from 'lucide-react';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
-import { toast } from 'react-hot-toast';
 
 
 interface OrderHistoryProps {
@@ -12,7 +10,7 @@ interface OrderHistoryProps {
   userEmail?: string;
 }
 
-const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmail }) => {
+const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const ITEMS_PER_PAGE = 5;
 
@@ -34,80 +32,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmai
     return colors[status as keyof typeof colors] || colors.pending;
   };
 
-  const handleInvoice = async (order: Order) => {
-    if (!userEmail) {
-      toast.error("User email not found.");
-      return;
-    }
-
-    toast.loading("Generating and emailing invoice...", { id: 'email-invoice' });
-
-    // 1. Generate PDF Blob (Async)
-    let pdfBlob: Blob;
-    try {
-      pdfBlob = await generateInvoice(order, userEmail, true) as Blob;
-      if (!pdfBlob) throw new Error("Failed to generate PDF blob");
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Failed to generate PDF", { id: 'email-invoice' });
-      return;
-    }
-
-
-    // 2. Convert Blob to Base64
-    const reader = new FileReader();
-    reader.readAsDataURL(pdfBlob);
-    reader.onloadend = async () => {
-      const base64data = reader.result?.toString().split(',')[1];
-      const fileName = `Invoice_${order.id}_${Date.now()}.pdf`;
-
-      try {
-        // 3. Upload via Proxy API (Bypassing RLS)
-        const uploadResponse = await fetch('https://quickxerox-api.vercel.app/api/upload-invoice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fileName: fileName,
-            fileBase64: base64data,
-            mimeType: 'application/pdf'
-          }),
-        });
-
-        const uploadResult = await uploadResponse.json();
-        if (!uploadResponse.ok || !uploadResult.success) {
-          throw new Error(uploadResult.error || "Failed to upload invoice");
-        }
-
-        const downloadURL = uploadResult.url;
-
-        // 4. Call Vercel API to Email
-        const response = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: userEmail,
-            orderId: order.id,
-            pdfUrl: downloadURL,
-          }),
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          toast.success("Invoice emailed successfully!", { id: 'email-invoice' });
-        } else {
-          throw new Error(result.error || "Failed to send email");
-        }
-
-      } catch (error: any) {
-        console.error("Error emailing invoice:", error);
-        toast.error(error.message || "Failed to email invoice.", { id: 'email-invoice' });
-      }
-    };
-  };
-
+  // handleInvoice function removed
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -218,16 +143,18 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmai
                 </p>
               </div>
 
-              {/* Invoice Download Button */}
-              {order.isPaid && (
+              {/* View Invoice Button */}
+              {order.isPaid && order.invoiceUrl && (
                 <div className="mt-3 flex justify-end">
-                  <button
-                    onClick={() => handleInvoice(order)}
+                  <a
+                    href={order.invoiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
                   >
-                    <Download className="h-4 w-4" />
-                    <span>Email Invoice</span>
-                  </button>
+                    <Eye className="h-4 w-4" />
+                    <span>View Invoice</span>
+                  </a>
                 </div>
               )}
 
