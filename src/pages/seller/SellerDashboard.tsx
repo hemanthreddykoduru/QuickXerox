@@ -342,6 +342,7 @@ const SellerDashboard: React.FC = () => {
                 email: order.customerEmail,
                 orderId: orderId,
                 pdfUrl: order.invoiceUrl,
+                customerName: order.customerName,
               }),
             });
             const result = await emailResponse.json();
