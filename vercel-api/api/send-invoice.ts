@@ -27,8 +27,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="${pdfUrl}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Download Invoice</a>
                     </div>
-                    <p>Or copy and paste this link into your browser:</p>
-                    <p><a href="${pdfUrl}">${pdfUrl}</a></p>
+
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     <p style="color: #666; font-size: 12px;">This is an automated message from QuickXerox. Please do not reply to this email.</p>
                 </div>

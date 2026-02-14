@@ -6,7 +6,8 @@ import RazorpayCheckout from './RazorpayCheckout';
 import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../types';
 import { uploadFile } from '../../services/storageService';
-import { auth } from '../../firebase';
+import { auth, db } from '../../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { generateInvoice } from '../../utils/invoiceGenerator';
 
 
@@ -177,24 +178,14 @@ const Cart: React.FC<CartProps> = ({
 
             const downloadURL = uploadResult.url;
 
-            // 4. Call Vercel API to Email
-            const emailResponse = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: userProfile.email,
-                orderId: orderId,
-                pdfUrl: downloadURL,
-              }),
+            // 4. Save Invoice URL to Order (Do not email yet)
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, {
+              invoiceUrl: downloadURL
             });
 
-            const result = await emailResponse.json();
-            if (emailResponse.ok && result.success) {
-              toast.success("Invoice emailed successfully!", { id: 'auto-invoice' });
-            } else {
-              console.error("Auto-invoice API error:", result);
-              toast.error("Could not email invoice", { id: 'auto-invoice' });
-            }
+            console.log("Invoice generated and linked:", downloadURL);
+            toast.success("Invoice generated successfully!", { id: 'auto-invoice' });
 
           } catch (error: any) {
             console.error("Auto-invoice upload/send failed:", error);

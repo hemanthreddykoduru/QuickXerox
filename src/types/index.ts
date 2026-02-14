@@ -46,6 +46,7 @@ export interface Order {
   id: string;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   sellerPhone: string;
   items: OrderItem[];
   total: number;
@@ -58,6 +59,7 @@ export interface Order {
   otpGeneratedAt?: string;
   completedAt?: string;
   paymentId?: string;
+  invoiceUrl?: string;
 }
 
 export type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';

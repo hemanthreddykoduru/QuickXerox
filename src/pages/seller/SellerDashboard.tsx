@@ -329,6 +329,36 @@ const SellerDashboard: React.FC = () => {
         await updateDoc(orderRef, {
           completedAt: new Date().toISOString()
         });
+
+        // Send Invoice Email on Completion
+        const order = orders.find(o => o.id === orderId);
+        if (order && order.invoiceUrl && order.customerEmail) {
+          try {
+            toast.loading("Sending invoice to customer...", { id: 'send-invoice' });
+            const emailResponse = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: order.customerEmail,
+                orderId: orderId,
+                pdfUrl: order.invoiceUrl,
+              }),
+            });
+            const result = await emailResponse.json();
+            if (emailResponse.ok && result.success) {
+              toast.success("Invoice emailed successfully!", { id: 'send-invoice' });
+            } else {
+              console.error("Failed to send invoice:", result);
+              toast.error("Failed to send invoice email", { id: 'send-invoice' });
+            }
+          } catch (emailError) {
+            console.error("Error calling send-invoice API:", emailError);
+            toast.error("Error sending invoice", { id: 'send-invoice' });
+          }
+        } else {
+          if (!order?.invoiceUrl) console.warn("Skipping invoice email: No invoice URL for order", orderId);
+          if (!order?.customerEmail) console.warn("Skipping invoice email: No customer email for order", orderId);
+        }
       }
     } catch (error: any) {
       console.error("Error updating status:", error);
