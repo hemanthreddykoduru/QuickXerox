@@ -105,16 +105,10 @@ export const generateInvoice = async (order: Order, userEmail?: string, returnBl
 
     // Total
     // @ts-ignore
-    const finalY = doc.lastAutoTable.finalY + 10;
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
 
     doc.setFontSize(12);
-    doc.text(`Total Amount: ₹${order.total.toFixed(2)}`, 140, finalY);
-
-    // Footer
-    doc.setFontSize(10);
-    doc.text('Thank you for choosing QuickXerox!', 14, finalY + 20);
-    doc.text('This is a computer-generated invoice.', 14, finalY + 26);
-
+    doc.text(`Total Amount: INR ${order.total.toFixed(2)}`, 140, finalY);
 
     // Footer
     doc.setFontSize(10);
