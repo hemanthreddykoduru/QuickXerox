@@ -7,6 +7,8 @@ import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../types';
 import { uploadFile } from '../../services/storageService';
 import { auth } from '../../firebase';
+import { generateInvoice } from '../../utils/invoiceGenerator';
+import { supabase } from '../../supabaseClient';
 
 interface CartProps {
   items: PrintJob[];
@@ -115,6 +117,85 @@ const Cart: React.FC<CartProps> = ({
     console.log(`OTP sent to seller: +91 87654 32109`);
 
     toast.success('Payment successful! OTP generated for order verification.');
+
+    // --- AUTOMATIC INVOICE EMAIL ---
+    const autoEmailInvoice = async () => {
+      try {
+        if (!userProfile?.email || !selectedShop) return;
+
+        // Construct a temporary order object for the invoice
+        const orderForInvoice: any = {
+          id: orderId,
+          customerName: userProfile.name,
+          customerPhone: userProfile.mobile,
+          sellerPhone: "N/A",
+          items: items.map(item => ({
+            id: item.id,
+            fileName: item.file.name,
+            copies: item.copies,
+            isColor: item.isColor,
+            pages: 1
+          })),
+          total: totalAmount,
+          status: 'completed',
+          timestamp: new Date().toISOString(),
+          shopId: parseInt(selectedShop.id),
+          isPaid: true,
+          paymentId: response.razorpay_payment_id || 'N/A'
+        };
+
+        toast.loading("Sending invoice...", { id: 'auto-invoice' });
+
+        // 1. Generate PDF Blob
+        const pdfBlob = await generateInvoice(orderForInvoice, userProfile.email, true) as Blob;
+
+        if (!pdfBlob) throw new Error("PDF generation failed");
+
+        // 2. Upload to Supabase Storage
+        const fileName = `Invoice_${orderId}_${Date.now()}.pdf`;
+        const { error: uploadError } = await supabase.storage
+          .from('invoices') // Ensure this bucket exists in Supabase
+          .upload(fileName, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Get Public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('invoices')
+          .getPublicUrl(fileName);
+
+        const downloadURL = publicUrlData.publicUrl;
+
+        // 3. Call Vercel API to Email
+        const emailResponse = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userProfile.email,
+            orderId: orderId,
+            pdfUrl: downloadURL,
+          }),
+        });
+
+        const result = await emailResponse.json();
+        if (emailResponse.ok && result.success) {
+          toast.success("Invoice emailed successfully!", { id: 'auto-invoice' });
+        } else {
+          console.error("Auto-invoice API error:", result);
+          toast.error("Could not email invoice", { id: 'auto-invoice' });
+        }
+
+      } catch (error) {
+        console.error("Auto-invoice failed:", error);
+        toast.error("Failed to send invoice email", { id: 'auto-invoice' });
+      }
+    };
+
+    // Trigger automation without blocking UI
+    autoEmailInvoice();
   };
 
   const handlePaymentError = (error: any) => {

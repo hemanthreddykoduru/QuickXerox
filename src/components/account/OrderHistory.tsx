@@ -4,7 +4,7 @@ import { generateInvoice } from '../../utils/invoiceGenerator';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
 import { toast } from 'react-hot-toast';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from '../../supabaseClient';
 
 interface OrderHistoryProps {
   orders: (Order & { otp?: string })[];
@@ -50,11 +50,23 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmai
         throw new Error("Failed to generate PDF blob");
       }
 
-      // 2. Upload to Firebase Storage
-      const storage = getStorage();
-      const storageRef = ref(storage, `invoices/Invoice_${order.id}_${Date.now()}.pdf`);
-      await uploadBytes(storageRef, pdfBlob);
-      const downloadURL = await getDownloadURL(storageRef);
+      // 2. Upload to Supabase Storage
+      const fileName = `Invoice_${order.id}_${Date.now()}.pdf`;
+      const { error: uploadError } = await supabase.storage
+        .from('invoices')
+        .upload(fileName, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get Public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('invoices')
+        .getPublicUrl(fileName);
+
+      const downloadURL = publicUrlData.publicUrl;
 
       // 3. Call Vercel API
       const response = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
