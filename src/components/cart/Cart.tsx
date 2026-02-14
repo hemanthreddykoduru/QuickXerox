@@ -584,6 +584,6 @@ const Cart: React.FC<CartProps> = ({
         </div>
       </div>
     );
-  };
 
-  export default Cart;
+
+    export default Cart;
