@@ -56,7 +56,7 @@ export const generateInvoice = async (order: Order, userEmail?: string, returnBl
     // Invoice Details
     doc.setFontSize(10);
     doc.text(`Invoice No: INV-${order.id.slice(-8).toUpperCase()}`, 140, 30);
-    doc.text(`Date: ${new Date(order.timestamp).toLocaleDateString()}`, 140, 35);
+    doc.text(`Date: ${new Date(order.timestamp).toLocaleString()}`, 140, 35);
     if (order.paymentId) {
         doc.text(`Payment ID: ${order.paymentId}`, 140, 40);
     }
