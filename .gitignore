@@ -32,3 +32,4 @@ src/services/twilio.service.ts
 # Firebase
 functions/.runtimeconfig.json
 *.bak
+**/serviceAccountKey.json
