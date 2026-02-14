@@ -19,7 +19,7 @@ import TermsPage from './pages/legal/TermsPage';
 import PrivacyPage from './pages/legal/PrivacyPage';
 import RefundPage from './pages/legal/RefundPage';
 import ContactPage from './pages/legal/ContactPage';
-import LandingPage from './pages/LandingPage';
+import LandingPage from './pages/home/LandingPage';
 import SellerLandingPage from './pages/seller/SellerLandingPage';
 
 
