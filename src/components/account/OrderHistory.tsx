@@ -4,7 +4,7 @@ import { generateInvoice } from '../../utils/invoiceGenerator';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../../supabaseClient';
+
 
 interface OrderHistoryProps {
   orders: (Order & { otp?: string })[];
@@ -35,64 +35,77 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmai
   };
 
   const handleInvoice = async (order: Order) => {
+    if (!userEmail) {
+      toast.error("User email not found.");
+      return;
+    }
+
+    toast.loading("Generating and emailing invoice...", { id: 'email-invoice' });
+
+    // 1. Generate PDF Blob (Async)
+    let pdfBlob: Blob;
     try {
-      if (!userEmail) {
-        toast.error("User email not found.");
-        return;
-      }
+      pdfBlob = await generateInvoice(order, userEmail, true) as Blob;
+      if (!pdfBlob) throw new Error("Failed to generate PDF blob");
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Failed to generate PDF", { id: 'email-invoice' });
+      return;
+    }
 
-      toast.loading("Generating and emailing invoice...", { id: 'email-invoice' });
 
-      // 1. Generate PDF Blob
-      const pdfBlob = await generateInvoice(order, userEmail, true) as Blob;
-
-      if (!pdfBlob) {
-        throw new Error("Failed to generate PDF blob");
-      }
-
-      // 2. Upload to Supabase Storage
+    // 2. Convert Blob to Base64
+    const reader = new FileReader();
+    reader.readAsDataURL(pdfBlob);
+    reader.onloadend = async () => {
+      const base64data = reader.result?.toString().split(',')[1];
       const fileName = `Invoice_${order.id}_${Date.now()}.pdf`;
-      const { error: uploadError } = await supabase.storage
-        .from('invoices')
-        .upload(fileName, pdfBlob, {
-          contentType: 'application/pdf',
-          upsert: false
+
+      try {
+        // 3. Upload via Proxy API (Bypassing RLS)
+        const uploadResponse = await fetch('https://quickxerox-api.vercel.app/api/upload-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: fileName,
+            fileBase64: base64data,
+            mimeType: 'application/pdf'
+          }),
         });
 
-      if (uploadError) throw uploadError;
+        const uploadResult = await uploadResponse.json();
+        if (!uploadResponse.ok || !uploadResult.success) {
+          throw new Error(uploadResult.error || "Failed to upload invoice");
+        }
 
-      // Get Public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('invoices')
-        .getPublicUrl(fileName);
+        const downloadURL = uploadResult.url;
 
-      const downloadURL = publicUrlData.publicUrl;
+        // 4. Call Vercel API to Email
+        const response = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: userEmail,
+            orderId: order.id,
+            pdfUrl: downloadURL,
+          }),
+        });
 
-      // 3. Call Vercel API
-      const response = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          orderId: order.id,
-          pdfUrl: downloadURL,
-        }),
-      });
+        const result = await response.json();
 
-      const result = await response.json();
+        if (response.ok && result.success) {
+          toast.success("Invoice emailed successfully!", { id: 'email-invoice' });
+        } else {
+          throw new Error(result.error || "Failed to send email");
+        }
 
-      if (response.ok && result.success) {
-        toast.success("Invoice emailed successfully!", { id: 'email-invoice' });
-      } else {
-        throw new Error(result.error || "Failed to send email");
+      } catch (error: any) {
+        console.error("Error emailing invoice:", error);
+        toast.error(error.message || "Failed to email invoice.", { id: 'email-invoice' });
       }
-
-    } catch (error: any) {
-      console.error("Error emailing invoice:", error);
-      toast.error(error.message || "Failed to email invoice.", { id: 'email-invoice' });
-    }
+    };
   };
 
 
