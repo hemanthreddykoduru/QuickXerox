@@ -12,9 +12,10 @@ import Skeleton from '../../components/common/Skeleton';
 
 const AccountPage = () => {
   const navigate = useNavigate();
-  const { profile, updateProfile, isInitialized } = useProfile();
+  const { profile, updateProfile, isInitialized, refreshProfile } = useProfile();
   console.log("AccountPage rendering, isInitialized:", isInitialized, "Profile mobile:", profile?.mobile);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -27,6 +28,17 @@ const AccountPage = () => {
     // REMOVED: Aggressive auto-logout. It was causing race conditions.
     // Instead, we will handle empty profiles in the UI.
   }, [navigate]);
+
+  // Auto-redirect if initialized but not authenticated (fixes "Welcome" screen issue)
+  useEffect(() => {
+    if (isInitialized && !profile.email && !profile.mobile) {
+      // If we are initialized but have no profile data, checks if we are actually logged out
+      if (!auth.currentUser) {
+        console.log("AccountPage: No user found, redirecting to login");
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [isInitialized, profile, navigate]);
 
   // State for orders
   const [orders, setOrders] = useState<Order[]>([]);
@@ -109,6 +121,14 @@ const AccountPage = () => {
     navigate('/login');
   };
 
+  const handleRetryProfile = async () => {
+    if (auth.currentUser) {
+      setIsRetrying(true);
+      await refreshProfile(auth.currentUser.uid);
+      setIsRetrying(false);
+    }
+  };
+
   if (!isInitialized) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -122,6 +142,35 @@ const AccountPage = () => {
 
   // Fallback if initialized but empty (First-time user or data sync issue)
   if (isInitialized && !profile.email && !profile.mobile) {
+    // Check if user is actually logged in but profile is empty (Sync error)
+    if (auth.currentUser) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Unable to Load Profile</h2>
+            <p className="text-gray-600 mb-6">
+              We couldn't load your profile data. Please try again.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleRetryProfile}
+                disabled={isRetrying}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              >
+                {isRetrying ? 'Retrying...' : 'Retry'}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
