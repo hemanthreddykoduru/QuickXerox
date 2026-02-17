@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, Clock, BellRing, Package, Users, Image } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, BellRing, Package, Users, Image } from 'lucide-react';
 
 interface SellerDetails {
   id: string;
@@ -76,6 +76,26 @@ const AdminSellerDetails = () => {
   const [seller, setSeller] = useState<SellerDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleStatusUpdate = async (newStatus: 'approved' | 'rejected') => {
+    if (!seller || !seller.id) return;
+    if (!window.confirm(`Are you sure you want to mark this seller as ${newStatus}?`)) return;
+
+    setIsUpdating(true);
+    try {
+      const sellerRef = doc(db, 'shopOwners', seller.id);
+      await updateDoc(sellerRef, { status: newStatus });
+
+      setSeller(prev => prev ? { ...prev, status: newStatus } : null);
+      toast.success(`Seller marked as ${newStatus}`);
+    } catch (err: any) {
+      console.error('Error updating status:', err);
+      toast.error('Failed to update status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSeller = async () => {
@@ -167,7 +187,26 @@ const AdminSellerDetails = () => {
             <span className="text-lg font-medium">Back to Sellers</span>
           </button>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{seller.shopName || seller.name} Details</h1>
-          <div></div> {/* For spacing */}
+          <div className="flex items-center space-x-2">
+            {seller.status !== 'approved' && (
+              <button
+                onClick={() => handleStatusUpdate('approved')}
+                disabled={isUpdating}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {isUpdating ? 'Updating...' : 'Approve Seller'}
+              </button>
+            )}
+            {seller.status !== 'rejected' && (
+              <button
+                onClick={() => handleStatusUpdate('rejected')}
+                disabled={isUpdating}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {isUpdating ? 'Updating...' : 'Reject Seller'}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

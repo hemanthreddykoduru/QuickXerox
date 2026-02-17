@@ -290,7 +290,50 @@ const AdminDashboard = () => {
             }, timeoutDuration)
           );
           // Replace with actual fetch functions if available
-          const fetchMetrics = async () => ({ sellers: 1, orders: 2, revenue: 75, pendingSellers: 1 });
+          // Real Firestore Metrics (Client-side calculation for reliability)
+          const fetchMetrics = async () => {
+            try {
+              // 1. Fetch all sellers
+              const sellersColl = collection(db, 'shopOwners');
+              // Exclude specific ID if needed, similar to AdminSellerList
+              // const sellersQuery = query(sellersColl, where(documentId(), '!=', 'bEd6Hz5mX0Vm6lgLu5A7Ak2sEfX2'));
+              // For now, fetch all to be safe and accurate
+              const sellersSnapshot = await getDocs(sellersColl);
+              const sellers = sellersSnapshot.docs.map(doc => doc.data());
+              const totalSellers = sellers.length;
+
+              const pendingSellers = sellers.filter(s => s.status === 'pending').length;
+
+              // 2. Fetch all orders
+              const ordersColl = collection(db, 'orders');
+              const ordersSnapshot = await getDocs(ordersColl);
+              const orders = ordersSnapshot.docs.map(doc => doc.data());
+              const totalOrders = orders.length;
+
+              // 3. Calculate Revenue
+              // Sum 'totalAmount' or 'total' from completed/paid orders
+              const totalRevenue = orders.reduce((acc, order) => {
+                const status = (order.status || '').toLowerCase();
+                if (status === 'completed' || status === 'paid') {
+                  // Handle inconsistent field names
+                  const amount = Number(order.totalAmount || order.total || 0);
+                  return acc + amount;
+                }
+                return acc;
+              }, 0);
+
+              return {
+                sellers: totalSellers,
+                orders: totalOrders,
+                revenue: Math.round(totalRevenue),
+                pendingSellers: pendingSellers
+              };
+            } catch (err: any) {
+              console.error("Error fetching metrics:", err);
+              toast.error(`Metrics Error: ${err.message}`); // Show error to user
+              return { sellers: 0, orders: 0, revenue: 0, pendingSellers: 0 };
+            }
+          };
           const fetchAuditLogs = async (): Promise<AuditLog[]> => {
             try {
               const logsQuery = query(

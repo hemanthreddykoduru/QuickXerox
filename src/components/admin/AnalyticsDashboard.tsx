@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { TrendingUp, Users, ShoppingCart, DollarSign, Clock, MapPin } from 'lucide-react';
+import { TrendingUp, Users, ShoppingCart, DollarSign, MapPin } from 'lucide-react';
 import { db } from '../../firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 interface AnalyticsData {
   revenue: {
@@ -32,11 +32,7 @@ interface AnalyticsData {
   };
 }
 
-interface ChartData {
-  name: string;
-  value: number;
-  color?: string;
-}
+
 
 interface AnalyticsDashboardProps {
   onManageUsers?: () => void;
@@ -100,22 +96,49 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onManageUsers, 
 
       // Orders collection (if present)
       const ordersRef = collection(db, 'orders');
-      const unsubOrders = onSnapshot(query(ordersRef, orderBy('timestamp', 'desc')), (snap) => {
-        const orders = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+      // Fetch all orders without sorting first to avoid index issues
+      const unsubOrders = onSnapshot(ordersRef, (snap) => {
+        let orders = snap.docs.map(d => {
+          const data = d.data() as any;
+          return {
+            id: d.id,
+            ...data,
+            // Normalize timestamp
+            timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : (data.createdAt?.toDate ? data.createdAt.toDate() : (data.timestamp ? new Date(data.timestamp) : new Date()))
+          };
+        });
+
+        // Sort client-side
+        orders.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+        console.log("Analytics: Fetched orders", orders.length);
+
         const total = orders.length;
         const pending = orders.filter(o => (o.status || '').toLowerCase() === 'pending').length;
-        const completed = orders.filter(o => (o.status || '').toLowerCase() === 'completed').length;
-        const cancelled = orders.filter(o => (o.status || '').toLowerCase() === 'cancelled').length;
+        const completed = orders.filter(o => {
+          const s = (o.status || '').toLowerCase();
+          return s === 'completed' || s === 'paid';
+        }).length;
+        const cancelled = orders.filter(o => (o.status || '').toLowerCase() === 'cancelled' || (o.status || '').toLowerCase() === 'rejected').length;
 
         // Revenue calculations: sum amounts for selected window
         const now = new Date();
         const daysWindow = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
         const windowStart = new Date(now.getTime() - daysWindow * 24 * 60 * 60 * 1000);
+
         const inWindow = orders.filter(o => {
-          const ts = o.timestamp ? new Date(o.timestamp) : null;
-          return ts && ts >= windowStart && ts <= now;
+          return o.timestamp >= windowStart && o.timestamp <= now;
         });
-        const revenueSum = inWindow.reduce((sum, o) => sum + (Number(o.total) || Number(o.amount) || 0), 0);
+
+        // Use totalAmount or total, handle strings
+        const revenueSum = inWindow.reduce((sum, o) => {
+          const status = (o.status || '').toLowerCase();
+          // Only count revenue for completed/paid orders
+          if (status === 'completed' || status === 'paid') {
+            return sum + (Number(o.totalAmount) || Number(o.total) || 0);
+          }
+          return sum;
+        }, 0);
 
         // Build revenue trend per day for the window (last 7 days shown)
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -124,14 +147,19 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onManageUsers, 
           const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
           trendMap[days[d.getDay()]] = { revenue: 0, orders: 0 };
         }
+
+        // Populate trend
         inWindow.forEach(o => {
-          const ts = o.timestamp ? new Date(o.timestamp) : null;
-          if (!ts) return;
-          const key = days[ts.getDay()];
+          const key = days[o.timestamp.getDay()];
           if (!trendMap[key]) trendMap[key] = { revenue: 0, orders: 0 };
-          trendMap[key].revenue += Number(o.total) || Number(o.amount) || 0;
+
+          const status = (o.status || '').toLowerCase();
+          if (status === 'completed' || status === 'paid') {
+            trendMap[key].revenue += Number(o.totalAmount) || Number(o.total) || 0;
+          }
           trendMap[key].orders += 1;
         });
+
         const trend = Object.keys(trendMap).map(k => ({ name: k, revenue: trendMap[k].revenue, orders: trendMap[k].orders }));
         setRevenueSeries(trend);
 
@@ -146,7 +174,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onManageUsers, 
         const shopStats: Record<string, { name: string; orders: number; revenue: number; }> = {};
         orders.forEach(o => {
           const shopId = o.sellerId || o.shopId || 'unknown';
-          const revenue = Number(o.total) || Number(o.amount) || 0;
+          // Fix: use totalAmount
+          const revenue = (Number(o.totalAmount) || Number(o.total) || 0);
 
           if (!shopStats[shopId]) {
             // Use the shopNamesMap to get real shop name, with fallback
@@ -160,7 +189,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onManageUsers, 
             };
           }
           shopStats[shopId].orders += 1;
-          shopStats[shopId].revenue += revenue;
+          const status = (o.status || '').toLowerCase();
+          if (status === 'completed' || status === 'paid') {
+            shopStats[shopId].revenue += revenue;
+          }
         });
 
 
@@ -179,6 +211,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onManageUsers, 
       }, (err) => {
         // orders collection may not exist; keep dashboard partial
         console.warn('Orders snapshot failed or collection missing:', err?.message || err);
+        // ... (keep error handling state updates)
         setRevenueSeries([
           { name: 'Mon', revenue: 0, orders: 0 },
           { name: 'Tue', revenue: 0, orders: 0 },
