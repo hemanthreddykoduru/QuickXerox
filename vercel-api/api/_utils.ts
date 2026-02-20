@@ -20,6 +20,8 @@ if (!admin.apps.length) {
     }
 }
 
+export const adminDb = admin.firestore();
+
 // Initialize Razorpay
 export const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || '',
