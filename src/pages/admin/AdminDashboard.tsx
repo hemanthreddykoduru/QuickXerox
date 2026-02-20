@@ -607,12 +607,6 @@ const AdminDashboard = () => {
             >
               View All Customers
             </button>
-            <button
-              onClick={downloadCustomersCSV}
-              className="w-full bg-green-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-green-700 transition-colors text-sm mt-2"
-            >
-              Download CSV 📥
-            </button>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
             <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-red-600" />
@@ -739,14 +733,22 @@ const AdminDashboard = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">All Customers</h2>
-                <button
-                  onClick={() => setShowCustomers(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                  aria-label="Close customers modal"
-                  title="Close"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={downloadCustomersCSV}
+                    className="bg-green-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-green-700 transition-colors text-sm flex items-center gap-2"
+                  >
+                    Download CSV 📥
+                  </button>
+                  <button
+                    onClick={() => setShowCustomers(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                    aria-label="Close customers modal"
+                    title="Close"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
 
               {/* Search Bar */}
@@ -987,226 +989,6 @@ const AdminDashboard = () => {
                         title="Application name"
                       />
                     </div>
-                  </div>
-                </section>
-
-                {/* Authentication */}
-                <section className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
-                  <h3 className="text-lg font-semibold mb-3">Authentication & Security</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={systemSettings.auth.requireEmailVerification}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, requireEmailVerification: e.target.checked } }))}
-                      />
-                      Require email verification
-                    </label>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Session timeout (minutes)</label>
-                      <input
-                        type="number"
-                        min={5}
-                        value={systemSettings.auth.sessionTimeoutMinutes}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, sessionTimeoutMinutes: Number(e.target.value) } }))}
-                        className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
-                        aria-label="Session timeout in minutes"
-                        title="Session timeout in minutes"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Idle logout (minutes)</label>
-                      <input
-                        type="number"
-                        min={5}
-                        value={systemSettings.auth.idleLogoutMinutes}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, idleLogoutMinutes: Number(e.target.value) } }))}
-                        className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
-                        aria-label="Idle logout minutes"
-                        title="Idle logout minutes"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Remember me (days)</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={systemSettings.auth.rememberMeDays}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, rememberMeDays: Number(e.target.value) } }))}
-                        className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
-                        aria-label="Remember me days"
-                        title="Remember me days"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Password policy */}
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mt-4">
-                    <div>
-                      <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Min length</label>
-                      <input
-                        type="number"
-                        min={6}
-                        value={systemSettings.auth.passwordPolicy.minLength}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, passwordPolicy: { ...s.auth.passwordPolicy, minLength: Number(e.target.value) } } }))}
-                        className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
-                        aria-label="Password min length"
-                        title="Password min length"
-                      />
-                    </div>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={!!systemSettings.auth.passwordPolicy.requireNumber} onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, passwordPolicy: { ...s.auth.passwordPolicy, requireNumber: e.target.checked } } }))} />
-                      Number
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={!!systemSettings.auth.passwordPolicy.requireUppercase} onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, passwordPolicy: { ...s.auth.passwordPolicy, requireUppercase: e.target.checked } } }))} />
-                      Uppercase
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={!!systemSettings.auth.passwordPolicy.requireLowercase} onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, passwordPolicy: { ...s.auth.passwordPolicy, requireLowercase: e.target.checked } } }))} />
-                      Lowercase
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={!!systemSettings.auth.passwordPolicy.requireSpecialChar} onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, passwordPolicy: { ...s.auth.passwordPolicy, requireSpecialChar: e.target.checked } } }))} />
-                      Special char
-                    </label>
-                  </div>
-
-                  {/* 2FA */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={systemSettings.auth.twoFactor.enabled}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, twoFactor: e.target.checked ? { enabled: true, enforceForAdmins: true, enforceForSellers: false } : { enabled: false } } }))}
-                      />
-                      2FA enabled
-                    </label>
-                    {systemSettings.auth.twoFactor.enabled && (
-                      <>
-                        <label className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" checked={(systemSettings.auth.twoFactor as any).enforceForAdmins} onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, twoFactor: { ...(s.auth.twoFactor as any), enabled: true, enforceForAdmins: e.target.checked } } }))} /> Enforce for admins
-                        </label>
-                        <label className="flex items-center gap-2 text-sm">
-                          <input type="checkbox" checked={(systemSettings.auth.twoFactor as any).enforceForSellers} onChange={(e) => setSystemSettings(s => ({ ...s, auth: { ...s.auth, twoFactor: { ...(s.auth.twoFactor as any), enabled: true, enforceForSellers: e.target.checked } } }))} /> Enforce for sellers
-                        </label>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Allowed admin IPs */}
-                  <div className="mt-4">
-                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
-                      Allowed admin IP ranges (exact IP or CIDR notation)
-                    </label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      Examples: 203.0.113.42 (exact IP) or 203.0.113.0/24 (range). Leave empty to allow all IPs.
-                    </p>
-
-                    {/* Show current IP helper */}
-                    <div className="mb-3 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          setFetchingIP(true);
-                          try {
-                            const response = await fetch('https://api64.ipify.org?format=json');
-                            if (!response.ok) throw new Error('Failed to fetch IP');
-                            const data = await response.json();
-                            setCurrentPublicIP(data.ip);
-                            toast.success(`Your public IP: ${data.ip} `);
-                          } catch (error) {
-                            try {
-                              const response = await fetch('https://api.ipify.org?format=json');
-                              if (!response.ok) throw new Error('Failed to fetch IP');
-                              const data = await response.json();
-                              setCurrentPublicIP(data.ip);
-                              toast.success(`Your public IP: ${data.ip} `);
-                            } catch {
-                              toast.error('Failed to fetch your IP');
-                            }
-                          } finally {
-                            setFetchingIP(false);
-                          }
-                        }}
-                        disabled={fetchingIP}
-                        className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
-                      >
-                        {fetchingIP ? 'Fetching...' : 'Show My Public IP'}
-                      </button>
-                      {currentPublicIP && (
-                        <>
-                          <span className="text-xs font-mono bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                            {currentPublicIP}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const current = systemSettings.auth.allowedAdminIpRanges || [];
-                              if (!current.includes(currentPublicIP)) {
-                                setSystemSettings(s => ({
-                                  ...s,
-                                  auth: {
-                                    ...s.auth,
-                                    allowedAdminIpRanges: [...current, currentPublicIP]
-                                  }
-                                }));
-                                toast.success('IP added to allowed list');
-                              } else {
-                                toast('IP already in the list');
-                              }
-                            }}
-                            className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
-                          >
-                            Add This IP
-                          </button>
-                        </>
-                      )}
-                    </div>
-
-                    <input
-                      type="text"
-                      value={(systemSettings.auth.allowedAdminIpRanges || []).join(', ')}
-                      onChange={(e) => {
-                        const ips = e.target.value
-                          .split(',')
-                          .map(ip => ip.trim())
-                          .filter(ip => ip.length > 0);
-                        setSystemSettings(s => ({
-                          ...s,
-                          auth: {
-                            ...s.auth,
-                            allowedAdminIpRanges: ips
-                          }
-                        }));
-                      }}
-                      className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-3 py-2"
-                      placeholder="203.0.113.42, 203.0.113.0/24"
-                      aria-label="Allowed admin IP ranges"
-                      title="Allowed admin IP ranges"
-                    />
-                    {systemSettings.auth.allowedAdminIpRanges && systemSettings.auth.allowedAdminIpRanges.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {systemSettings.auth.allowedAdminIpRanges.map((ip, idx) => (
-                          <div key={idx} className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded flex items-center gap-1">
-                            {ip}
-                            <button
-                              type="button"
-                              onClick={() => setSystemSettings(s => ({
-                                ...s,
-                                auth: {
-                                  ...s.auth,
-                                  allowedAdminIpRanges: s.auth.allowedAdminIpRanges.filter((_, i) => i !== idx)
-                                }
-                              }))}
-                              className="text-blue-600 dark:text-blue-300 hover:font-bold"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </section>
 
