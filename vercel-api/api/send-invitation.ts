@@ -14,10 +14,10 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
     try {
         const info = await transporter.sendMail({
-            from: '"QuickXerox" <invoice@quickxerox.app>', // Reusing the established sender address
+            from: '"QuickXerox" <invitation@quickxerox.app>', // Invitation sender address
             to: email, // List of receivers
             subject: 'Invitation to join QuickXerox as a Print Shop Partner', // Subject line
-            text: `Hi ${shopName},\n\nYou're invited to join QuickXerox as a print shop partner! We're building a platform to connect customers with local print shops, and we'd love to have you on board.\n\nClick the link below to get started:\n${invitationLink}\n\nThanks,\nQuickXerox Admin`, // plain text body
+            text: `Hi ${shopName},\n\nYou're invited to join QuickXerox as a print shop partner! We're building a platform to connect customers with local print shops, and we'd love to have you on board.\n\nClick the link below to get started:\n${invitationLink}\n\nThanks,\nQuickXerox Admin\n\nFor support, contact us at help-contact@quickxerox.app`, // plain text body
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
                     <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
@@ -33,7 +33,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
                     <p style="color: #666; font-size: 14px; margin-top: 20px;">Or copy and paste this link into your browser:</p>
                     <p style="color: #2563EB; font-size: 12px; word-break: break-all; margin-bottom: 30px;">${invitationLink}</p>
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="color: #666; font-size: 12px;">This invitation was sent by QuickXerox Admin. If you have any questions, please contact support.</p>
+                    <p style="color: #666; font-size: 12px;">This invitation was sent by QuickXerox Admin. If you have any questions, please contact support at <a href="mailto:help-contact@quickxerox.app" style="color: #2563EB; text-decoration: none;">help-contact@quickxerox.app</a>.</p>
                 </div>
             `,
         });
