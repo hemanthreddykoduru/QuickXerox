@@ -150,8 +150,6 @@ const AdminDashboard = () => {
     },
   });
   const [savingSystemSettings, setSavingSystemSettings] = useState(false);
-  const [currentPublicIP, setCurrentPublicIP] = useState<string | null>(null);
-  const [fetchingIP, setFetchingIP] = useState(false);
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   // Deep-merge helper to keep defaults when loading from Firestore
@@ -243,7 +241,7 @@ const AdminDashboard = () => {
       try {
         // Wait for auth state to be ready
         await new Promise<void>((resolve) => {
-          const unsubscribe = auth.onAuthStateChanged((user) => {
+          const unsubscribe = auth.onAuthStateChanged((_user) => {
             unsubscribe();
             resolve();
           });
