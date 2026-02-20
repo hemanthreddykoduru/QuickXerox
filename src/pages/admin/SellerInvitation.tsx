@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { auth, db } from '../../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
+import { onAuthStateChanged } from 'firebase/auth';
 
 // Type definitions
 interface Seller {
@@ -33,6 +34,7 @@ const SellerInvitation = () => {
   const [shopName, setShopName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [uploadMode, setUploadMode] = useState<'single' | 'bulk'>('single');
 
   // CSV state
@@ -52,27 +54,25 @@ const SellerInvitation = () => {
   useEffect(() => {
     emailjs.init('t3r_n1ddwEfNTp46q');
 
-    const checkAdminStatus = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          toast.error('Please log in as an admin');
-          return;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+          setIsAdmin(adminDoc.exists());
+          if (!adminDoc.exists()) {
+            toast.error('You do not have admin privileges');
+          }
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          toast.error('Error checking admin status');
         }
-
-        const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-        setIsAdmin(adminDoc.exists());
-
-        if (!adminDoc.exists()) {
-          toast.error('You do not have admin privileges');
-        }
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        toast.error('Error checking admin status');
+      } else {
+        setIsAdmin(false);
       }
-    };
+      setIsLoadingAuth(false);
+    });
 
-    checkAdminStatus();
+    return () => unsubscribe();
   }, []);
 
   // Single invitation submit
@@ -427,6 +427,14 @@ const SellerInvitation = () => {
     setUploading(false);
   };
 
+  if (isLoadingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader className="animate-spin h-8 w-8 text-blue-600" />
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -445,8 +453,8 @@ const SellerInvitation = () => {
         <button
           onClick={() => setUploadMode('single')}
           className={`pb-2 px-4 font-medium transition-colors ${uploadMode === 'single'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+            ? 'border-b-2 border-blue-600 text-blue-600'
+            : 'text-gray-500 hover:text-gray-700'
             }`}
         >
           <Mail className="h-5 w-5 inline-block mr-2" />
@@ -455,8 +463,8 @@ const SellerInvitation = () => {
         <button
           onClick={() => setUploadMode('bulk')}
           className={`pb-2 px-4 font-medium transition-colors ${uploadMode === 'bulk'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
+            ? 'border-b-2 border-blue-600 text-blue-600'
+            : 'text-gray-500 hover:text-gray-700'
             }`}
         >
           <FileSpreadsheet className="h-5 w-5 inline-block mr-2" />
