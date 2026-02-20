@@ -53,6 +53,7 @@ const AdminOrderList = () => {
             year: 'numeric',
             hour: 'numeric',
             minute: '2-digit',
+            second: '2-digit',
             hour12: true
           });
 
@@ -438,8 +439,8 @@ const AdminOrderList = () => {
                     onChange={(e) => updateOrderStatus(e.target.value)}
                     disabled={isUpdatingStatus}
                     className={`block w-full sm:w-auto px-3 py-1.5 text-sm font-semibold rounded-lg border focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors ${selectedOrder.status === 'completed' || selectedOrder.status === 'paid' ? 'bg-green-50 text-green-800 border-green-200 dark:bg-green-900/30 dark:border-green-800' :
-                        selectedOrder.status === 'pending' ? 'bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800' :
-                          'bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200'
+                      selectedOrder.status === 'pending' ? 'bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800' :
+                        'bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200'
                       }`}
                   >
                     <option value="pending">Pending</option>
