@@ -342,10 +342,9 @@ const AdminDashboard = () => {
               const logsSnapshot = await getDocs(logsQuery);
               const logs: AuditLog[] = logsSnapshot.docs.map(doc => {
                 const data = doc.data();
+                const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
                 return {
-                  timestamp: data.timestamp instanceof Date
-                    ? data.timestamp.toISOString()
-                    : (typeof data.timestamp === 'string' ? data.timestamp : new Date(data.timestamp).toISOString()),
+                  timestamp: ts.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }),
                   adminEmail: data.adminEmail || 'N/A',
                   action: data.action || 'Unknown Action',
                   details: data.details || ''
