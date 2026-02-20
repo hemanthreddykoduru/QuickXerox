@@ -23,8 +23,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
                     <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
-                        <img src="https://drive.google.com/uc?export=view&id=1zsaC64EOsTE3uxbJ31ufHLEgj9JaOWpk" alt="QuickXerox Logo" style="max-height: 60px; margin-bottom: 10px; display: inline-block;" />
-                        <h1 style="color: #111827; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">QuickXerox</h1>
+                        <!-- Using custom logo hosted on Supabase -->
+                        <img src="https://tkwazltvxdztaunerksd.supabase.co/storage/v1/object/public/assets/Background-Removed.png" alt="QuickXerox Logo" style="max-height: 80px; width: auto;" />
                     </div>
                     <h2 style="color: #2563EB; font-size: 20px; margin-top: 0;">Thank you for your order!</h2>
                     <p style="color: #374151; font-size: 16px;">Hi ${name},</p>
