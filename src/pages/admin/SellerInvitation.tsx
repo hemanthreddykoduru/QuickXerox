@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Send, Upload, Download, FileSpreadsheet, Loader, Eye, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, Send, Upload, Download, FileSpreadsheet, Loader, Eye, AlertCircle, XCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
