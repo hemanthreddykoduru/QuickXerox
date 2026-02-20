@@ -16,130 +16,46 @@ interface TemplatesMap {
 
 const DEFAULT_TEMPLATES: TemplatesMap = {
     'SELLER_INVITE': {
-        subject: 'Invitation to join QuickXerox Partner Newtork',
-        body: `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickXerox Invitation</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
-                    <tr>
-                        <td style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 40px 30px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Welcome to QuickXerox!</h1>
-                            <p style="margin: 10px 0 0 0; color: #e0e7ff; font-size: 16px;">Join India's Leading Print Network</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="color: #374151; font-size: 16px; line-height: 1.6;">Hello <strong>{{name}}</strong>,</p>
-                            <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">You've been invited to join QuickXerox as a print shop partner!</p>
-                            <div style="margin: 30px 0; text-align: center;">
-                                <a href="{{link}}" style="background: #2563eb; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 600;">Accept Invitation</a>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>`
+        subject: 'Invitation to join QuickXerox as a Print Shop Partner',
+        body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+    <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
+        <img src="https://tkwazltvxdztaunerksd.supabase.co/storage/v1/object/public/assets/Background-Removed.png" alt="QuickXerox Logo" style="max-height: 80px; width: auto;" />
+    </div>
+    <h2 style="color: #2563EB; font-size: 20px; margin-top: 0;">You're Invited!</h2>
+    <p style="color: #374151; font-size: 16px;">Hi <strong>{{shop_name}}</strong>,</p>
+    <p style="color: #374151; font-size: 16px; line-height: 1.5;">You've been invited to join QuickXerox as a print shop partner! We're building a platform to connect customers with local print shops, and we'd love to have you on board.</p>
+    <p style="color: #374151; font-size: 16px; margin-bottom: 30px;">Click the button below to register your shop and get started:</p>
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{invitation_link}}" style="background-color: #2563EB; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Accept Invitation</a>
+    </div>
+    <p style="color: #666; font-size: 14px; margin-top: 20px;">Or copy and paste this link into your browser:</p>
+    <p style="color: #2563EB; font-size: 12px; word-break: break-all; margin-bottom: 30px;">{{invitation_link}}</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <p style="color: #666; font-size: 12px;">This invitation was sent by QuickXerox Admin. If you have any questions, please contact support at <a href="mailto:help-contact@quickxerox.app" style="color: #2563EB; text-decoration: none;">help-contact@quickxerox.app</a>.</p>
+</div>`
     },
-    'WELCOME_USER': {
-        subject: 'Welcome to QuickXerox!',
-        body: `<!DOCTYPE html>
-<html lang="en">
-<body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
-                    <tr>
-                        <td style="background: #2563eb; padding: 40px 30px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff;">Welcome, {{name}}!</h1>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p>We're excited to have you on board. Start ordering your prints online with ease!</p>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>`
-    },
-    'ORDER_PLACED': {
-        subject: 'Order Confirmation #{{order_id}}',
-        body: `<!DOCTYPE html>
-<html lang="en">
-<body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
-                    <tr>
-                        <td style="background: #2563eb; padding: 40px 30px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff;">Order Placed!</h1>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p>Hello {{name}},</p>
-                            <p>Your order #{{order_id}} for {{amount}} has been placed successfully.</p>
-                            <a href="{{link}}">View Order</a>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>`
-    },
-    'ORDER_STATUS_UPDATE': {
-        subject: 'Update on Order #{{order_id}}',
-        body: `<!DOCTYPE html>
-<html lang="en">
-<body style="margin: 0; padding: 0; font-family: sans-serif; background-color: #f3f4f6;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
-        <tr>
-            <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
-                    <tr>
-                        <td style="background: #2563eb; padding: 40px 30px; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff;">Order Update</h1>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 40px 30px;">
-                            <p>Hello {{name}},</p>
-                            <p>Your order #{{order_id}} is now <strong>{{status}}</strong>.</p>
-                            <a href="{{link}}">Track Order</a>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>`
+    'ORDER_INVOICE': {
+        subject: 'Invoice for Order #{{order_id}} - QuickXerox',
+        body: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+    <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
+        <img src="https://tkwazltvxdztaunerksd.supabase.co/storage/v1/object/public/assets/Background-Removed.png" alt="QuickXerox Logo" style="max-height: 80px; width: auto;" />
+    </div>
+    <h2 style="color: #2563EB; font-size: 20px; margin-top: 0;">Thank you for your order!</h2>
+    <p style="color: #374151; font-size: 16px;">Hi {{name}},</p>
+    <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your order <strong>#{{order_id}}</strong> has been successfully processed.</p>
+    <p style="color: #374151; font-size: 16px; margin-bottom: 30px;">You can download your invoice by clicking the button below:</p>
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{pdf_url}}" style="background-color: #2563EB; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Download Invoice</a>
+    </div>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <p style="color: #666; font-size: 12px;">This is an automated message from QuickXerox. Please do not reply to this email.</p>
+</div>`
     }
 };
 
 const TEMPLATE_OPTIONS = [
     { id: 'SELLER_INVITE', name: 'Seller Invitation' },
-    { id: 'WELCOME_USER', name: 'Welcome User' },
-    { id: 'ORDER_PLACED', name: 'Order Confirmation' },
-    { id: 'ORDER_STATUS_UPDATE', name: 'Order Status Update' }
+    { id: 'ORDER_INVOICE', name: 'Order Invoice' }
 ];
 
 const AdminEmailTemplates = () => {
@@ -215,10 +131,9 @@ const AdminEmailTemplates = () => {
         // Replace placeholders with dummy data for preview
         html = html.replace(/{{name}}/g, 'John Doe')
             .replace(/{{shop_name}}/g, 'John\'s Print Shop')
-            .replace(/{{link}}/g, '#')
-            .replace(/{{invitation_link}}/g, '#')
-            .replace(/{{to_email}}/g, 'john@example.com')
-            .replace(/{{from_name}}/g, 'QuickXerox Admin');
+            .replace(/{{order_id}}/g, 'QX-987654')
+            .replace(/{{pdf_url}}/g, '#')
+            .replace(/{{invitation_link}}/g, 'https://quickxerox.app/seller-invitation?id=preview123');
         return html;
     };
 
@@ -296,7 +211,7 @@ const AdminEmailTemplates = () => {
                                 <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 min-h-[500px]">
                                     <div className="mb-4 pb-4 border-b border-gray-200">
                                         <p className="text-sm text-gray-500">Subject:</p>
-                                        <p className="font-medium">{currentTemplate.subject}</p>
+                                        <p className="font-medium">{currentTemplate.subject.replace(/{{order_id}}/g, 'QX-987654')}</p>
                                     </div>
                                     <iframe
                                         title="Preview"
