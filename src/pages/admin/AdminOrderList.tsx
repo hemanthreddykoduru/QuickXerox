@@ -417,6 +417,10 @@ const AdminOrderList = () => {
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.id}</p>
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Invoice No</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">INV-{selectedOrder.id}</p>
+                </div>
+                <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Payment ID</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono tracking-wide">{selectedOrder.paymentId || 'N/A'}</p>
                 </div>
