@@ -3,7 +3,6 @@ import { Mail, Send, Upload, Download, FileSpreadsheet, Loader, Eye, AlertCircle
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
-import emailjs from '@emailjs/browser';
 import { onAuthStateChanged } from 'firebase/auth';
 
 // Type definitions
@@ -52,7 +51,6 @@ const SellerInvitation = () => {
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
   useEffect(() => {
-    emailjs.init('t3r_n1ddwEfNTp46q');
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -98,16 +96,25 @@ const SellerInvitation = () => {
         createdBy: user?.uid
       });
 
-      const templateParams = {
-        to_email: email,
-        to_name: shopName,
-        shop_name: shopName,
-        invitation_link: `https://otp-project-aafc6.web.app/seller-invitation?id=${invitationRef.id}`,
-        from_name: 'QuickXerox Admin'
-      };
+      const invitationLink = `${window.location.origin}/seller-invitation?id=${invitationRef.id}`;
 
       try {
-        await emailjs.send('service_ogdlx38', 'template_0pb9q2y', templateParams);
+        const response = await fetch('/api/send-invitation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            shopName,
+            invitationLink
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send email API response');
+        }
+
         toast.success(`Invitation sent to ${email}!`);
       } catch (emailError) {
         console.error('Error sending email:', emailError);
@@ -310,7 +317,7 @@ const SellerInvitation = () => {
       to: firstSeller.email,
       subject: 'Invitation to join QuickXerox',
       shopName: firstSeller.shopName,
-      invitationLink: 'https://otp-project-aafc6.web.app/seller-invitation?id=SAMPLE_ID',
+      invitationLink: `${window.location.origin}/seller-invitation?id=SAMPLE_ID`,
       fromName: 'QuickXerox Admin'
     });
 
@@ -380,16 +387,25 @@ const SellerInvitation = () => {
           createdBy: user?.uid
         });
 
-        const templateParams = {
-          to_email: seller.email,
-          to_name: seller.shopName,
-          shop_name: seller.shopName,
-          invitation_link: `https://otp-project-aafc6.web.app/seller-invitation?id=${invitationRef.id}`,
-          from_name: 'QuickXerox Admin'
-        };
+        const invitationLink = `${window.location.origin}/seller-invitation?id=${invitationRef.id}`;
 
         try {
-          await emailjs.send('service_ogdlx38', 'template_0pb9q2y', templateParams);
+          const response = await fetch('/api/send-invitation', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: seller.email,
+              shopName: seller.shopName,
+              invitationLink
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
           successCount++;
         } catch (emailError: any) {
           console.error(`Email failed for ${seller.email}:`, emailError);
