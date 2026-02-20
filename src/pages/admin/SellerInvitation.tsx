@@ -99,7 +99,7 @@ const SellerInvitation = () => {
       const invitationLink = `${window.location.origin}/seller-invitation?id=${invitationRef.id}`;
 
       try {
-        const response = await fetch('/api/send-invitation', {
+        const response = await fetch('https://quickxerox-api.vercel.app/api/send-invitation', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -390,7 +390,7 @@ const SellerInvitation = () => {
         const invitationLink = `${window.location.origin}/seller-invitation?id=${invitationRef.id}`;
 
         try {
-          const response = await fetch('/api/send-invitation', {
+          const response = await fetch('https://quickxerox-api.vercel.app/api/send-invitation', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
