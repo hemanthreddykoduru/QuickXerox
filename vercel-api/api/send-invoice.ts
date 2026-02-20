@@ -21,13 +21,17 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
             subject: `Invoice for Order #${orderId} - QuickXerox`, // Subject line
             text: `Hi ${name},\n\nThank you for your order with QuickXerox.\n\nYou can download your invoice for Order #${orderId} here:\n${pdfUrl}\n\nRegards,\nQuickXerox Team`, // plain text body
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #2563EB;">Thank you for your order!</h2>
-                    <p>Hi ${name},</p>
-                    <p>Your order <strong>#${orderId}</strong> has been successfully processed.</p>
-                    <p>You can download your invoice by clicking the button below:</p>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+                    <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
+                        <img src="https://drive.google.com/uc?export=view&id=1zsaC64EOsTE3uxbJ31ufHLEgj9JaOWpk" alt="QuickXerox Logo" style="max-height: 60px; margin-bottom: 10px; display: inline-block;" />
+                        <h1 style="color: #111827; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: -0.5px;">QuickXerox</h1>
+                    </div>
+                    <h2 style="color: #2563EB; font-size: 20px; margin-top: 0;">Thank you for your order!</h2>
+                    <p style="color: #374151; font-size: 16px;">Hi ${name},</p>
+                    <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your order <strong>#${orderId}</strong> has been successfully processed.</p>
+                    <p style="color: #374151; font-size: 16px; margin-bottom: 30px;">You can download your invoice by clicking the button below:</p>
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="${pdfUrl}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Download Invoice</a>
+                        <a href="${pdfUrl}" style="background-color: #2563EB; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Download Invoice</a>
                     </div>
 
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
