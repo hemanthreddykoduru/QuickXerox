@@ -47,7 +47,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
     });
   };
 
-  const generateOTP = (orderId: string) => {
+  const generateOTP = () => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     return { otp };
   };
@@ -73,11 +73,6 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         const orderData = await createPayment({
           amount,
           currency,
-          receipt,
-          notes: {
-            printJobs,
-            shopId,
-          },
         });
 
         if (!orderData) {
@@ -128,7 +123,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
                     paymentId: response.razorpay_payment_id,
                     otpVerified: false,
                     otpGeneratedAt: new Date().toISOString(),
-                    otp: generateOTP(orderId).otp // Persist OTP to database for seller visibility
+                    otp: generateOTP().otp // Persist OTP to database for seller visibility
                   };
 
                   // Use setDoc to force the Document ID to match our Order ID
@@ -172,7 +167,37 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             color: "#3b82f6",
           },
           modal: {
-            ondismiss: function () {
+            ondismiss: async function () {
+              const items = JSON.parse(printJobs);
+              const orderId = generatedOrderId || `ORD-${Date.now()}`;
+              const authUser = auth.currentUser;
+              const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
+              const userPhone = userProfile?.mobile || authUser?.phoneNumber || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
+              const userEmail = userProfile?.email || authUser?.email || sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
+
+              const newOrder = {
+                id: orderId,
+                customerName: userName,
+                customerPhone: userPhone,
+                customerEmail: userEmail,
+                sellerPhone: '',
+                items: items,
+                total: amount,
+                status: 'failed',
+                timestamp: new Date().toISOString(),
+                shopId: shopId,
+                isPaid: false,
+                paymentId: 'Cancelled by user',
+                otpVerified: false,
+                otpGeneratedAt: new Date().toISOString(),
+                otp: generateOTP().otp
+              };
+              try {
+                await setDoc(doc(db, 'orders', orderId), newOrder);
+                console.log('Cancelled order saved to Firestore:', newOrder);
+              } catch (dbError) {
+                console.error('Error saving cancelled order to DB:', dbError);
+              }
               onError('Payment cancelled by user');
             }
           }
@@ -184,8 +209,41 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         }
 
         const rzp1 = new window.Razorpay(options);
-        rzp1.on('payment.failed', function (response: any) {
+        rzp1.on('payment.failed', async function (response: any) {
           console.error(response.error);
+
+          const items = JSON.parse(printJobs);
+          const orderId = generatedOrderId || `ORD-${Date.now()}`;
+          const authUser = auth.currentUser;
+          const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
+          const userPhone = userProfile?.mobile || authUser?.phoneNumber || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
+          const userEmail = userProfile?.email || authUser?.email || sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
+
+          const newOrder = {
+            id: orderId,
+            customerName: userName,
+            customerPhone: userPhone,
+            customerEmail: userEmail,
+            sellerPhone: '',
+            items: items,
+            total: amount,
+            status: 'failed',
+            timestamp: new Date().toISOString(),
+            shopId: shopId,
+            isPaid: false,
+            paymentId: response.error?.metadata?.payment_id || 'Failed Payment',
+            paymentError: response.error?.description || 'Payment Failed',
+            otpVerified: false,
+            otpGeneratedAt: new Date().toISOString(),
+            otp: generateOTP().otp
+          };
+          try {
+            await setDoc(doc(db, 'orders', orderId), newOrder);
+            console.log('Failed order saved to Firestore:', newOrder);
+          } catch (dbError) {
+            console.error('Error saving failed order to DB:', dbError);
+          }
+
           onError(response.error);
           toast.error(response.error.description || 'Payment failed');
         });

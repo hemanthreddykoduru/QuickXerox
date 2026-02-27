@@ -91,7 +91,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               </div>
 
               {/* Progress Tracking Bar */}
-              {order.status !== 'rejected' ? (
+              {order.status !== 'rejected' && order.status !== 'failed' ? (
                 <div className="my-6 px-2 sm:px-6">
                   <div className="relative">
                     {/* 
@@ -162,7 +162,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               ) : (
                 <div className="my-4 p-3 bg-red-50 rounded-lg text-center">
                   <span className="text-red-700 font-medium flex justify-center items-center">
-                    <X className="h-5 w-5 mr-1" /> Order Rejected
+                    <X className="h-5 w-5 mr-1" /> {order.status === 'failed' ? 'Payment Failed' : 'Order Cancelled'}
                   </span>
                 </div>
               )}
@@ -199,7 +199,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                         : 'Completed'
                       : order.status === 'rejected'
                         ? 'Order Cancelled'
-                        : 'Expected in 15-20 mins'}
+                        : order.status === 'failed'
+                          ? 'Payment Failed'
+                          : 'Expected in 15-20 mins'}
                   </span>
                 </div>
                 <p className="font-medium text-gray-900 text-sm sm:text-base">
