@@ -1,5 +1,5 @@
 import React from 'react';
-import { Printer, FileText, Clock, Shield, Eye } from 'lucide-react';
+import { Printer, FileText, Clock, Shield, Eye, X } from 'lucide-react';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
 
@@ -21,16 +21,6 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
   };
 
   const paginatedOrders = getPaginatedOrders();
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-blue-100 text-blue-800',
-      completed: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
-    };
-    return colors[status as keyof typeof colors] || colors.pending;
-  };
 
   // handleInvoice function removed
 
@@ -98,12 +88,73 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                     )}
                   </div>
                 </div>
-                <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(order.status)}`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                </span>
               </div>
 
-              <div className="space-y-2 sm:space-y-3">
+              {/* Progress Tracking Bar */}
+              {order.status !== 'rejected' ? (
+                <div className="my-6 px-2 sm:px-6">
+                  <div className="relative">
+                    {/* Background tracking line */}
+                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 rounded"></div>
+
+                    {/* Active tracking line */}
+                    <div
+                      className="absolute top-1/2 left-0 h-1 bg-blue-600 -translate-y-1/2 rounded transition-all duration-500"
+                      style={{
+                        width: order.status === 'completed' ? '100%' :
+                          order.status === 'processing' ? '50%' : '0%'
+                      }}
+                    ></div>
+
+                    {/* Nodes */}
+                    <div className="relative flex justify-between">
+                      {/* Step 1: Pending (Placed) */}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors ${['pending', 'processing', 'completed'].includes(order.status)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-500'
+                          }`}>
+                          1
+                        </div>
+                        <span className={`mt-2 text-xs font-medium ${['pending', 'processing', 'completed'].includes(order.status) ? 'text-blue-600' : 'text-gray-500'
+                          }`}>Placed</span>
+                      </div>
+
+                      {/* Step 2: Processing (Printing) */}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors ${['processing', 'completed'].includes(order.status)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-500'
+                          }`}>
+                          2
+                        </div>
+                        <span className={`mt-2 text-xs font-medium ${['processing', 'completed'].includes(order.status) ? 'text-blue-600' : 'text-gray-500'
+                          }`}>Processing</span>
+                      </div>
+
+                      {/* Step 3: Completed (Ready) */}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors ${order.status === 'completed'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-200 text-gray-500'
+                          }`}>
+                          3
+                        </div>
+                        <span className={`mt-2 text-xs font-medium ${order.status === 'completed' ? 'text-green-600' : 'text-gray-500'
+                          }`}>Ready</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="my-4 p-3 bg-red-50 rounded-lg text-center">
+                  <span className="text-red-700 font-medium flex justify-center items-center">
+                    <X className="h-5 w-5 mr-1" /> Order Rejected
+                  </span>
+                </div>
+              )}
+
+              <div className="space-y-2 sm:space-y-3 mt-4">
                 {order.items.map((item) => (
                   <div key={item.id} className="flex items-center space-x-2 sm:space-x-3">
                     <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
@@ -134,7 +185,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                         })}`
                         : 'Completed'
                       : order.status === 'rejected'
-                        ? 'Order Rejected'
+                        ? 'Order Cancelled'
                         : 'Expected in 15-20 mins'}
                   </span>
                 </div>
