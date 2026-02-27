@@ -100,7 +100,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                         Circles are w-8 sm:w-10 (2rem or 2.5rem). 
                         Half of 2rem is 1rem (16px). Half of 2.5rem is 1.25rem (20px).
                     */}
-                    <div className="absolute top-1/2 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
+                    <div className="absolute top-4 sm:top-5 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
                       {/* Active tracking line (Fills parent based on percentage) */}
                       <div
                         className="h-full bg-[#48b4a2] rounded transition-all duration-500"
