@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, BellRing, Package, Users, Image } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Building, Banknote, Shield, BellRing, Package, Users, Image, CheckCircle } from 'lucide-react';
+
+interface PayoutRequest {
+  id: string;
+  shopId: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'rejected';
+  requestedAt: any;
+  paidAt?: any;
+}
 
 interface SellerDetails {
   id: string;
@@ -74,6 +83,7 @@ const AdminSellerDetails = () => {
   const { sellerId } = useParams<{ sellerId: string }>();
   const navigate = useNavigate();
   const [seller, setSeller] = useState<SellerDetails | null>(null);
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -135,6 +145,24 @@ const AdminSellerDetails = () => {
             bankDetails: data.bankDetails || {},
             settings: data.settings || {},
           } as SellerDetails);
+          // Fetch Payout Requests
+          try {
+            const payoutQ = query(
+              collection(db, 'payoutRequests'),
+              where('shopId', '==', sellerId),
+              orderBy('requestedAt', 'desc')
+            );
+            const payoutSnap = await getDocs(payoutQ);
+            const fetchedPayouts: PayoutRequest[] = [];
+            payoutSnap.forEach(d => {
+              fetchedPayouts.push({ id: d.id, ...d.data() } as PayoutRequest);
+            });
+            setPayoutRequests(fetchedPayouts);
+          } catch (err) {
+            console.error("Error fetching payouts:", err);
+            // Don't fail the whole page if payouts fail, just show error in console
+          }
+
         } else {
           setError('No such seller found.');
           toast.error('Seller not found.');
@@ -150,6 +178,26 @@ const AdminSellerDetails = () => {
 
     fetchSeller();
   }, [sellerId]);
+
+  const handleMarkPaid = async (payoutId: string) => {
+    if (!window.confirm('Are you sure you want to mark this payout as PAID? This cannot be undone.')) return;
+
+    try {
+      const payoutRef = doc(db, 'payoutRequests', payoutId);
+      await updateDoc(payoutRef, {
+        status: 'paid',
+        paidAt: serverTimestamp()
+      });
+
+      setPayoutRequests(prev => prev.map(req =>
+        req.id === payoutId ? { ...req, status: 'paid', paidAt: new Date() } : req
+      ));
+      toast.success('Payout marked as paid.');
+    } catch (err: any) {
+      console.error('Error marking paid:', err);
+      toast.error('Failed to update payout status.');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -247,6 +295,60 @@ const AdminSellerDetails = () => {
               </div>
             </section>
           )}
+
+          {/* Payout Requests */}
+          <section className="border-t pt-6 mt-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Payout Requests</h2>
+            {payoutRequests.length === 0 ? (
+              <p className="text-gray-500 text-sm">No payout requests found for this seller.</p>
+            ) : (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="w-full text-sm text-left text-gray-500">
+                  <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Paid Date</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payoutRequests.map((req) => (
+                      <tr key={req.id} className="border-b last:border-0 hover:bg-gray-50">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {req.requestedAt?.toDate ? req.requestedAt.toDate().toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">₹{req.amount.toFixed(2)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium 
+                            ${req.status === 'paid' ? 'bg-green-100 text-green-800' :
+                              req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'}`}>
+                            {req.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-400">
+                          {req.paidAt?.toDate ? req.paidAt.toDate().toLocaleDateString() : '-'}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right">
+                          {req.status === 'pending' && (
+                            <button
+                              onClick={() => handleMarkPaid(req.id)}
+                              className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded-md text-xs inline-flex items-center"
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Mark Paid
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
 
           {/* Settings Overview */}
           {seller.settings && (

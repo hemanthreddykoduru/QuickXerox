@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, MapPin, Bell, CreditCard, BarChart, X, Globe, BellRing, Shield, Settings, LogOut, Clock } from 'lucide-react';
 import { auth, db } from '../../firebase';
-import { doc, setDoc, getDoc, query, collection, onSnapshot, where, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, query, collection, onSnapshot, where, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -12,7 +12,15 @@ import RevenueReports from '../../components/seller/RevenueReports';
 import TodayOrders from '../../components/seller/TodayOrders';
 import { Order, OrderStatus } from '../../types';
 import { deleteFile } from '../../services/storageService';
-// Ensure updateDoc is imported in the firestore import above (checked manually, it might need explicit check)
+
+interface PayoutRequest {
+  id: string;
+  shopId: string;
+  amount: number;
+  status: 'pending' | 'paid' | 'rejected';
+  requestedAt: any;
+}
+
 
 const SellerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +28,12 @@ const SellerDashboard: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch real orders from Firestore
+  // Payout State
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
+  const [payoutAmount, setPayoutAmount] = useState<string>('');
+  const [isRequestingPayout, setIsRequestingPayout] = useState(false);
+
+  // Fetch real orders and payouts from Firestore
   useEffect(() => {
     const fetchOrders = () => {
       const currentUser = auth.currentUser;
@@ -32,7 +45,7 @@ const SellerDashboard: React.FC = () => {
         where('shopId', '==', currentUser.uid)
       );
 
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const unsubscribeOrders = onSnapshot(q, (querySnapshot) => {
         const fetchedOrders: Order[] = [];
         querySnapshot.forEach((doc) => {
           fetchedOrders.push({ ...doc.data(), id: doc.id } as Order);
@@ -70,7 +83,32 @@ const SellerDashboard: React.FC = () => {
         setLoading(false);
       });
 
-      return unsubscribe;
+      // Query payout requests — no orderBy to avoid needing a composite Firestore index
+      const payoutQuery = query(
+        collection(db, 'payoutRequests'),
+        where('shopId', '==', currentUser.uid)
+      );
+
+      const unsubscribePayouts = onSnapshot(payoutQuery, (snapshot) => {
+        const fetchesPayouts: PayoutRequest[] = [];
+        snapshot.forEach(doc => {
+          fetchesPayouts.push({ ...doc.data(), id: doc.id } as PayoutRequest);
+        });
+        // Sort client-side by requestedAt descending
+        fetchesPayouts.sort((a, b) => {
+          const aTime = a.requestedAt?.toDate ? a.requestedAt.toDate().getTime() : 0;
+          const bTime = b.requestedAt?.toDate ? b.requestedAt.toDate().getTime() : 0;
+          return bTime - aTime;
+        });
+        setPayoutRequests(fetchesPayouts);
+      }, (err) => {
+        console.error('Payout listener error:', err);
+      });
+
+      return () => {
+        unsubscribeOrders();
+        unsubscribePayouts();
+      };
     };
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
@@ -91,9 +129,63 @@ const SellerDashboard: React.FC = () => {
     return order.status === filter;
   });
 
+  // Calculate Balances
+  const totalEarnings = orders
+    .filter(o => o.status === 'completed' || (o.status as any) === 'paid')
+    .reduce((sum, order) => sum + (order.total || 0), 0);
 
+  const totalRequested = payoutRequests
+    .filter(req => req.status !== 'rejected')
+    .reduce((sum, req) => sum + (req.amount || 0), 0);
 
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const availableBalance = Math.max(0, totalEarnings - totalRequested);
+
+  const handlePayoutRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!payoutAmount || isNaN(Number(payoutAmount)) || Number(payoutAmount) <= 0) {
+      toast.error('Please enter a valid amount.');
+      return;
+    }
+
+    const amountNum = Number(payoutAmount);
+    if (amountNum > availableBalance) {
+      toast.error(`You can only request up to ₹${availableBalance.toFixed(2)}`);
+      return;
+    }
+
+    if (!bankDetails.isVerified && !bankDetails.accountNumber) {
+      toast.error('Please fill in your Bank Details above first.');
+      return;
+    }
+
+    setIsRequestingPayout(true);
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("Not logged in");
+
+      await addDoc(collection(db, 'payoutRequests'), {
+        shopId: currentUser.uid,
+        shopName: settings.shop.name || 'Unknown Shop',
+        amount: amountNum,
+        status: 'pending',
+        requestedAt: serverTimestamp(),
+        bankDetails: {
+          accountNumber: bankDetails.accountNumber,
+          bankName: bankDetails.bankName,
+          ifscCode: bankDetails.ifscCode,
+          accountHolderName: bankDetails.accountHolderName
+        }
+      });
+
+      toast.success(`Successfully requested ₹${amountNum.toFixed(2)} for payout.`);
+      setPayoutAmount('');
+    } catch (err: any) {
+      console.error('Error requesting payout:', err);
+      toast.error('Failed to submit payout request.');
+    } finally {
+      setIsRequestingPayout(false);
+    }
+  }; const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isBankModalOpen, setIsBankModalOpen] = useState(false);
 
   const [bankDetails, setBankDetails] = useState({
@@ -1108,171 +1200,247 @@ const SellerDashboard: React.FC = () => {
       {/* Bank Account Modal */}
       {isBankModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-full sm:max-w-lg max-h-[95vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-3 sm:mb-4">
-              <h2 className="text-lg sm:text-xl font-bold">Bank Account Details</h2>
-              {bankModalMode === 'view' && (
-                <button
-                  onClick={() => setBankModalMode('edit')}
-                  className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1"
-                  aria-label="Edit bank details"
-                >
-                  Edit
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-full sm:max-w-2xl max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-0 sm:mb-2">
+              <h2 className="text-lg sm:text-xl font-bold">Payouts & Bank Details</h2>
+              <div className="flex gap-2">
+                {bankModalMode === 'view' && (
+                  <button
+                    onClick={() => setBankModalMode('edit')}
+                    className="text-blue-600 hover:text-blue-800 text-sm px-2 py-1"
+                  >
+                    Edit Bank Details
+                  </button>
+                )}
+                <button onClick={() => setIsBankModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                  <X className="h-5 w-5" />
                 </button>
-              )}
+              </div>
             </div>
 
-            {bankError && (
-              <div className="mb-3 sm:mb-4 p-2 bg-red-50 text-red-600 rounded-md text-sm">
-                {bankError}
+            {/* Balances Section */}
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-500 mb-1">Total Lifetime Earnings</p>
+                <p className="text-2xl font-bold text-gray-900">₹{totalEarnings.toFixed(2)}</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-600 mb-1">Available to Request</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-2xl font-bold text-blue-900">₹{availableBalance.toFixed(2)}</p>
+                  <form onSubmit={handlePayoutRequest} className="flex gap-2">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      placeholder="Amount"
+                      value={payoutAmount}
+                      onChange={(e) => setPayoutAmount(e.target.value)}
+                      className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isRequestingPayout || availableBalance <= 0}
+                      className="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {isRequestingPayout ? '...' : 'Request'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            {/* Payout History Section */}
+            {payoutRequests.length > 0 && (
+              <div className="mb-6 border-t border-gray-200 pt-4">
+                <h3 className="text-md font-semibold mb-3">Recent Payout Requests</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left text-gray-500">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2">Date</th>
+                        <th className="px-4 py-2">Amount</th>
+                        <th className="px-4 py-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payoutRequests.map(req => (
+                        <tr key={req.id} className="border-b">
+                          <td className="px-4 py-2">
+                            {req.requestedAt?.toDate ? req.requestedAt.toDate().toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="px-4 py-2 font-medium text-gray-900">₹{req.amount?.toFixed(2)}</td>
+                          <td className="px-4 py-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium 
+                              ${req.status === 'paid' ? 'bg-green-100 text-green-800' :
+                                req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'}`}>
+                              {req.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
 
-            <form>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">Account Holder Name</label>
-                <input
-                  type="text"
-                  value={bankDetails.accountHolderName}
-                  onChange={(e) =>
-                    setBankDetails({
-                      ...bankDetails,
-                      accountHolderName: e.target.value,
-                    })
-                  }
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  placeholder="Enter account holder name"
-                  aria-label="Account holder name"
-                />
-              </div>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">Mobile Number</label>
-                <input
-                  type="tel"
-                  value={bankDetails.mobileNumber}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                    setBankDetails({
-                      ...bankDetails,
-                      mobileNumber: value,
-                    });
-                  }}
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  placeholder="Enter 10-digit mobile number"
-                  aria-label="Mobile number"
-                  maxLength={10}
-                  pattern="[0-9]{10}"
-                />
-              </div>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">Account Number</label>
-                <input
-                  type="text"
-                  value={bankDetails.accountNumber}
-                  onChange={(e) =>
-                    setBankDetails({
-                      ...bankDetails,
-                      accountNumber: e.target.value,
-                    })
-                  }
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  placeholder="Enter account number"
-                  aria-label="Bank account number"
-                />
-              </div>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">Bank Name</label>
-                <input
-                  type="text"
-                  value={bankDetails.bankName}
-                  onChange={(e) =>
-                    setBankDetails({
-                      ...bankDetails,
-                      bankName: e.target.value,
-                    })
-                  }
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  placeholder="Enter bank name"
-                  aria-label="Bank name"
-                />
-              </div>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">Branch Name</label>
-                <input
-                  type="text"
-                  value={bankDetails.branchName}
-                  onChange={(e) =>
-                    setBankDetails({
-                      ...bankDetails,
-                      branchName: e.target.value,
-                    })
-                  }
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  placeholder="Enter branch name"
-                  aria-label="Branch name"
-                />
-              </div>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">IFSC Code</label>
-                <input
-                  type="text"
-                  value={bankDetails.ifscCode}
-                  onChange={(e) =>
-                    setBankDetails({
-                      ...bankDetails,
-                      ifscCode: e.target.value.toUpperCase(),
-                    })
-                  }
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  placeholder="Enter IFSC code"
-                  aria-label="IFSC code"
-                />
-              </div>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">Account Type</label>
-                <select
-                  value={bankDetails.accountType}
-                  onChange={(e) =>
-                    setBankDetails({
-                      ...bankDetails,
-                      accountType: e.target.value,
-                    })
-                  }
-                  disabled={bankModalMode === 'view'}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
-                  aria-label="Account type"
-                >
-                  <option value="savings">Savings Account</option>
-                  <option value="current">Current Account</option>
-                </select>
-              </div>
-            </form>
-
-            <div className="flex justify-end space-x-2 sm:space-x-4 mt-4 sm:mt-6">
-              <button
-                onClick={() => {
-                  setIsBankModalOpen(false);
-                  setBankModalMode('view');
-                  setBankError('');
-                }}
-                className="bg-gray-300 text-gray-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm"
-              >
-                {bankModalMode === 'view' ? 'Close' : 'Cancel'}
-              </button>
-              {bankModalMode === 'edit' && (
-                <button
-                  onClick={handleBankDetailsSave}
-                  className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm"
-                >
-                  Save
-                </button>
+            <div className="pt-4 border-t border-gray-200">
+              <h3 className="text-md font-semibold mb-3">Bank Details {bankModalMode === 'edit' && '(Editing)'}</h3>
+              {bankError && (
+                <div className="mb-3 sm:mb-4 p-2 bg-red-50 text-red-600 rounded-md text-sm">
+                  {bankError}
+                </div>
               )}
+              <form>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Account Holder Name</label>
+                  <input
+                    type="text"
+                    value={bankDetails.accountHolderName}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        accountHolderName: e.target.value,
+                      })
+                    }
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    placeholder="Enter account holder name"
+                    aria-label="Account holder name"
+                  />
+                </div>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Mobile Number</label>
+                  <input
+                    type="tel"
+                    value={bankDetails.mobileNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setBankDetails({
+                        ...bankDetails,
+                        mobileNumber: value,
+                      });
+                    }}
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    placeholder="Enter 10-digit mobile number"
+                    aria-label="Mobile number"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                  />
+                </div>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Account Number</label>
+                  <input
+                    type="text"
+                    value={bankDetails.accountNumber}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        accountNumber: e.target.value,
+                      })
+                    }
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    placeholder="Enter account number"
+                    aria-label="Bank account number"
+                  />
+                </div>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Bank Name</label>
+                  <input
+                    type="text"
+                    value={bankDetails.bankName}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        bankName: e.target.value,
+                      })
+                    }
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    placeholder="Enter bank name"
+                    aria-label="Bank name"
+                  />
+                </div>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Branch Name</label>
+                  <input
+                    type="text"
+                    value={bankDetails.branchName}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        branchName: e.target.value,
+                      })
+                    }
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    placeholder="Enter branch name"
+                    aria-label="Branch name"
+                  />
+                </div>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">IFSC Code</label>
+                  <input
+                    type="text"
+                    value={bankDetails.ifscCode}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        ifscCode: e.target.value.toUpperCase(),
+                      })
+                    }
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    placeholder="Enter IFSC code"
+                    aria-label="IFSC code"
+                  />
+                </div>
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Account Type</label>
+                  <select
+                    value={bankDetails.accountType}
+                    onChange={(e) =>
+                      setBankDetails({
+                        ...bankDetails,
+                        accountType: e.target.value,
+                      })
+                    }
+                    disabled={bankModalMode === 'view'}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm disabled:bg-gray-100"
+                    aria-label="Account type"
+                  >
+                    <option value="savings">Savings Account</option>
+                    <option value="current">Current Account</option>
+                  </select>
+                </div>
+              </form>
+
+              <div className="flex justify-end space-x-2 sm:space-x-4 mt-4 sm:mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBankModalOpen(false);
+                    setBankModalMode('view');
+                    setBankError('');
+                  }}
+                  className="bg-gray-300 text-gray-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm"
+                >
+                  {bankModalMode === 'view' ? 'Close' : 'Cancel'}
+                </button>
+                {bankModalMode === 'edit' && (
+                  <button
+                    type="button"
+                    onClick={handleBankDetailsSave}
+                    className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-sm"
+                  >
+                    Save
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

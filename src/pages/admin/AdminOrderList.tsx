@@ -418,7 +418,9 @@ const AdminOrderList = () => {
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Invoice No</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">INV-{selectedOrder.id}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">
+                    INV-{selectedOrder.id.slice(-8).toUpperCase()}
+                  </p>
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Payment ID</p>
