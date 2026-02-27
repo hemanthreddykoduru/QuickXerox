@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Send, Upload, Download, FileSpreadsheet, Loader, Eye, AlertCircle, XCircle } from 'lucide-react';
+import { Mail, Send, Upload, Download, FileSpreadsheet, Loader, Eye, AlertCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
@@ -28,6 +29,7 @@ interface Duplicate {
 }
 
 const SellerInvitation = () => {
+  const navigate = useNavigate();
   // Basic state
   const [email, setEmail] = useState('');
   const [shopName, setShopName] = useState('');
@@ -461,311 +463,327 @@ const SellerInvitation = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Invite Sellers</h2>
-
-      {/* Mode Toggle */}
-      <div className="flex space-x-4 mb-6 border-b">
-        <button
-          onClick={() => setUploadMode('single')}
-          className={`pb-2 px-4 font-medium transition-colors ${uploadMode === 'single'
-            ? 'border-b-2 border-blue-600 text-blue-600'
-            : 'text-gray-500 hover:text-gray-700'
-            }`}
-        >
-          <Mail className="h-5 w-5 inline-block mr-2" />
-          Single Invitation
-        </button>
-        <button
-          onClick={() => setUploadMode('bulk')}
-          className={`pb-2 px-4 font-medium transition-colors ${uploadMode === 'bulk'
-            ? 'border-b-2 border-blue-600 text-blue-600'
-            : 'text-gray-500 hover:text-gray-700'
-            }`}
-        >
-          <FileSpreadsheet className="h-5 w-5 inline-block mr-2" />
-          Bulk Upload (CSV)
-        </button>
-      </div>
-
-      {/* Single Invitation Form */}
-      {uploadMode === 'single' && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email Address
-            </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="seller@example.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="shopName" className="block text-sm font-medium text-gray-700">
-              Shop Name
-            </label>
-            <input
-              type="text"
-              id="shopName"
-              value={shopName}
-              onChange={(e) => setShopName(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter shop name"
-              required
-            />
-          </div>
-
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
           <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            onClick={() => navigate('/admin/dashboard')}
+            className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
           >
-            {isLoading ? (
-              'Sending...'
-            ) : (
-              <>
-                <Send className="h-5 w-5 mr-2" />
-                Send Invitation
-              </>
-            )}
+            <ArrowLeft className="h-5 w-5" />
+            <span className="text-lg font-medium">Back to Dashboard</span>
           </button>
-        </form>
-      )}
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Invite Sellers</h1>
+          <div className="w-8"></div> {/* Spacer for centering */}
+        </div>
+      </header>
 
-      {/* Bulk CSV Upload */}
-      {uploadMode === 'bulk' && (
-        <div className="space-y-6">
-          {/* Download Template */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-900 mb-2">Step 1: Download CSV Template</h3>
-            <p className="text-sm text-blue-700 mb-3">
-              Download the template file to see the required format
-            </p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
+          {/* Mode Toggle */}
+          <div className="flex space-x-4 mb-6 border-b">
             <button
-              onClick={downloadTemplate}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              onClick={() => setUploadMode('single')}
+              className={`pb-2 px-4 font-medium transition-colors ${uploadMode === 'single'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
-              <Download className="h-5 w-5 mr-2" />
-              Download CSV Template
+              <Mail className="h-5 w-5 inline-block mr-2" />
+              Single Invitation
+            </button>
+            <button
+              onClick={() => setUploadMode('bulk')}
+              className={`pb-2 px-4 font-medium transition-colors ${uploadMode === 'bulk'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              <FileSpreadsheet className="h-5 w-5 inline-block mr-2" />
+              Bulk Upload (CSV)
             </button>
           </div>
 
-          {/* Upload CSV */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="font-semibold text-gray-900 mb-2">Step 2: Upload Your CSV File</h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Fill in the template with seller details and upload it here
-            </p>
-
-            <label className="block">
-              <input
-                type="file"
-                id="csvFileInput"
-                accept=".csv"
-                onChange={handleCSVFileChange}
-                className="hidden"
-              />
-              <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                <Upload className="h-5 w-5 text-gray-400 mr-2" />
-                <span className="text-sm text-gray-600">
-                  {csvFile ? csvFile.name : 'Choose CSV file'}
-                </span>
-              </div>
-            </label>
-
-            {checkingDuplicates && (
-              <div className="mt-3 flex items-center text-sm text-gray-600">
-                <Loader className="animate-spin h-4 w-4 mr-2" />
-                Checking for duplicates...
-              </div>
-            )}
-          </div>
-
-          {/* FEATURE 4: Validation Errors */}
-          {validationErrors.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-bold text-red-900 flex items-center mb-3">
-                <XCircle className="h-5 w-5 mr-2" />
-                {validationErrors.length} Validation Error{validationErrors.length > 1 ? 's' : ''}
-              </h4>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {validationErrors.map((err, i) => (
-                  <div key={i} className="text-sm">
-                    <span className="font-semibold text-red-800">Row {err.row}:</span>{' '}
-                    <span className="text-red-700">{err.field} - {err.error}</span>
-                    <br />
-                    <span className="text-red-600 text-xs">Value: "{err.value}"</span>
+          {/* Single Invitation Form */}
+          {uploadMode === 'single' && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* FEATURE 5: Duplicate Detection */}
-          {duplicates.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="font-bold text-yellow-900 flex items-center mb-3">
-                <AlertCircle className="h-5 w-5 mr-2" />
-                {duplicates.length} Duplicate Email{duplicates.length > 1 ? 's' : ''} Found
-              </h4>
-              <div className="max-h-32 overflow-y-auto space-y-1 mb-3">
-                {duplicates.map((dup, i) => (
-                  <div key={i} className="text-sm text-yellow-800">
-                    <strong>{dup.email}</strong> - {dup.reason}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={skipDuplicates}
-                className="text-sm bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
-              >
-                Skip Duplicates and Continue ({parsedSellers.length - duplicates.length} will be invited)
-              </button>
-            </div>
-          )}
-
-          {/* FEATURE 3: Email Preview Button */}
-          {parsedSellers.length > 0 && validationErrors.length === 0 && (
-            <button
-              onClick={generatePreview}
-              className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-            >
-              <Eye className="h-5 w-5 mr-2" />
-              Preview Email
-            </button>
-          )}
-
-          {/* FEATURE 1: Progress Bar */}
-          {uploading && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-blue-900">
-                  <span className="font-semibold">Processing invitations...</span>
-                  <span>{progress.current} / {progress.total}</span>
-                </div>
-                <div className="w-full bg-blue-200 rounded-full h-3">
-                  <div
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="seller@example.com"
+                    required
                   />
                 </div>
-                <p className="text-xs text-blue-700 text-center font-medium">
-                  {Math.round((progress.current / progress.total) * 100)}% complete
-                </p>
               </div>
-            </div>
-          )}
 
-          {/* Upload Button */}
-          {parsedSellers.length > 0 && !uploading && (
-            <button
-              onClick={handleBulkUpload}
-              disabled={validationErrors.length > 0}
-              className="w-full flex justify-center items-center py-3 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
-            >
-              <Send className="h-5 w-5 mr-2" />
-              Send {parsedSellers.length} Invitation{parsedSellers.length > 1 ? 's' : ''}
-            </button>
-          )}
-
-          {/* FEATURE 2: Download Failed CSV */}
-          {failedSellers.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-bold text-red-900 flex items-center mb-3">
-                <XCircle className="h-5 w-5 mr-2" />
-                {failedSellers.length} Failed Invitation{failedSellers.length > 1 ? 's' : ''}
-              </h4>
-              <button
-                onClick={downloadFailedCSV}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-              >
-                <Download className="h-5 w-5 mr-2" />
-                Download Failed CSV ({failedSellers.length})
-              </button>
-            </div>
-          )}
-
-          {/* Instructions */}
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <h4 className="font-semibold text-yellow-900 mb-2">📝 CSV Format Instructions</h4>
-            <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
-              <li>First row must be headers: Email, Shop Name</li>
-              <li>Each row after should contain one seller's details</li>
-              <li>Email addresses must be valid format</li>
-              <li>Shop names must be at least 3 characters</li>
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* FEATURE 3: Email Preview Modal */}
-      {showPreview && previewEmail && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900">Email Preview</h3>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XCircle className="h-6 w-6" />
-              </button>
-            </div>
-
-            <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
               <div>
-                <span className="font-semibold text-gray-700">To:</span>{' '}
-                <span className="text-gray-900">{previewEmail.to}</span>
+                <label htmlFor="shopName" className="block text-sm font-medium text-gray-700">
+                  Shop Name
+                </label>
+                <input
+                  type="text"
+                  id="shopName"
+                  value={shopName}
+                  onChange={(e) => setShopName(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter shop name"
+                  required
+                />
               </div>
-              <div>
-                <span className="font-semibold text-gray-700">Subject:</span>{' '}
-                <span className="text-gray-900">{previewEmail.subject}</span>
-              </div>
-              <hr className="my-3" />
-              <div className="bg-white p-4 rounded border">
-                <p className="mb-3">Hi <strong>{previewEmail.shopName}</strong>,</p>
-                <p className="mb-3">
-                  You're invited to join QuickXerox as a print shop partner!
-                  We're building a platform to connect customers with local print shops,
-                  and we'd love to have you on board.
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  'Sending...'
+                ) : (
+                  <>
+                    <Send className="h-5 w-5 mr-2" />
+                    Send Invitation
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+
+          {/* Bulk CSV Upload */}
+          {uploadMode === 'bulk' && (
+            <div className="space-y-6">
+              {/* Download Template */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-blue-900 mb-2">Step 1: Download CSV Template</h3>
+                <p className="text-sm text-blue-700 mb-3">
+                  Download the template file to see the required format
                 </p>
-                <p className="mb-3">Click the link below to get started:</p>
-                <a
-                  href="#"
-                  className="text-blue-600 underline break-all"
-                  onClick={(e) => e.preventDefault()}
+                <button
+                  onClick={downloadTemplate}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  {previewEmail.invitationLink}
-                </a>
-                <p className="mt-4">
-                  Thanks,<br />
-                  <strong>{previewEmail.fromName}</strong>
+                  <Download className="h-5 w-5 mr-2" />
+                  Download CSV Template
+                </button>
+              </div>
+
+              {/* Upload CSV */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-2">Step 2: Upload Your CSV File</h3>
+                <p className="text-sm text-gray-600 mb-3">
+                  Fill in the template with seller details and upload it here
                 </p>
+
+                <label className="block">
+                  <input
+                    type="file"
+                    id="csvFileInput"
+                    accept=".csv"
+                    onChange={handleCSVFileChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                    <Upload className="h-5 w-5 text-gray-400 mr-2" />
+                    <span className="text-sm text-gray-600">
+                      {csvFile ? csvFile.name : 'Choose CSV file'}
+                    </span>
+                  </div>
+                </label>
+
+                {checkingDuplicates && (
+                  <div className="mt-3 flex items-center text-sm text-gray-600">
+                    <Loader className="animate-spin h-4 w-4 mr-2" />
+                    Checking for duplicates...
+                  </div>
+                )}
+              </div>
+
+              {/* FEATURE 4: Validation Errors */}
+              {validationErrors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-bold text-red-900 flex items-center mb-3">
+                    <XCircle className="h-5 w-5 mr-2" />
+                    {validationErrors.length} Validation Error{validationErrors.length > 1 ? 's' : ''}
+                  </h4>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {validationErrors.map((err, i) => (
+                      <div key={i} className="text-sm">
+                        <span className="font-semibold text-red-800">Row {err.row}:</span>{' '}
+                        <span className="text-red-700">{err.field} - {err.error}</span>
+                        <br />
+                        <span className="text-red-600 text-xs">Value: "{err.value}"</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* FEATURE 5: Duplicate Detection */}
+              {duplicates.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-bold text-yellow-900 flex items-center mb-3">
+                    <AlertCircle className="h-5 w-5 mr-2" />
+                    {duplicates.length} Duplicate Email{duplicates.length > 1 ? 's' : ''} Found
+                  </h4>
+                  <div className="max-h-32 overflow-y-auto space-y-1 mb-3">
+                    {duplicates.map((dup, i) => (
+                      <div key={i} className="text-sm text-yellow-800">
+                        <strong>{dup.email}</strong> - {dup.reason}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={skipDuplicates}
+                    className="text-sm bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
+                  >
+                    Skip Duplicates and Continue ({parsedSellers.length - duplicates.length} will be invited)
+                  </button>
+                </div>
+              )}
+
+              {/* FEATURE 3: Email Preview Button */}
+              {parsedSellers.length > 0 && validationErrors.length === 0 && (
+                <button
+                  onClick={generatePreview}
+                  className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  <Eye className="h-5 w-5 mr-2" />
+                  Preview Email
+                </button>
+              )}
+
+              {/* FEATURE 1: Progress Bar */}
+              {uploading && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-blue-900">
+                      <span className="font-semibold">Processing invitations...</span>
+                      <span>{progress.current} / {progress.total}</span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-3">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-blue-700 text-center font-medium">
+                      {Math.round((progress.current / progress.total) * 100)}% complete
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Button */}
+              {parsedSellers.length > 0 && !uploading && (
+                <button
+                  onClick={handleBulkUpload}
+                  disabled={validationErrors.length > 0}
+                  className="w-full flex justify-center items-center py-3 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold"
+                >
+                  <Send className="h-5 w-5 mr-2" />
+                  Send {parsedSellers.length} Invitation{parsedSellers.length > 1 ? 's' : ''}
+                </button>
+              )}
+
+              {/* FEATURE 2: Download Failed CSV */}
+              {failedSellers.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-bold text-red-900 flex items-center mb-3">
+                    <XCircle className="h-5 w-5 mr-2" />
+                    {failedSellers.length} Failed Invitation{failedSellers.length > 1 ? 's' : ''}
+                  </h4>
+                  <button
+                    onClick={downloadFailedCSV}
+                    className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Download Failed CSV ({failedSellers.length})
+                  </button>
+                </div>
+              )}
+
+              {/* Instructions */}
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <h4 className="font-semibold text-yellow-900 mb-2">📝 CSV Format Instructions</h4>
+                <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
+                  <li>First row must be headers: Email, Shop Name</li>
+                  <li>Each row after should contain one seller's details</li>
+                  <li>Email addresses must be valid format</li>
+                  <li>Shop names must be at least 3 characters</li>
+                </ul>
               </div>
             </div>
+          )}
 
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setShowPreview(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Close Preview
-              </button>
+          {/* FEATURE 3: Email Preview Modal */}
+          {showPreview && previewEmail && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">Email Preview</h3>
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <XCircle className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
+                  <div>
+                    <span className="font-semibold text-gray-700">To:</span>{' '}
+                    <span className="text-gray-900">{previewEmail.to}</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-700">Subject:</span>{' '}
+                    <span className="text-gray-900">{previewEmail.subject}</span>
+                  </div>
+                  <hr className="my-3" />
+                  <div className="bg-white p-4 rounded border">
+                    <p className="mb-3">Hi <strong>{previewEmail.shopName}</strong>,</p>
+                    <p className="mb-3">
+                      You're invited to join QuickXerox as a print shop partner!
+                      We're building a platform to connect customers with local print shops,
+                      and we'd love to have you on board.
+                    </p>
+                    <p className="mb-3">Click the link below to get started:</p>
+                    <a
+                      href="#"
+                      className="text-blue-600 underline break-all"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      {previewEmail.invitationLink}
+                    </a>
+                    <p className="mt-4">
+                      Thanks,<br />
+                      <strong>{previewEmail.fromName}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    Close Preview
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </main>
     </div>
   );
 };

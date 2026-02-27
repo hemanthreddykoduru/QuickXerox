@@ -245,15 +245,6 @@ const AdminSellerDetails = () => {
                 {isUpdating ? 'Updating...' : 'Approve Seller'}
               </button>
             )}
-            {seller.status !== 'rejected' && (
-              <button
-                onClick={() => handleStatusUpdate('rejected')}
-                disabled={isUpdating}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {isUpdating ? 'Updating...' : 'Reject Seller'}
-              </button>
-            )}
           </div>
         </div>
       </header>
