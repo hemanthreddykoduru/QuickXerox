@@ -95,11 +95,11 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                 <div className="my-6 px-2 sm:px-6">
                   <div className="relative">
                     {/* Background tracking line */}
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 rounded"></div>
+                    <div className="absolute top-1/2 left-0 w-full h-1 bg-[#4e5e65] -translate-y-1/2 rounded"></div>
 
                     {/* Active tracking line */}
                     <div
-                      className="absolute top-1/2 left-0 h-1 bg-blue-600 -translate-y-1/2 rounded transition-all duration-500"
+                      className="absolute top-1/2 left-0 h-1 bg-[#48b4a2] -translate-y-1/2 rounded transition-all duration-500"
                       style={{
                         width: order.status === 'completed' ? '100%' :
                           order.status === 'processing' ? '50%' : '0%'
@@ -110,38 +110,38 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                     <div className="relative flex justify-between">
                       {/* Step 1: Pending (Placed) */}
                       <div className="flex flex-col items-center">
-                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors ${['pending', 'processing', 'completed'].includes(order.status)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-500'
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['pending', 'processing', 'completed'].includes(order.status)
+                          ? 'bg-[#48b4a2] text-white'
+                          : 'bg-[#4e5e65] text-white'
                           }`}>
                           1
                         </div>
-                        <span className={`mt-2 text-xs font-medium ${['pending', 'processing', 'completed'].includes(order.status) ? 'text-blue-600' : 'text-gray-500'
-                          }`}>Placed</span>
+                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['pending', 'processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                          }`}>PLACED</span>
                       </div>
 
                       {/* Step 2: Processing (Printing) */}
                       <div className="flex flex-col items-center">
-                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors ${['processing', 'completed'].includes(order.status)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-500'
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['processing', 'completed'].includes(order.status)
+                          ? 'bg-[#48b4a2] text-white'
+                          : 'bg-[#4e5e65] text-white'
                           }`}>
                           2
                         </div>
-                        <span className={`mt-2 text-xs font-medium ${['processing', 'completed'].includes(order.status) ? 'text-blue-600' : 'text-gray-500'
-                          }`}>Processing</span>
+                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                          }`}>SHIPPED</span>
                       </div>
 
                       {/* Step 3: Completed (Ready) */}
                       <div className="flex flex-col items-center">
-                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors ${order.status === 'completed'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-500'
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${order.status === 'completed'
+                          ? 'bg-[#48b4a2] text-white'
+                          : 'bg-[#4e5e65] text-white'
                           }`}>
                           3
                         </div>
-                        <span className={`mt-2 text-xs font-medium ${order.status === 'completed' ? 'text-green-600' : 'text-gray-500'
-                          }`}>Ready</span>
+                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${order.status === 'completed' ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                          }`}>DELIVERED</span>
                       </div>
                     </div>
                   </div>
