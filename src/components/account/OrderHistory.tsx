@@ -144,7 +144,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               </div>
 
               {/* View Invoice Button */}
-              {order.isPaid && order.invoiceUrl && (
+              {order.invoiceUrl && (
                 <div className="mt-3 flex justify-end">
                   <a
                     href={order.invoiceUrl}

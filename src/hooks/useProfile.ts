@@ -5,10 +5,6 @@ import { doc, setDoc, getDoc, writeBatch, serverTimestamp } from 'firebase/fires
 import { db, auth } from '../firebase'; // Import auth
 import { userCache, CACHE_KEYS } from '../utils/cache';
 
-const cleanMobileNumber = (mobile: string): string => {
-  return mobile.replace(/[^0-9]/g, '');
-};
-
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => {
     // Initialize based on current auth state and session storage
@@ -39,29 +35,34 @@ export const useProfile = () => {
   const isLoadingRef = React.useRef(false);
 
   // Optimized fetchProfile with caching
-  const fetchProfile = useCallback(async (uid: string) => {
+  const fetchProfile = useCallback(async (uid: string, forceRefresh: boolean = false) => {
     if (!uid) return null;
     if (isLoadingRef.current) return;
 
-    // Check cache first
     const cacheKey = `${CACHE_KEYS.USER_PROFILE}_${uid}`;
-    const cachedProfile = userCache.get<UserProfile>(cacheKey);
-    if (cachedProfile) {
-      setProfile(cachedProfile);
-      return cachedProfile;
-    }
 
-    // Check sessionStorage as fallback
-    const sessionProfile = sessionStorage.getItem('userProfile');
-    if (sessionProfile) {
-      try {
-        const parsedProfile = JSON.parse(sessionProfile);
-        setProfile(parsedProfile);
-        // Cache it for next time
-        userCache.set(cacheKey, parsedProfile);
-        return parsedProfile;
-      } catch (e) {
-        // If parsing fails, continue with Firebase fetch
+    if (!forceRefresh) {
+      // Check cache first
+      const cachedProfile = userCache.get<UserProfile>(cacheKey);
+      if (cachedProfile && (cachedProfile.email || cachedProfile.mobile)) {
+        setProfile(cachedProfile);
+        return cachedProfile;
+      }
+
+      // Check sessionStorage as fallback
+      const sessionProfile = sessionStorage.getItem('userProfile');
+      if (sessionProfile) {
+        try {
+          const parsedProfile = JSON.parse(sessionProfile);
+          if (parsedProfile.email || parsedProfile.mobile) {
+            setProfile(parsedProfile);
+            // Cache it for next time
+            userCache.set(cacheKey, parsedProfile);
+            return parsedProfile;
+          }
+        } catch (e) {
+          // If parsing fails, continue with Firebase fetch
+        }
       }
     }
 
@@ -158,27 +159,6 @@ export const useProfile = () => {
 
   // Initial profile fetch based on authenticated user UID
   useEffect(() => {
-    const initializeProfile = async () => {
-      if (!isInitialized) {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          await fetchProfile(currentUser.uid);
-          setIsInitialized(true);
-        } else {
-          // Clear session storage for this tab
-          setProfile({
-            name: '', mobile: '', email: '', address: '', city: '', state: '', pincode: '',
-            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
-          });
-          sessionStorage.removeItem('userProfile');
-          sessionStorage.removeItem('userName');
-          sessionStorage.removeItem('userPhone');
-          sessionStorage.removeItem('userEmail');
-          setIsInitialized(true);
-        }
-      }
-    };
-
     // Listen for auth state changes
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -283,7 +263,7 @@ export const useProfile = () => {
     refreshProfile: async (uid?: string) => {
       const currentUser = auth.currentUser;
       if (currentUser && (uid || currentUser.uid)) {
-        await fetchProfile(uid || currentUser.uid);
+        await fetchProfile(uid || currentUser.uid, true);
       } else {
         setProfile({
           name: '', mobile: '', email: '', address: '', city: '', state: '', pincode: '',
