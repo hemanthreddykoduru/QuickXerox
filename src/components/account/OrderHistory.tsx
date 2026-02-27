@@ -94,8 +94,13 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               {order.status !== 'rejected' ? (
                 <div className="my-6 px-2 sm:px-6">
                   <div className="relative">
-                    {/* Tracking lines container (matches distance between node centers) */}
-                    <div className="absolute top-1/2 left-4 right-4 sm:left-5 sm:right-5 h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
+                    {/* 
+                        To keep the line exactly horizontally centered between the circles,
+                        we inset it by half the width of a circle. 
+                        Circles are w-8 sm:w-10 (2rem or 2.5rem). 
+                        Half of 2rem is 1rem (16px). Half of 2.5rem is 1.25rem (20px).
+                    */}
+                    <div className="absolute top-1/2 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
                       {/* Active tracking line (Fills parent based on percentage) */}
                       <div
                         className="h-full bg-[#48b4a2] rounded transition-all duration-500"
@@ -121,15 +126,18 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                       </div>
 
                       {/* Step 2: Processing (Printing) */}
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center" style={{ width: '40px' }}>
                         <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['processing', 'completed'].includes(order.status)
                           ? 'bg-[#48b4a2] text-white'
                           : 'bg-[#4e5e65] text-white'
                           }`}>
                           2
                         </div>
-                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                          }`}>PROCESSING</span>
+                        {/* the label container needs positioning or absolute to prevent it from altering the flex gap */}
+                        <div className="absolute top-12 sm:top-14 mt-1 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                            }`}>PROCESSING</span>
+                        </div>
                       </div>
 
                       {/* Step 3: Completed (Ready) */}
@@ -140,11 +148,16 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                           }`}>
                           3
                         </div>
-                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${order.status === 'completed' ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                          }`}>READY</span>
+                        <div className="mt-3 relative flex justify-center w-full">
+                          <span className={`absolute text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${order.status === 'completed' ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                            }`}>READY</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Since labels are absolute now to not disrupt grid spacing, we need a spacer */}
+                  <div className="h-8 sm:h-10"></div>
                 </div>
               ) : (
                 <div className="my-4 p-3 bg-red-50 rounded-lg text-center">
