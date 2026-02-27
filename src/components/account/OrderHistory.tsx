@@ -94,17 +94,17 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               {order.status !== 'rejected' ? (
                 <div className="my-6 px-2 sm:px-6">
                   <div className="relative">
-                    {/* Background tracking line */}
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-[#4e5e65] -translate-y-1/2 rounded"></div>
-
-                    {/* Active tracking line */}
-                    <div
-                      className="absolute top-1/2 left-0 h-1 bg-[#48b4a2] -translate-y-1/2 rounded transition-all duration-500"
-                      style={{
-                        width: order.status === 'completed' ? '100%' :
-                          order.status === 'processing' ? '50%' : '0%'
-                      }}
-                    ></div>
+                    {/* Tracking lines container (matches distance between node centers) */}
+                    <div className="absolute top-1/2 left-4 right-4 sm:left-5 sm:right-5 h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
+                      {/* Active tracking line (Fills parent based on percentage) */}
+                      <div
+                        className="h-full bg-[#48b4a2] rounded transition-all duration-500"
+                        style={{
+                          width: order.status === 'completed' ? '100%' :
+                            order.status === 'processing' ? '50%' : '0%'
+                        }}
+                      ></div>
+                    </div>
 
                     {/* Nodes */}
                     <div className="relative flex justify-between">
@@ -129,7 +129,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                           2
                         </div>
                         <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                          }`}>SHIPPED</span>
+                          }`}>PROCESSING</span>
                       </div>
 
                       {/* Step 3: Completed (Ready) */}
@@ -141,7 +141,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                           3
                         </div>
                         <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${order.status === 'completed' ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                          }`}>DELIVERED</span>
+                          }`}>READY</span>
                       </div>
                     </div>
                   </div>
