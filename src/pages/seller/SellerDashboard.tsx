@@ -413,7 +413,7 @@ const SellerDashboard: React.FC = () => {
         order.id === orderId ? { ...order, status: newStatus } : order
       ));
 
-      toast.success(`Order marked as ${newStatus}`);
+      toast.success(`Order marked as ${newStatus}`, { id: 'status-update' });
 
       // 3. Store completion timestamp (files will be cleaned up after 24 hours)
       if (newStatus === 'completed') {
@@ -439,7 +439,7 @@ const SellerDashboard: React.FC = () => {
           const order = orders.find(o => o.id === orderId);
           if (order && order.invoiceUrl && order.customerEmail) {
             try {
-              toast.loading("Sending invoice to customer...", { id: 'send-invoice' });
+              toast.loading("Mailing invoice to customer...", { id: 'status-update' });
               const emailResponse = await fetch('https://quickxerox-api.vercel.app/api/send-invoice', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -452,14 +452,14 @@ const SellerDashboard: React.FC = () => {
               });
               const result = await emailResponse.json();
               if (emailResponse.ok && result.success) {
-                toast.success("Invoice emailed successfully!", { id: 'send-invoice' });
+                toast.success("Order completed and invoice mailed!", { id: 'status-update' });
               } else {
                 console.error("Failed to send invoice:", result);
-                toast.error("Failed to send invoice email", { id: 'send-invoice' });
+                toast.error("Failed to send invoice email", { id: 'status-update' });
               }
             } catch (emailError) {
               console.error("Error calling send-invoice API:", emailError);
-              toast.error("Error sending invoice", { id: 'send-invoice' });
+              toast.error("Error sending invoice", { id: 'status-update' });
             }
           } else {
             if (!order?.invoiceUrl) console.warn("Skipping invoice email: No invoice URL for order", orderId);

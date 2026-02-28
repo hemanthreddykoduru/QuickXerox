@@ -131,7 +131,6 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
                   console.log('Order saved to Firestore:', newOrder);
 
                   toast.dismiss();
-                  toast.success('Order placed successfully!');
 
                   // Pass the generated Order ID and OTP back
                   onSuccess({ ...response, orderId: orderId, otp: newOrder.otp });

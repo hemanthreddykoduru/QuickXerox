@@ -117,8 +117,6 @@ const Cart: React.FC<CartProps> = ({
     console.log(`OTP sent to customer: +91 98765 43210`);
     console.log(`OTP sent to seller: +91 87654 32109`);
 
-    toast.success('Payment successful! OTP generated for order verification.');
-
     // --- AUTOMATIC INVOICE EMAIL ---
     const autoEmailInvoice = async () => {
       try {
@@ -144,8 +142,6 @@ const Cart: React.FC<CartProps> = ({
           isPaid: true,
           paymentId: response.razorpay_payment_id || 'N/A'
         };
-
-        toast.loading("Sending invoice...", { id: 'auto-invoice' });
 
         // 1. Generate PDF Blob
         const pdfBlob = await generateInvoice(orderForInvoice, userProfile.email, true) as Blob;
@@ -185,7 +181,6 @@ const Cart: React.FC<CartProps> = ({
             });
 
             console.log("Invoice generated and linked:", downloadURL);
-            toast.success("Invoice generated successfully!", { id: 'auto-invoice' });
 
           } catch (error: any) {
             console.error("Auto-invoice upload/send failed:", error);
