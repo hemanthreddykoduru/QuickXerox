@@ -20,9 +20,15 @@ export const uploadFile = async (
         }
 
         // 2. Validate File Type
-        const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const allowedTypes = [
+            'application/pdf',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg',
+            'image/jpg',
+            'image/png'
+        ];
         if (!allowedTypes.includes(file.type)) {
-            throw new Error(`File type ${file.type} not allowed. Only PDF and DOCX.`);
+            throw new Error(`File type ${file.type} not allowed. Only PDF, DOCX, and Images.`);
         }
 
         // 3. Construct Path
