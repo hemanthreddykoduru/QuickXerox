@@ -635,8 +635,8 @@ const LoginPage = () => {
           </div>
         </div>
     </div>
-      </div >
-    </main >
+    </div >
+  </main >
 
   {/* Footer */ }
   < footer className = "bg-white border-t border-gray-200 pt-16 pb-8" >
