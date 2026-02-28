@@ -548,8 +548,25 @@ const LoginPage = () => {
                     )}
                   </button>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                    Remember me
+                  </label>
+                </div>
+
                 {isLogin && (
-                  <div className="mt-2 text-right">
+                  <div className="text-right">
                     <button
                       type="button"
                       onClick={() => setIsResetPasswordModalOpen(true)}
@@ -560,174 +577,177 @@ const LoginPage = () => {
                   </div>
                 )}
               </div>
+          </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5"
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {loadingStep || (isLogin ? 'Signing In...' : 'Creating Account...')}
-                  </>
-                ) : (isLogin ? 'Sign In' : 'Sign Up')}
-              </button>
-            </form>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 transform hover:-translate-y-0.5"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {loadingStep || (isLogin ? 'Signing In...' : 'Creating Account...')}
+              </>
+            ) : (isLogin ? 'Sign In' : 'Sign Up')}
+          </button>
+        </form>
 
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                <button
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  type="button"
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200"
-                >
-                  <img
-                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                    alt="Google"
-                    className="w-5 h-5"
-                  />
-                  <span>Sign in with Google</span>
-                </button>
-
-                <button
-                  onClick={handleGithubLogin}
-                  disabled={isLoading}
-                  type="button"
-                  className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-lg bg-[#24292e] text-white hover:bg-[#2f363d] font-medium transition-all duration-200"
-                >
-                  <Github className="w-5 h-5" />
-                  <span>Sign in with GitHub</span>
-                </button>
-              </div>
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
             </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-gray-500">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              type="button"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200"
+            >
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google"
+                className="w-5 h-5"
+              />
+              <span>Sign in with Google</span>
+            </button>
+
+            <button
+              onClick={handleGithubLogin}
+              disabled={isLoading}
+              type="button"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-transparent rounded-lg bg-[#24292e] text-white hover:bg-[#2f363d] font-medium transition-all duration-200"
+            >
+              <Github className="w-5 h-5" />
+              <span>Sign in with GitHub</span>
+            </button>
           </div>
         </div>
-      </main>
+    </div>
+      </div >
+    </main >
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Printer className="h-6 w-6 text-blue-600" strokeWidth={1.5} />
-                <h3 className="text-lg font-bold text-gray-900">QuickXerox</h3>
-              </div>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                Your one-stop destination for fast, reliable, and secure printing services.
-                Upload files from anywhere and collect them from your nearest shop.
-              </p>
-              <div className="flex space-x-4 mt-6">
-                {/* Social Placeholders if needed */}
-              </div>
-            </div>
-
-
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Support</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li><Link to="/contact" className="hover:text-blue-600 transition-colors">Contact Us</Link></li>
-                <li><Link to="/terms" className="hover:text-blue-600 transition-colors">Terms of Service</Link></li>
-                <li><Link to="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/refund" className="hover:text-blue-600 transition-colors">Refund Policy</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Contact</h4>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li className="flex items-start">
-                  <MapPin className="h-5 w-5 mr-2 text-blue-600 shrink-0" />
-                  <span>Gitam University, Bengaluru, India</span>
-                </li>
-                <li className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-blue-600 shrink-0" />
-                  <span>+91 9876543210</span>
-                </li>
-                <li className="flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-blue-600 shrink-0" />
-                  <a href="mailto:help-contact@quickxerox.app" className="hover:text-blue-600">help-contact@quickxerox.app</a>
-                </li>
-              </ul>
-            </div>
+  {/* Footer */ }
+  < footer className = "bg-white border-t border-gray-200 pt-16 pb-8" >
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Printer className="h-6 w-6 text-blue-600" strokeWidth={1.5} />
+            <h3 className="text-lg font-bold text-gray-900">QuickXerox</h3>
           </div>
-
-          <div className="border-t border-gray-100 pt-8 text-center text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} QuickXerox. All rights reserved.</p>
-            <p className="mt-2 text-xs text-gray-400">Owned & Operated by Hemanth Reddy Koduru</p>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            Your one-stop destination for fast, reliable, and secure printing services.
+            Upload files from anywhere and collect them from your nearest shop.
+          </p>
+          <div className="flex space-x-4 mt-6">
+            {/* Social Placeholders if needed */}
           </div>
         </div>
-      </footer>
 
-      {/* Reset Password Modal */}
-      {isResetPasswordModalOpen && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 lg:p-8 max-w-md w-full shadow-2xl">
-            <h3 className="text-2xl font-bold text-gray-900 mb-5 text-center">
-              Reset Password
-            </h3>
-            <form onSubmit={handleResetPassword} className="space-y-5">
-              <div>
-                <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email address
-                </label>
-                <div className="mt-1 relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="reset-email"
-                    type="email"
-                    required
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    className="pl-10 block w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors duration-200"
-                    placeholder="you@example.com"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsResetPasswordModalOpen(false);
-                    setResetEmail('');
-                  }}
-                  className="px-4 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
-                >
-                  Send Reset Link
-                </button>
-              </div>
-            </form>
-          </div>
+
+
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Support</h4>
+          <ul className="space-y-3 text-sm text-gray-600">
+            <li><Link to="/contact" className="hover:text-blue-600 transition-colors">Contact Us</Link></li>
+            <li><Link to="/terms" className="hover:text-blue-600 transition-colors">Terms of Service</Link></li>
+            <li><Link to="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/refund" className="hover:text-blue-600 transition-colors">Refund Policy</Link></li>
+          </ul>
         </div>
-      )}
 
-      <style>{`
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Contact</h4>
+          <ul className="space-y-3 text-sm text-gray-600">
+            <li className="flex items-start">
+              <MapPin className="h-5 w-5 mr-2 text-blue-600 shrink-0" />
+              <span>Gitam University, Bengaluru, India</span>
+            </li>
+            <li className="flex items-center">
+              <Phone className="h-4 w-4 mr-2 text-blue-600 shrink-0" />
+              <span>+91 9876543210</span>
+            </li>
+            <li className="flex items-center">
+              <Mail className="h-4 w-4 mr-2 text-blue-600 shrink-0" />
+              <a href="mailto:help-contact@quickxerox.app" className="hover:text-blue-600">help-contact@quickxerox.app</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 pt-8 text-center text-sm text-gray-500">
+        <p>&copy; {new Date().getFullYear()} QuickXerox. All rights reserved.</p>
+        <p className="mt-2 text-xs text-gray-400">Owned & Operated by Hemanth Reddy Koduru</p>
+      </div>
+    </div>
+      </footer >
+
+  {/* Reset Password Modal */ }
+{
+  isResetPasswordModalOpen && (
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl p-6 lg:p-8 max-w-md w-full shadow-2xl">
+        <h3 className="text-2xl font-bold text-gray-900 mb-5 text-center">
+          Reset Password
+        </h3>
+        <form onSubmit={handleResetPassword} className="space-y-5">
+          <div>
+            <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email address
+            </label>
+            <div className="mt-1 relative rounded-lg shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="reset-email"
+                type="email"
+                required
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                className="pl-10 block w-full px-3 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors duration-200"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={() => {
+                setIsResetPasswordModalOpen(false);
+                setResetEmail('');
+              }}
+              className="px-4 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              Send Reset Link
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+<style>{`
         @keyframes blob {
           0% { transform: translate(0px, 0px) scale(1); }
           33% { transform: translate(30px, -50px) scale(1.1); }
@@ -763,7 +783,7 @@ const LoginPage = () => {
           animation: float 6s ease-in-out infinite;
         }
       `}</style>
-    </div>
+    </div > >
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Upload, File as FileIcon, Plus } from 'lucide-react';
+import { Upload, Plus } from 'lucide-react';
 
 interface FileUploadProps {
   onFileSelect: (files: FileList) => void;
