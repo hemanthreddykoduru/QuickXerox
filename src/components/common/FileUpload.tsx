@@ -42,13 +42,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
           <input
             type="file"
             className="hidden"
-            accept=".pdf,image/*"
+            accept=".pdf,.docx,.png,.jpg,.jpeg"
             onChange={handleFileInput}
             multiple
           />
         </label>
         <p className="mt-2 text-xs text-gray-500">
-          PDF or Images up to 50MB each
+          PDF, DOCX, or Images up to 50MB each
         </p>
       </div>
     </div>
