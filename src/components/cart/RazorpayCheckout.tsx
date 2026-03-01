@@ -226,9 +226,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
           const newOrder = {
             id: orderId,
-            customerName: userName,
-            customerPhone: userPhone,
-            customerEmail: userEmail,
+            customerName: userName ?? 'Guest',
+            customerPhone: userPhone ?? '',
+            customerEmail: userEmail ?? '',
             sellerPhone: '',
             items: items,
             total: amount,
