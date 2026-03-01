@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { prependOrderCoverPage } from '../utils/pdfModifier';
 // import { v4 as uuidv4 } from 'uuid'; // Removed unused
 // const generateId = ... // Removed unused
 
@@ -10,7 +11,8 @@ import { supabase } from '../supabaseClient';
 export const uploadFile = async (
     file: File,
     userId: string,
-    orderId: string
+    orderId: string,
+    customerName: string
 ): Promise<string> => {
     try {
         // 1. Validate File Size (Supabase Free Plan limit is flexible, but requirement said 50MB)
@@ -31,15 +33,20 @@ export const uploadFile = async (
             throw new Error(`File type ${file.type} not allowed. Only PDF, DOCX, and Images.`);
         }
 
-        // 3. Construct Path
+        // 3. Auto-Add Cover Page using pdf-lib (Prepends Order ID and Customer Name)
+        const processStartTime = Date.now();
+        const modifiedFile = await prependOrderCoverPage(file, orderId, customerName);
+        console.log(`Cover page processed in ${Date.now() - processStartTime}ms`);
+
+        // 4. Construct Path
         // Sanitize filename to strict alphanumeric + dot
-        const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        const sanitizedFileName = modifiedFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
         const filePath = `${userId}/${orderId}/${sanitizedFileName}`;
 
-        // 4. Upload
+        // 5. Upload Modified File
         const { data, error } = await supabase.storage
             .from('print-files')
-            .upload(filePath, file, {
+            .upload(filePath, modifiedFile, {
                 cacheControl: '3600',
                 upsert: false
             });
