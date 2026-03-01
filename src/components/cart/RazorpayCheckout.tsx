@@ -257,7 +257,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
     };
 
     handlePayment();
-  }, [amount, currency, receipt, printJobs, shopId, generatedOrderId, userProfile]);
+  }, [amount, currency, receipt, printJobs, shopId, generatedOrderId]);
 
   return null;
 };
