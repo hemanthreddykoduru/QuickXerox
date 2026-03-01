@@ -104,15 +104,21 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
                   // Priority: Prop (Directly from useProfile) -> Auth -> Session -> Local -> Fallback
                   const authUser = auth.currentUser;
+                  // Ensure these never resolve to undefined to avoid Firestore assertion failures.
                   const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
                   const userPhone = userProfile?.mobile || authUser?.phoneNumber || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
                   const userEmail = userProfile?.email || authUser?.email || sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
 
+                  // Double check safety
+                  const safeUserName = userName ?? 'Guest';
+                  const safeUserPhone = userPhone ?? '';
+                  const safeUserEmail = userEmail ?? '';
+
                   const newOrder = {
                     id: orderId,
-                    customerName: userName,
-                    customerPhone: userPhone,
-                    customerEmail: userEmail,
+                    customerName: safeUserName,
+                    customerPhone: safeUserPhone,
+                    customerEmail: safeUserEmail,
                     sellerPhone: '',
                     items: items,
                     total: amount,
@@ -176,9 +182,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
               const newOrder = {
                 id: orderId,
-                customerName: userName,
-                customerPhone: userPhone,
-                customerEmail: userEmail,
+                customerName: userName ?? 'Guest',
+                customerPhone: userPhone ?? '',
+                customerEmail: userEmail ?? '',
                 sellerPhone: '',
                 items: items,
                 total: amount,
