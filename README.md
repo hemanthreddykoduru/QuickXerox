@@ -21,7 +21,7 @@ QuickXerox is an online Xerox printing service that allows users to upload docum
 
 - **Frontend:** React + Tailwind CSS
 - **Backend:** Firebase (Database + Auth)
-- **Payments:** CashFree Integration
+- **Payments:** Razorpay Integration
 - **Hosting:** Vercel / InfinityFree Hosting
 
 ---
