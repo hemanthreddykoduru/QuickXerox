@@ -590,7 +590,10 @@ const SellerDashboard: React.FC = () => {
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Print Shop Dashboard</h1>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
+                  <span className="hidden sm:inline">Print Shop Dashboard</span>
+                  <span className="sm:hidden">Dashboard</span>
+                </h1>
                 <div className="flex items-center space-x-2">
                   <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name}</p>
                   <span className="flex items-center text-xs sm:text-sm text-gray-500">
@@ -680,13 +683,13 @@ const SellerDashboard: React.FC = () => {
 
         {/* Orders */}
         <div className="mt-6 sm:mt-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between mb-4 sm:mb-6 space-y-2 sm:space-y-0">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Orders</h2>
-            <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 self-start sm:self-auto">Recent Orders</h2>
+            <div className="flex w-full sm:w-auto space-x-2">
               <select
                 value={filter}
                 onChange={handleFilterChange}
-                className="border border-gray-300 rounded-md shadow-sm py-1.5 px-2 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 sm:flex-none border border-gray-300 rounded-md shadow-sm py-1.5 px-2 bg-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-label="Filter orders by status"
                 title="Filter orders"
               >
@@ -1242,9 +1245,9 @@ const SellerDashboard: React.FC = () => {
               </div>
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-600 mb-1">Available to Request</p>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2 sm:mt-0">
                   <p className="text-2xl font-bold text-blue-900">₹{availableBalance.toFixed(2)}</p>
-                  <form onSubmit={handlePayoutRequest} className="flex gap-2">
+                  <form onSubmit={handlePayoutRequest} className="flex w-full sm:w-auto gap-2">
                     <input
                       type="number"
                       step="0.01"
@@ -1252,7 +1255,7 @@ const SellerDashboard: React.FC = () => {
                       placeholder="Amount"
                       value={payoutAmount}
                       onChange={(e) => setPayoutAmount(e.target.value)}
-                      className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                      className="flex-1 sm:w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                     />
                     <button
                       type="submit"

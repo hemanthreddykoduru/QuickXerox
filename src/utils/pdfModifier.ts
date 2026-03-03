@@ -53,7 +53,7 @@ export const prependOrderCoverPage = async (
         const helveticaRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
         // 4. Draw Content centered
-        const titleText = '(QuickXerox Order)';
+        const titleText = 'QuickXerox Order';
         const titleSize = 36;
         const titleWidth = helveticaFont.widthOfTextAtSize(titleText, titleSize);
 
