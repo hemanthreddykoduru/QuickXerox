@@ -33,9 +33,6 @@ const nodemailer = __importStar(require("nodemailer"));
 const razorpay_1 = __importDefault(require("razorpay"));
 const cors_1 = __importDefault(require("cors"));
 const crypto = __importStar(require("crypto"));
-const dotenv = __importStar(require("dotenv"));
-const path = __importStar(require("path"));
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
 admin.initializeApp();
 // Configure nodemailer with MailTrap SMTP
 const transporter = nodemailer.createTransport({
@@ -43,15 +40,15 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.MAILTRAP_USER,
-        pass: process.env.MAILTRAP_PASS
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || ''
     }
 });
 // Initialize Razorpay with Test Keys (Provided by User)
 // TODO: For production, move these to functions.config()
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_S6aPHcOZKR3AO2';
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || '';
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
-const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'your_webhook_secret_here'; // Get this from Razorpay Dashboard
+const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || '';
 const razorpay = new razorpay_1.default({
     key_id: RAZORPAY_KEY_ID,
     key_secret: RAZORPAY_KEY_SECRET,
@@ -114,19 +111,10 @@ exports.sendSellerInvitation = functions.firestore
     }
 });
 exports.createRazorpayOrder = functions.https.onCall(async (data, context) => {
-    console.log('🔥 createRazorpayOrder called');
     if (!context.auth) {
-        console.warn('⚠️ User not authenticated');
         throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
     const { amount, currency, receipt, notes } = data;
-    // Debug Logging
-    console.log('📦 Data received:', { amount, currency, receipt });
-    console.log('🔑 Env Check:', {
-        keyIdLength: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.length : 0,
-        secretLength: RAZORPAY_KEY_SECRET ? RAZORPAY_KEY_SECRET.length : 0,
-        keyIdStart: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.substring(0, 4) : 'MISSING'
-    });
     try {
         const order = await razorpay.orders.create({
             amount: amount * 100,
@@ -134,13 +122,10 @@ exports.createRazorpayOrder = functions.https.onCall(async (data, context) => {
             receipt,
             notes,
         });
-        console.log('✅ Razorpay order created:', order.id);
         return { orderId: order.id, amount: order.amount, currency: order.currency, key_id: RAZORPAY_KEY_ID };
     }
     catch (error) {
-        console.error('❌ Error creating Razorpay order:', error);
-        // Log the full error object struct if possible
-        console.error('❌ Razorpay Error Details:', JSON.stringify(error, null, 2));
+        console.error('Error creating Razorpay order:', error);
         throw new functions.https.HttpsError('internal', 'Failed to create Razorpay order', error.message);
     }
 });
