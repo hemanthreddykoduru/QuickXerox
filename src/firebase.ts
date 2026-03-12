@@ -7,14 +7,14 @@ import { getAnalytics } from "firebase/analytics";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCLGymyQm9M2EBKQyrooYAYFEbSQwzHplU",
-  authDomain: "otp-project-aafc6.firebaseapp.com",
-  databaseURL: "https://otp-project-aafc6-default-rtdb.firebaseio.com",
-  projectId: "otp-project-aafc6",
-  storageBucket: "otp-project-aafc6.firebasestorage.app",
-  messagingSenderId: "699242648878",
-  appId: "1:699242648878:web:75c97e1bcd263091f296bf",
-  measurementId: "G-2DTDTQ6B63",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase app once and export it

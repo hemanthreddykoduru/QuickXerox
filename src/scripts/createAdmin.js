@@ -4,14 +4,14 @@ import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCLGymyQm9M2EBKQyrooYAYFEbSQwzHplU",
-  authDomain: "otp-project-aafc6.firebaseapp.com",
-  databaseURL: "https://otp-project-aafc6-default-rtdb.firebaseio.com",
-  projectId: "otp-project-aafc6",
-  storageBucket: "otp-project-aafc6.firebasestorage.app",
-  messagingSenderId: "699242648878",
-  appId: "1:699242648878:web:75c97e1bcd263091f296bf",
-  measurementId: "G-2DTDTQ6B63",
+  apiKey: process.env.VITE_FIREBASE_API_KEY, 
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID,
+  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
@@ -25,8 +25,8 @@ const createAdmin = async () => {
     // Try to create user in Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      "admin@quickxerox.com",
-      "admin123"
+      process.env.ADMIN_EMAIL || "admin@quickxerox.com",
+      process.env.ADMIN_PASSWORD
     );
     user = userCredential.user;
     console.log("Admin user created successfully in Firebase Auth:", user.uid);
