@@ -1,4 +1,5 @@
-export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
+// Razorpay configuration
+export const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SE0bVuhSH2M91Y';
 
 export const PAYMENT_METHODS = [
   {
