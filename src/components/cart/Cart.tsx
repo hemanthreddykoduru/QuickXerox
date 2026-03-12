@@ -62,8 +62,7 @@ const Cart: React.FC<CartProps> = ({
           try {
             const userId = auth.currentUser?.uid || 'guest';
             // Use the orderId generated at the start of checkout
-            const authUser = auth.currentUser;
-            const customerName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest User';
+            const customerName = userProfile?.name || 'Guest User';
             const filePath = await uploadFile(item.file, userId, newOrderId, customerName);
 
             return {
