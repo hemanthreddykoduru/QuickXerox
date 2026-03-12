@@ -8,7 +8,7 @@ const createAdmin = async () => {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       'admin@quickxerox.com',  // Change this to your admin email
-      process.env.ADMIN_PASSWORD || 'temporary-password-change-me' // Use env var or change immediately
+      process.env.ADMIN_PASSWORD as string
     );
 
     const user = userCredential.user;
