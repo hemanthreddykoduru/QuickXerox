@@ -19,7 +19,8 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
               <div>
                 <p className="font-medium text-gray-900">{job.file.name}</p>
                 <p className="text-sm text-gray-500">
-                  {(job.file.size / 1024 / 1024).toFixed(2)} MB
+                  {(job.file.size / 1024 / 1024).toFixed(2)} MB &nbsp;•&nbsp;
+                  <span className="font-medium text-blue-600">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
                 </p>
               </div>
             </div>

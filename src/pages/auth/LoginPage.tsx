@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Printer, Eye, EyeOff, Mail, MapPin, Phone, Github } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, sendEmailVerification, browserLocalPersistence, setPersistence } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { auth, provider, githubProvider, db } from '../../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UserProfile } from '../../types/profile';
@@ -18,6 +18,21 @@ const LoginPage = () => {
   const [name, setName] = useState('');
 
   const allowedDomains = ['@gmail.com', '@gitam.in', '@yahoo.com', '@outlook.com'];
+
+  const sendCustomVerificationEmail = async (user: any, userName: string) => {
+    try {
+      await fetch('https://quickxerox-api.vercel.app/api/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          name: userName || user.displayName || 'Customer'
+        })
+      });
+    } catch (e) {
+      console.error('Failed to send custom verification email:', e);
+    }
+  };
 
   const validateEmailDomain = (email: string) => {
     return allowedDomains.some(domain => email.trim().toLowerCase().endsWith(domain));
@@ -73,7 +88,7 @@ const LoginPage = () => {
 
         if (!user.emailVerified) {
           setLoadingStep('Sending verification email...');
-          await sendEmailVerification(user);
+          await sendCustomVerificationEmail(user, name);
           toast.error('Please verify your email address before logging in. A new verification email has been sent.');
           setIsLoading(false);
           setLoadingStep('');
@@ -154,7 +169,7 @@ const LoginPage = () => {
         sessionStorage.setItem('userName', name);
         sessionStorage.setItem('userEmail', email);
 
-        await sendEmailVerification(user);
+        await sendCustomVerificationEmail(user, name);
         toast.success('🎉 Verification email sent!.');
 
         if (rememberMe) {
@@ -205,7 +220,7 @@ const LoginPage = () => {
 
       if (!user.emailVerified) {
         setLoadingStep('Sending verification email...');
-        await sendEmailVerification(user);
+        await sendCustomVerificationEmail(user, user.displayName || '');
         toast.error('Please verify your email address before logging in. A new verification email has been sent.');
         setIsLoading(false);
         setLoadingStep('');
@@ -302,7 +317,7 @@ const LoginPage = () => {
       if (!user.emailVerified) {
         if (user.providerData[0].providerId === 'password') {
           setLoadingStep('Sending verification email...');
-          await sendEmailVerification(user);
+          await sendCustomVerificationEmail(user, user.displayName || '');
           toast.error('Please verify your email address before logging in. A new verification email has been sent.');
           setIsLoading(false);
           setLoadingStep('');

@@ -4,6 +4,7 @@ import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, Search, Download } from 'lucide-react';
+import { getSignedUrl } from '../../services/storageService';
 
 interface Order {
   id: string;
@@ -16,6 +17,7 @@ interface Order {
   createdAt: string;
   timestampMs: number;
   paymentId?: string;
+  items?: any[];
 }
 
 const AdminOrderList = () => {
@@ -68,6 +70,7 @@ const AdminOrderList = () => {
             paymentId: data.paymentId || 'N/A',
             createdAt: formattedDate,
             timestampMs: tsMs,
+            items: data.items || [],
           };
         });
         setOrders(fetchedOrders);
@@ -170,6 +173,27 @@ const AdminOrderList = () => {
       toast.error('Failed to update status.');
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleViewFile = async (item: any) => {
+    try {
+      let documentUrl = item.fileUrl;
+      if (item.filePath) {
+        toast.loading(`Securing access to file...`, { id: 'file-load' });
+        documentUrl = await getSignedUrl(item.filePath);
+        toast.dismiss('file-load');
+      }
+
+      if (documentUrl) {
+        window.open(documentUrl, "_blank");
+      } else {
+        toast.error("Could not find a valid file link.");
+      }
+    } catch (err: any) {
+      toast.dismiss('file-load');
+      console.error('Error viewing file:', err);
+      toast.error('Failed to open the file securely.');
     }
   };
 
@@ -437,6 +461,35 @@ const AdminOrderList = () => {
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
                   <p className="text-lg font-bold text-gray-900 dark:text-gray-100">₹{selectedOrder.totalAmount.toFixed(2)}</p>
+                </div>
+                <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Files & Print Settings</p>
+                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                    <ul className="space-y-2">
+                      {selectedOrder.items.map((item: any, idx: number) => (
+                        <li key={idx} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-2 rounded-lg">
+                          <div className="flex-1 min-w-0 pr-4">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={item.fileName}>
+                              {item.fileName || `File ${idx + 1}`}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                              {item.copies} Copies • {item.isColor ? 'Color' : 'B&W'} • {item.pages} Pages
+                            </p>
+                          </div>
+                          {(item.fileUrl || item.filePath) && (
+                            <button
+                              onClick={() => handleViewFile(item)}
+                              className="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 text-xs font-semibold rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors shrink-0"
+                            >
+                              View File
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No files associated with this order.</p>
+                  )}
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Status</p>

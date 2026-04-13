@@ -16,21 +16,31 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
     let subject = `Invoice for Order #${orderId} - QuickXerox`;
     let htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
-            <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
-                <!-- Using custom logo hosted on Supabase -->
-                <img src="https://tkwazltvxdztaunerksd.supabase.co/storage/v1/object/public/assets/Background-Removed.png" alt="QuickXerox Logo" style="max-height: 80px; width: auto;" />
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; color: #1f2937;">
+            <!-- Header: forced white background to prevent dark-mode inversion on mobile -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff">
+                <tr>
+                    <td align="center" bgcolor="#ffffff" style="background-color: #ffffff !important; padding: 24px 20px 20px; border-bottom: 1px solid #e5e7eb;">
+                        <!-- White pill behind logo so it sits cleanly on any background -->
+                        <div style="display: inline-block; background-color: #ffffff; border-radius: 12px; padding: 10px 20px;">
+                            <img src="https://tkwazltvxdztaunerksd.supabase.co/storage/v1/object/public/assets/Background-Removed.png" alt="QuickXerox Logo" style="max-height: 60px; width: auto; display: block;" />
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <!-- Body -->
+            <div style="padding: 24px 20px; background-color: #ffffff;">
+                <h2 style="color: #2563EB; font-size: 20px; margin-top: 0;">Thank you for your order!</h2>
+                <p style="color: #374151; font-size: 16px;">Hi ${name},</p>
+                <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your order <strong>#${orderId}</strong> has been successfully processed.</p>
+                <p style="color: #374151; font-size: 16px; margin-bottom: 30px;">You can download your invoice by clicking the button below:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${pdfUrl}" style="background-color: #2563EB; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Download Invoice</a>
+                </div>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <p style="color: #9ca3af; font-size: 12px; margin-bottom: 8px;">This is an automated message from QuickXerox. Please do not reply to this email.</p>
+                <p style="color: #9ca3af; font-size: 12px; margin-top: 0;">If you have any questions, please contact us at <a href="mailto:support@quickxerox.app" style="color: #2563EB; text-decoration: none;">support@quickxerox.app</a>.</p>
             </div>
-            <h2 style="color: #2563EB; font-size: 20px; margin-top: 0;">Thank you for your order!</h2>
-            <p style="color: #374151; font-size: 16px;">Hi ${name},</p>
-            <p style="color: #374151; font-size: 16px; line-height: 1.5;">Your order <strong>#${orderId}</strong> has been successfully processed.</p>
-            <p style="color: #374151; font-size: 16px; margin-bottom: 30px;">You can download your invoice by clicking the button below:</p>
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="${pdfUrl}" style="background-color: #2563EB; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Download Invoice</a>
-            </div>
-
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #666; font-size: 12px;">This is an automated message from QuickXerox. Please do not reply to this email.</p>
         </div>
     `;
 

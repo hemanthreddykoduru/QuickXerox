@@ -16,6 +16,7 @@ export interface PrintJob {
   file: File;
   copies: number;
   isColor: boolean;
+  pageCount: number; // actual number of pages in the document (1 for images)
 }
 
 export interface PrintShop {

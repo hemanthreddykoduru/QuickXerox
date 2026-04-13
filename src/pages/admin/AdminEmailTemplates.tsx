@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, RefreshCw, Eye } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Eye, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db, auth } from '../../firebase';
 
 interface EmailTemplate {
     subject: string;
@@ -31,7 +31,7 @@ const DEFAULT_TEMPLATES: TemplatesMap = {
     <p style="color: #666; font-size: 14px; margin-top: 20px;">Or copy and paste this link into your browser:</p>
     <p style="color: #2563EB; font-size: 12px; word-break: break-all; margin-bottom: 30px;">{{invitation_link}}</p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-    <p style="color: #666; font-size: 12px;">This invitation was sent by QuickXerox Admin. If you have any questions, please contact support at <a href="mailto:help-contact@quickxerox.app" style="color: #2563EB; text-decoration: none;">help-contact@quickxerox.app</a>.</p>
+    <p style="color: #666; font-size: 12px;">This invitation was sent by QuickXerox Admin. If you have any questions, please contact support at <a href="mailto:support@quickxerox.app" style="color: #2563EB; text-decoration: none;">support@quickxerox.app</a>.</p>
 </div>`
     },
     'ORDER_INVOICE': {
@@ -48,7 +48,8 @@ const DEFAULT_TEMPLATES: TemplatesMap = {
         <a href="{{pdf_url}}" style="background-color: #2563EB; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Download Invoice</a>
     </div>
     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-    <p style="color: #666; font-size: 12px;">This is an automated message from QuickXerox. Please do not reply to this email.</p>
+    <p style="color: #666; font-size: 12px; margin-bottom: 8px;">This is an automated message from QuickXerox. Please do not reply to this email.</p>
+    <p style="color: #666; font-size: 12px; margin-top: 0;">If you have any questions, please contact us at <a href="mailto:support@quickxerox.app" style="color: #2563EB; text-decoration: none;">support@quickxerox.app</a>.</p>
 </div>`
     }
 };
@@ -65,6 +66,9 @@ const AdminEmailTemplates = () => {
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>(TEMPLATE_OPTIONS[0].id);
     const [templates, setTemplates] = useState<TemplatesMap>(DEFAULT_TEMPLATES);
     const [showPreview, setShowPreview] = useState(false);
+    const [sendingTest, setSendingTest] = useState(false);
+    const [showTestModal, setShowTestModal] = useState(false);
+    const [testEmail, setTestEmail] = useState('');
 
     useEffect(() => {
         fetchTemplates();
@@ -137,6 +141,51 @@ const AdminEmailTemplates = () => {
         return html;
     };
 
+    const handleSendTestEmail = async () => {
+        const email = testEmail.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            toast.error('Please enter a valid email address.');
+            return;
+        }
+        setShowTestModal(false);
+        setSendingTest(true);
+        try {
+            // Build a preview body with placeholder values filled in
+            let previewSubject = currentTemplate.subject
+                .replace(/{{order_id}}/g, 'TEST-001')
+                .replace(/{{shop_name}}/g, 'Test Shop');
+
+            let previewBody = currentTemplate.body
+                .replace(/{{name}}/g, 'Admin User')
+                .replace(/{{shop_name}}/g, 'Test Shop')
+                .replace(/{{order_id}}/g, 'TEST-001')
+                .replace(/{{pdf_url}}/g, 'https://quickxerox.app')
+                .replace(/{{invitation_link}}/g, 'https://quickxerox.app');
+
+            const response = await fetch('https://quickxerox-api.vercel.app/api/send-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    subject: previewSubject,
+                    body: previewBody,
+                }),
+            });
+
+            if (response.ok) {
+                toast.success(`Test email sent to ${email}!`);
+            } else {
+                const err = await response.json();
+                toast.error(`Failed: ${err.error || 'Unknown error'}`);
+            }
+        } catch (err: any) {
+            console.error('Test email error:', err);
+            toast.error('Failed to send test email.');
+        } finally {
+            setSendingTest(false);
+        }
+    };
+
     if (loading) return <div className="p-8 text-center">Loading templates...</div>;
 
     return (
@@ -152,14 +201,24 @@ const AdminEmailTemplates = () => {
                         </button>
                         <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                        <Save className="h-4 w-4" />
-                        {saving ? 'Saving...' : 'Save Changes'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => { setTestEmail(auth.currentUser?.email || ''); setShowTestModal(true); }}
+                            disabled={sendingTest}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 text-sm"
+                        >
+                            <Send className="h-4 w-4" />
+                            {sendingTest ? 'Sending...' : 'Send Test'}
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                            <Save className="h-4 w-4" />
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -248,6 +307,43 @@ const AdminEmailTemplates = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Send Test Email Modal */}
+            {showTestModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">Send Test Email</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            A preview of the <strong>{TEMPLATE_OPTIONS.find(t => t.id === selectedTemplateId)?.name}</strong> template will be sent with sample data filled in.
+                        </p>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Email</label>
+                        <input
+                            type="email"
+                            value={testEmail}
+                            onChange={(e) => setTestEmail(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSendTestEmail()}
+                            placeholder="e.g. you@example.com"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+                            autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setShowTestModal(false)}
+                                className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSendTestEmail}
+                                className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                            >
+                                <Send className="h-4 w-4" />
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

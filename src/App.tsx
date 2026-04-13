@@ -9,6 +9,7 @@ import SellerLoginPage from './pages/auth/SellerLoginPage';
 import AccountPage from './pages/customer/AccountPage';
 import SellerInvitation from './pages/admin/SellerInvitation';
 import SellerInvitationAccept from './pages/auth/SellerInvitationAccept';
+import EmailVerificationHandler from './pages/auth/EmailVerificationHandler';
 import AdminLoginPage from './pages/auth/AdminLoginPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminOrderList from './pages/admin/AdminOrderList';
@@ -135,6 +136,7 @@ function App() {
           />
           <Route path="/admin/invite-seller" element={<SellerInvitation />} />
           <Route path="/seller-invitation" element={<SellerInvitationAccept />} />
+          <Route path="/verify-email" element={<EmailVerificationHandler />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route
             path="/admin/dashboard"

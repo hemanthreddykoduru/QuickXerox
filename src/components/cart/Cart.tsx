@@ -45,7 +45,7 @@ const Cart: React.FC<CartProps> = ({
 
   if (!isOpen) return null;
 
-  const totalPages = items.reduce((sum, job) => sum + job.copies, 0);
+  const totalPages = items.reduce((sum, job) => sum + (job.pageCount * job.copies), 0);
   const totalAmount = totalPages * basePrice;
 
   const handleCheckout = async () => {
@@ -249,7 +249,7 @@ const Cart: React.FC<CartProps> = ({
                           {item.file.name}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {item.copies} {item.copies === 1 ? 'copy' : 'copies'} •{' '}
+                          {item.copies} {item.copies === 1 ? 'copy' : 'copies'} × {item.pageCount} {item.pageCount === 1 ? 'page' : 'pages'} •{' '}
                           {item.isColor ? 'Color' : 'B&W'}
                         </p>
                       </div>

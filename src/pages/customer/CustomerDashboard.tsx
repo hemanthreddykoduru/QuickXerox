@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 import { useNavigate } from 'react-router-dom';
 import { Printer, MapPin, Clock, CreditCard, CheckCircle, LogOut, User, Bell, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -187,14 +189,28 @@ function CustomerDashboard() {
     navigate('/login', { replace: true });
   };
 
-  const handleFileSelect = (files: FileList) => {
-    const newJobs = Array.from(files).map(file => ({
-      id: uuidv4(),
-      file,
-      copies: 1,
-      isColor: false
-    }));
-    setPrintJobs([...printJobs, ...newJobs]);
+  const handleFileSelect = async (files: FileList) => {
+    const getPageCount = async (file: File): Promise<number> => {
+      if (file.type !== 'application/pdf') return 1; // images count as 1 page
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        return pdf.numPages;
+      } catch {
+        return 1;
+      }
+    };
+
+    const newJobs = await Promise.all(
+      Array.from(files).map(async file => ({
+        id: uuidv4(),
+        file,
+        copies: 1,
+        isColor: false,
+        pageCount: await getPageCount(file),
+      }))
+    );
+    setPrintJobs(prev => [...prev, ...newJobs]);
   };
 
   const handleUpdateJob = (updatedJob: PrintJob) => {

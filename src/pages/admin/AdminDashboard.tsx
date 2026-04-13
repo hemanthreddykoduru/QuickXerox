@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Printer, Mail } from 'lucide-react';
+import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Printer, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { auth, db, functions } from '../../firebase';
 import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard';
@@ -206,6 +206,8 @@ const AdminDashboard = () => {
   const [customersError, setCustomersError] = useState<string | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerItem | null>(null);
+  const [customerPage, setCustomerPage] = useState(1);
+  const CUSTOMERS_PER_PAGE = 20;
 
   // Derived: filtered customers by search
   const filteredCustomers = customers.filter((c) => {
@@ -222,10 +224,13 @@ const AdminDashboard = () => {
     ].join(' ').toLowerCase();
     return hay.includes(q);
   });
+  const totalCustomerPages = Math.ceil(filteredCustomers.length / CUSTOMERS_PER_PAGE);
+  const paginatedCustomers = filteredCustomers.slice((customerPage - 1) * CUSTOMERS_PER_PAGE, customerPage * CUSTOMERS_PER_PAGE);
 
   // Metrics and Audit Logs state
   const [metrics, setMetrics] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const metricsUnsubRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     // Apply theme on mount and when changed
@@ -280,58 +285,7 @@ const AdminDashboard = () => {
             .slice(0, 5); // Limit to 5 after filtering
 
           setRecentSellers(fetchedRecentSellers);
-          // Fetch metrics and audit logs in parallel with timeout
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => {
-              didTimeout = true;
-              reject(new Error('Dashboard loading timed out. Please try again.'));
-            }, timeoutDuration)
-          );
-          // Replace with actual fetch functions if available
-          // Real Firestore Metrics (Client-side calculation for reliability)
-          const fetchMetrics = async () => {
-            try {
-              // 1. Fetch all sellers
-              const sellersColl = collection(db, 'shopOwners');
-              // Exclude specific ID if needed, similar to AdminSellerList
-              // const sellersQuery = query(sellersColl, where(documentId(), '!=', 'bEd6Hz5mX0Vm6lgLu5A7Ak2sEfX2'));
-              // For now, fetch all to be safe and accurate
-              const sellersSnapshot = await getDocs(sellersColl);
-              const sellers = sellersSnapshot.docs.map(doc => doc.data());
-              const totalSellers = sellers.length;
-
-              const pendingSellers = sellers.filter(s => s.status === 'pending').length;
-
-              // 2. Fetch all orders
-              const ordersColl = collection(db, 'orders');
-              const ordersSnapshot = await getDocs(ordersColl);
-              const orders = ordersSnapshot.docs.map(doc => doc.data());
-              const totalOrders = orders.length;
-
-              // 3. Calculate Revenue
-              // Sum 'totalAmount' or 'total' from completed/paid orders
-              const totalRevenue = orders.reduce((acc, order) => {
-                const status = (order.status || '').toLowerCase();
-                if (status === 'completed' || status === 'paid') {
-                  // Handle inconsistent field names
-                  const amount = Number(order.totalAmount || order.total || 0);
-                  return acc + amount;
-                }
-                return acc;
-              }, 0);
-
-              return {
-                sellers: totalSellers,
-                orders: totalOrders,
-                revenue: Math.round(totalRevenue),
-                pendingSellers: pendingSellers
-              };
-            } catch (err: any) {
-              console.error("Error fetching metrics:", err);
-              toast.error(`Metrics Error: ${err.message}`); // Show error to user
-              return { sellers: 0, orders: 0, revenue: 0, pendingSellers: 0 };
-            }
-          };
+          // Audit logs (one-time fetch is fine)
           const fetchAuditLogs = async (): Promise<AuditLog[]> => {
             try {
               const logsQuery = query(
@@ -340,7 +294,7 @@ const AdminDashboard = () => {
                 limit(10)
               );
               const logsSnapshot = await getDocs(logsQuery);
-              const logs: AuditLog[] = logsSnapshot.docs.map(doc => {
+              return logsSnapshot.docs.map(doc => {
                 const data = doc.data();
                 const ts = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
                 return {
@@ -350,23 +304,46 @@ const AdminDashboard = () => {
                   details: data.details || ''
                 };
               });
-              return logs.length > 0 ? logs : [];
             } catch (error) {
               console.error('Error fetching audit logs:', error);
               return [];
             }
           };
-          const result = await Promise.race([
-            Promise.all([
-              fetchMetrics(),
-              fetchAuditLogs(),
-            ]),
-            timeoutPromise,
-          ]);
-          if (!didTimeout && Array.isArray(result)) {
-            setMetrics(result[0]);
-            setAuditLogs(result[1]);
-          }
+
+          // Live metrics via onSnapshot listeners
+          let sellersCount = 0;
+          let pendingSellersCount = 0;
+          let ordersCount = 0;
+          let liveRevenue = 0;
+
+          const sellersUnsub = onSnapshot(collection(db, 'shopOwners'), (snap) => {
+            sellersCount = snap.size;
+            pendingSellersCount = snap.docs.filter(d => d.data().status === 'pending').length;
+            setMetrics({ sellers: sellersCount, orders: ordersCount, revenue: Math.round(liveRevenue), pendingSellers: pendingSellersCount });
+          });
+
+          const ordersUnsub = onSnapshot(collection(db, 'orders'), (snap) => {
+            ordersCount = snap.size;
+            liveRevenue = snap.docs.reduce((acc, d) => {
+              const data = d.data();
+              const status = (data.status || '').toLowerCase();
+              if (status === 'completed' || status === 'paid') {
+                return acc + Number(data.totalAmount || data.total || 0);
+              }
+              return acc;
+            }, 0);
+            setMetrics({ sellers: sellersCount, orders: ordersCount, revenue: Math.round(liveRevenue), pendingSellers: pendingSellersCount });
+          });
+
+          // Store unsubscribers in ref for cleanup
+          metricsUnsubRef.current = () => { sellersUnsub(); ordersUnsub(); };
+
+          // Fetch audit logs once
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => { didTimeout = true; reject(new Error('Timed out')); }, timeoutDuration)
+          );
+          const result = await Promise.race([fetchAuditLogs(), timeoutPromise]);
+          if (!didTimeout) setAuditLogs(result as AuditLog[]);
         } else {
           await auth.signOut();
           navigate('/admin/login');
@@ -381,6 +358,7 @@ const AdminDashboard = () => {
       }
     };
     fetchAdminProfileAndDashboard();
+    return () => { metricsUnsubRef.current?.(); };
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -428,8 +406,37 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-lg text-gray-700">Loading Admin Dashboard...<br /><span className="text-sm text-gray-400">If this takes too long, please check your network or reload.</span></p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center space-x-3 mb-8">
+            <Skeleton variant="circular" width={40} height={40} />
+            <div>
+              <Skeleton variant="text" width={200} height={28} className="mb-1" />
+              <Skeleton variant="text" width={140} height={16} />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array(6).fill(0).map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-sm p-6 space-y-3">
+                <Skeleton variant="circular" width={32} height={32} />
+                <Skeleton variant="text" width={120} height={24} />
+                <Skeleton variant="text" width="80%" height={16} />
+                <Skeleton variant="rectangular" width="100%" height={36} className="rounded-md" />
+              </div>
+            ))}
+          </div>
+          <div className="mt-10">
+            <Skeleton variant="text" width={160} height={28} className="mb-4" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array(4).fill(0).map((_, i) => (
+                <div key={i} className="bg-white rounded-lg shadow p-4 text-center">
+                  <Skeleton variant="text" width={80} height={16} className="mx-auto mb-2" />
+                  <Skeleton variant="text" width={60} height={32} className="mx-auto" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -457,7 +464,7 @@ const AdminDashboard = () => {
             <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Manage QuickPrint Pro</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Manage QuickXerox</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -754,8 +761,8 @@ const AdminDashboard = () => {
                   type="text"
                   placeholder="Search customers by name, email, mobile, city..."
                   value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-4 py-2"
+                  onChange={(e) => { setCustomerSearch(e.target.value); setCustomerPage(1); }}
+                  className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -787,7 +794,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {filteredCustomers.map((customer) => (
+                      {paginatedCustomers.map((customer) => (
                         <tr key={customer.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                             {customer.name || 'N/A'}
@@ -824,9 +831,36 @@ const AdminDashboard = () => {
                 </div>
               )}
 
-              <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                Showing {filteredCustomers.length} of {customers.length} customers
-              </div>
+              {/* Pagination */}
+              {totalCustomerPages > 1 && (
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing {(customerPage - 1) * CUSTOMERS_PER_PAGE + 1}–{Math.min(customerPage * CUSTOMERS_PER_PAGE, filteredCustomers.length)} of {filteredCustomers.length} customers
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCustomerPage(p => Math.max(1, p - 1))}
+                      disabled={customerPage === 1}
+                      className="p-1 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Page {customerPage} of {totalCustomerPages}</span>
+                    <button
+                      onClick={() => setCustomerPage(p => Math.min(totalCustomerPages, p + 1))}
+                      disabled={customerPage === totalCustomerPages}
+                      className="p-1 rounded-md border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              {totalCustomerPages <= 1 && (
+                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                  Showing {filteredCustomers.length} of {customers.length} customers
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1042,14 +1076,7 @@ const AdminDashboard = () => {
                       />
                       Email on order completed
                     </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={systemSettings.notifications.smsOnOrderCreated}
-                        onChange={(e) => setSystemSettings(s => ({ ...s, notifications: { ...s.notifications, smsOnOrderCreated: e.target.checked } }))}
-                      />
-                      SMS on order created
-                    </label>
+
                     <label className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
