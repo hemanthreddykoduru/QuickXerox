@@ -43,9 +43,6 @@ function CustomerDashboard() {
   const [selectedOrderForOTP, setSelectedOrderForOTP] = useState<Order | null>(null);
   const [notificationCount, setNotificationCount] = useState(0);
 
-  if (!isInitialized) {
-    return <DashboardSkeleton />;
-  }
 
   useEffect(() => {
     // Check if the user is authenticated
@@ -273,7 +270,10 @@ function CustomerDashboard() {
   };
 
   console.log('CustomerDashboard rendering');
-  // return <div className="min-h-screen pt-24 text-center text-2xl font-bold text-red-600">DEBUG: DASHBOARD COMPONENT MOUNTED</div>;
+  
+  if (!isInitialized) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
