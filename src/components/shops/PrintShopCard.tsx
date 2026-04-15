@@ -33,13 +33,24 @@ const PrintShopCard: React.FC<PrintShopCardProps> = ({ shop, isSelected, onSelec
       )}
 
       {/* Image Section */}
-      <div className="relative h-44 overflow-hidden bg-gray-50">
+      <div className="relative h-44 overflow-hidden bg-gradient-to-br from-blue-50 to-gray-100">
         <img
           src={shop.image}
           alt={shop.name}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1557821337-e160a28f729b?q=80&w=800&auto=format&fit=crop';
+            // If the fallback also fails, hide it or show a placeholder via state
+          }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        
+        {/* Placeholder Icon (only if image fails/is loading) */}
+        {!shop.image && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Printer className="h-12 w-12 text-blue-200" />
+          </div>
+        )}
         
         {/* Status Overlay */}
         <div className="absolute top-3 right-3">
