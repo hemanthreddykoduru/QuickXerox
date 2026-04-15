@@ -34,8 +34,10 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
     }
   };
 
+  const MotionDiv = motion.div as any;
+
   return (
-    <motion.div
+    <MotionDiv
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -49,7 +51,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
     >
       <div className="flex flex-col items-center">
         <div className="relative mb-4">
-          <motion.div 
+          <MotionDiv 
             animate={isDragging ? { scale: 1.1, rotate: 10 } : { scale: 1, rotate: 0 }}
             className={`p-3 rounded-xl transition-all duration-500 ${
               isDragging 
@@ -58,21 +60,22 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
             }`}
           >
             <Upload className="h-8 w-8 text-blue-500" />
-          </motion.div>
+          </MotionDiv>
           
           <AnimatePresence>
             {isDragging && (
-              <motion.div 
+              <MotionDiv 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 className="absolute -top-1 -right-1 bg-green-500 text-white p-0.5 rounded-full shadow-lg"
               >
                 <CheckCircle2 className="h-4 w-4" />
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </div>
+
 
         <h3 className="text-lg font-bold text-gray-900 mb-1">
           {isDragging ? 'Drop Files' : 'Upload Documents'}

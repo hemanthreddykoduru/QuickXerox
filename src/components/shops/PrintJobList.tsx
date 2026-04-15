@@ -10,6 +10,8 @@ interface PrintJobListProps {
 }
 
 const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemoveJob }) => {
+  const MotionDiv = motion.div as any;
+
   return (
     <div className="space-y-4">
       {jobs.map((job) => (
@@ -18,7 +20,7 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
             <div className="flex items-start space-x-3 flex-1">
               <div className="relative mt-1">
                 <FileIcon className="h-6 w-6 text-blue-600" />
-                <motion.div
+                <MotionDiv
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
@@ -40,13 +42,13 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                       d="M20 6L9 17L4 12"
                     />
                   </motion.svg>
-                </motion.div>
+                </MotionDiv>
               </div>
               
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-bold text-gray-900 line-clamp-1">{job.file.name}</p>
-                  <motion.div
+                  <MotionDiv
                     initial={{ width: 40, opacity: 0.5 }}
                     animate={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -59,6 +61,7 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                 </p>
               </div>
             </div>
+
             
             <button
               onClick={() => onRemoveJob(job.id)}
