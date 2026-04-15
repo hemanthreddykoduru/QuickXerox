@@ -53,6 +53,7 @@ const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNo
   return <>{children}</>;
 };
 
+import { Printer } from 'lucide-react';
 import ScrollToTop from './components/common/ScrollToTop';
 
 function App() {
