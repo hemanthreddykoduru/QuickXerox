@@ -9,15 +9,24 @@ interface PrintShopCardProps {
 }
 
 const PrintShopCard: React.FC<PrintShopCardProps> = ({ shop, isSelected, onSelect }) => {
+  const [hasError, setHasError] = React.useState(false);
+
   return (
     <div className={`bg-white rounded-xl shadow-md overflow-hidden transition-all ${isSelected ? 'ring-2 ring-blue-600' : 'hover:shadow-lg'
       }`}>
-      <div className="h-48 overflow-hidden bg-gray-100">
-        <img
-          src={shop.image}
-          alt={shop.name}
-          className="w-full h-full object-contain"
-        />
+      <div className="h-48 overflow-hidden bg-gray-50 flex items-center justify-center relative">
+        {(!shop.image || hasError) ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+            <Printer className="h-12 w-12 text-blue-200" />
+          </div>
+        ) : (
+          <img
+            src={shop.image}
+            alt={shop.name}
+            onError={() => setHasError(true)}
+            className="w-full h-full object-contain relative z-10"
+          />
+        )}
       </div>
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-1">{shop.name}</h3>
