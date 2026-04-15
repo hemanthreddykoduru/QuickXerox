@@ -113,12 +113,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/login" element={<LoginPage />} />
-
-          // ...
-
-          <Route path="/login" element={<LoginPage />} />
           <Route path="/seller/login" element={<SellerLoginPage />} />
+
           <Route path="/seller/landingpage" element={<SellerLandingPage />} />
           <Route path="/ip-blocked" element={<IpBlocked />} />
           <Route path="/terms" element={<TermsPage />} />
