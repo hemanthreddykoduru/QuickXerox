@@ -169,10 +169,10 @@ function CustomerDashboard() {
     return () => unsubscribe();
   }, []);
 
-  // Handle navigation attempts
+  // Handle navigation attempts to prevent data loss if files are added
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (localStorage.getItem('isAuthenticated')) {
+      if (printJobs.length > 0) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -180,7 +180,7 @@ function CustomerDashboard() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
+  }, [printJobs]);
 
   const handleLogout = () => {
     // Clear all authentication data
