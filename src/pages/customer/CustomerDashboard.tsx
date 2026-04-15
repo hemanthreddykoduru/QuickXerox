@@ -22,11 +22,12 @@ import { toast } from 'react-hot-toast';
 
 import { useProfile } from '../../hooks/useProfile'; // Import useProfile
 import Skeleton from '../../components/common/Skeleton';
+import DashboardSkeleton from '../../components/common/DashboardSkeleton';
 
 function CustomerDashboard() {
   const navigate = useNavigate();
 
-  const { profile } = useProfile(); // Initialize profile to ensure session data is loaded
+  const { profile, isInitialized } = useProfile(); // Initialize profile to ensure session data is loaded
   const [printJobs, setPrintJobs] = useState<PrintJob[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedShop, setSelectedShop] = useState<PrintShop | null>(null);
@@ -41,6 +42,10 @@ function CustomerDashboard() {
   const [showOTPVerification, setShowOTPVerification] = useState(false);
   const [selectedOrderForOTP, setSelectedOrderForOTP] = useState<Order | null>(null);
   const [notificationCount, setNotificationCount] = useState(0);
+
+  if (!isInitialized) {
+    return <DashboardSkeleton />;
+  }
 
   useEffect(() => {
     // Check if the user is authenticated

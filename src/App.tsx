@@ -73,7 +73,22 @@ function App() {
   }, []);
 
   if (loadingSettings) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <div className="relative">
+          <Printer className="h-12 w-12 text-blue-600 animate-pulse" />
+          <div className="absolute -inset-4 bg-blue-100/50 rounded-full blur-2xl -z-10 animate-pulse" />
+        </div>
+        <div className="mt-8 space-y-3 flex flex-col items-center">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">QuickXerox</h2>
+          <div className="flex gap-1.5 align-center">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-[bounce_1s_infinite_100ms]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-[bounce_1s_infinite_200ms]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-[bounce_1s_infinite_300ms]" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // If maintenance mode is on, render MaintenancePage for all non-admin routes
