@@ -1,5 +1,6 @@
 import React from 'react';
 import { File as FileIcon, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PrintJob } from '../../types';
 
 interface PrintJobListProps {
@@ -14,22 +15,59 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
       {jobs.map((job) => (
         <div key={job.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3">
-              <FileIcon className="h-5 w-5 text-blue-600 mt-1" />
-              <div>
-                <p className="font-medium text-gray-900">{job.file.name}</p>
-                <p className="text-sm text-gray-500">
+            <div className="flex items-start space-x-3 flex-1">
+              <div className="relative mt-1">
+                <FileIcon className="h-6 w-6 text-blue-600" />
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                  className="absolute -right-1 -bottom-1 bg-green-500 rounded-full p-0.5 shadow-sm border-2 border-white"
+                >
+                  <motion.svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-2 h-2 text-white"
+                  >
+                    <motion.path
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.3, delay: 0.8 }}
+                      d="M20 6L9 17L4 12"
+                    />
+                  </motion.svg>
+                </motion.div>
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-gray-900 line-clamp-1">{job.file.name}</p>
+                  <motion.div
+                    initial={{ width: 40, opacity: 0.5 }}
+                    animate={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="h-1 bg-blue-500 rounded-full"
+                  />
+                </div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
                   {(job.file.size / 1024 / 1024).toFixed(2)} MB &nbsp;•&nbsp;
-                  <span className="font-medium text-blue-600">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
+                  <span className="text-blue-600 font-black">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
                 </p>
               </div>
             </div>
+            
             <button
               onClick={() => onRemoveJob(job.id)}
-              className="text-gray-400 hover:text-gray-600"
+              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-95"
+              aria-label="Remove item"
             >
               <X className="h-5 w-5" />
             </button>
+
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-4">
