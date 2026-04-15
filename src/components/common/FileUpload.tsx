@@ -109,7 +109,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 };
 
