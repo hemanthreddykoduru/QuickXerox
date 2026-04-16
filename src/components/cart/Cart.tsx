@@ -207,7 +207,8 @@ const Cart: React.FC<CartProps> = ({
   return ReactDOM.createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 sm:p-6">
+        <>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 sm:p-6">
           {/* Backdrop Blur */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -571,9 +572,10 @@ const Cart: React.FC<CartProps> = ({
               </div>
             </div>
           </div>
-        )}
-      </div>
-    </div>,
+          )}
+        </>
+      )}
+    </AnimatePresence>,
     document.getElementById('modal-root')!
   );
 };
