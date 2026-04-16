@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FormInput from '../common/FormInput';
 import { UserProfile } from '../../types';
 import { motion } from 'framer-motion';
-import { Save, X } from 'lucide-react';
+import { Save } from 'lucide-react';
 
 interface EditProfileFormProps {
   onClose: () => void;
@@ -11,6 +11,7 @@ interface EditProfileFormProps {
 }
 
 const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onSave }) => {
+  const MotionButton = motion.button as any;
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -160,7 +161,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
       </div>
 
       <div className="flex items-center justify-end space-x-4 pt-4">
-        <motion.button
+        <MotionButton
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           type="button"
@@ -168,8 +169,8 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
           className="px-6 py-3 text-sm font-black uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-all"
         >
           Discard
-        </motion.button>
-        <motion.button
+        </MotionButton>
+        <MotionButton
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           type="submit"
@@ -177,12 +178,10 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
         >
           <Save className="h-4 w-4" />
           <span>Save Profile</span>
-        </motion.button>
+        </MotionButton>
       </div>
     </form>
   );
 };
-
-export default EditProfileForm;
 
 export default EditProfileForm;

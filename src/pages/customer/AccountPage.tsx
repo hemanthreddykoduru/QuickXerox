@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LogOut, LayoutDashboard } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, LogOut, LayoutDashboard, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
 import AccountDetails from '../../components/account/AccountDetails';
 import OrderHistory from '../../components/account/OrderHistory';
 import EditProfileModal from '../../components/account/EditProfileModal';
@@ -13,10 +13,10 @@ import DashboardSkeleton from '../../components/common/DashboardSkeleton';
 
 const AccountPage = () => {
   const navigate = useNavigate();
-  const { profile, updateProfile, isInitialized, refreshProfile } = useProfile();
+  const { profile, updateProfile, isInitialized } = useProfile();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isRetrying, setIsRetrying] = useState(false);
   const MotionDiv = motion.div as any;
+  const MotionButton = motion.button as any;
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated');
@@ -112,14 +112,14 @@ const AccountPage = () => {
       <header className="bg-white/70 backdrop-blur-xl border-b border-white/40 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <motion.button
+            <MotionButton
               whileHover={{ scale: 1.05, x: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleBack}
               className="p-2 text-gray-500 hover:text-blue-600 bg-white shadow-sm border border-gray-100 rounded-xl transition-all"
             >
               <ArrowLeft className="h-6 w-6" />
-            </motion.button>
+            </MotionButton>
             <div>
               <h1 className="text-2xl font-black text-gray-900 tracking-tight">Account</h1>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">
@@ -129,7 +129,7 @@ const AccountPage = () => {
           </div>
           
           <div className="flex items-center space-x-3">
-            <motion.button
+            <MotionButton
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/customerdashboard')}
@@ -137,8 +137,8 @@ const AccountPage = () => {
             >
               <LayoutDashboard className="h-4 w-4" />
               <span>Dashboard</span>
-            </motion.button>
-            <motion.button
+            </MotionButton>
+            <MotionButton
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleLogout}
@@ -146,7 +146,7 @@ const AccountPage = () => {
               title="Logout"
             >
               <LogOut className="h-5 w-5" />
-            </motion.button>
+            </MotionButton>
           </div>
         </div>
       </header>

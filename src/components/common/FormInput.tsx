@@ -12,6 +12,7 @@ interface FormInputProps {
   disabled?: boolean;
   maxLength?: number;
   placeholder?: string;
+  className?: string;
   icon?: LucideIcon;
 }
 
@@ -26,6 +27,7 @@ const FormInput: React.FC<FormInputProps> = ({
   disabled = false,
   maxLength,
   placeholder,
+  className = '',
   icon: Icon
 }) => {
   return (
@@ -56,6 +58,7 @@ const FormInput: React.FC<FormInputProps> = ({
             ${error ? 'border-red-300' : 'border-gray-300'}
             ${disabled ? 'bg-gray-100' : 'bg-white'}
             focus:ring-blue-500 focus:border-blue-500 sm:text-sm
+            ${className}
           `}
         />
       </div>
