@@ -356,10 +356,9 @@ const Cart: React.FC<CartProps> = ({
                       </AnimatePresence>
                     </div>
 
-                    <div className="border-t border-gray-100 pt-6 pb-2">
-                      <div className="flex items-center space-x-2 mb-4">
-                        <Printer className="h-4 w-4 text-blue-600" />
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                    <div className="border-t border-gray-100 pt-5 pb-2">
+                      <div className="mb-3">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                           Select Print Shop
                         </h3>
                       </div>
