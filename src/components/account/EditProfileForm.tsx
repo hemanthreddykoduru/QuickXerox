@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import FormInput from '../common/FormInput';
 import { UserProfile } from '../../types';
+import { motion } from 'framer-motion';
+import { Save, X } from 'lucide-react';
 
 interface EditProfileFormProps {
   onClose: () => void;
@@ -9,8 +11,6 @@ interface EditProfileFormProps {
 }
 
 const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onSave }) => {
-  // Removed internal useProfile to avoid state desync
-
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: profile?.name || '',
     email: profile?.email || '',
@@ -21,7 +21,6 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
     mobile: profile?.mobile || '',
   });
 
-  // Update form data when profile prop changes
   useEffect(() => {
     setFormData({
       name: profile?.name || '',
@@ -33,6 +32,8 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
       mobile: profile?.mobile || '',
     });
   }, [profile]);
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -57,8 +58,6 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
     return Object.keys(newErrors).length === 0;
   };
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -68,22 +67,16 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
 
     try {
       const updatedProfile = {
-        ...profile, // Merge with existing profile
+        ...profile,
         ...formData,
         mobile: formData.mobile || profile.mobile || '',
-        createdAt: profile.createdAt,
         updatedAt: new Date().toISOString()
       } as UserProfile;
 
-      console.log('Submitting profile update:', updatedProfile);
-
-      // Call parent handler (AccountPage) to execute update and refresh local state
       await onSave(updatedProfile);
-
-      onClose(); // Close the modal after successful update
+      onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
-      // toast handled by parent or hook
     }
   };
 
@@ -94,7 +87,6 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
       ...prev,
       [name]: nextValue
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -104,91 +96,93 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
-        <FormInput
-          label="Name"
-          type="text"
-          name="name"
-          value={formData.name || ''}
-          onChange={handleChange}
-          required
-          error={errors.name}
-          maxLength={50}
-        />
-        <FormInput
-          label="Mobile Number"
-          type="tel"
-          name="mobile"
-          value={formData.mobile || ''}
-          onChange={handleChange}
-          required
-          error={errors.mobile}
-          maxLength={10}
-          placeholder="10-digit number"
-        />
-        <FormInput
-          label="Email (Cannot be changed)"
-          type="email"
-          name="email"
-          value={formData.email || ''}
-          onChange={handleChange}
-          error={errors.email}
-          maxLength={100}
-          disabled={true}
-        />
-        <FormInput
-          label="Address"
-          type="text"
-          name="address"
-          value={formData.address || ''}
-          onChange={handleChange}
-          maxLength={200}
-        />
-        <FormInput
-          label="City"
-          type="text"
-          name="city"
-          value={formData.city || ''}
-          onChange={handleChange}
-          maxLength={50}
-        />
-        <FormInput
-          label="State"
-          type="text"
-          name="state"
-          value={formData.state || ''}
-          onChange={handleChange}
-          maxLength={50}
-        />
-        <FormInput
-          label="Pincode"
-          type="text"
-          name="pincode"
-          value={formData.pincode || ''}
-          onChange={handleChange}
-          error={errors.pincode}
-          maxLength={6}
-        />
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100/50">
+        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Personal Information</h4>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <FormInput
+            label="Full Name"
+            type="text"
+            name="name"
+            placeholder="John Doe"
+            value={formData.name || ''}
+            onChange={handleChange}
+            required
+            error={errors.name}
+            className="rounded-2xl border-gray-100 focus:border-blue-500 focus:ring-blue-500 transition-all font-medium"
+          />
+          <FormInput
+            label="Mobile Number"
+            type="tel"
+            name="mobile"
+            placeholder="10-digit number"
+            value={formData.mobile || ''}
+            onChange={handleChange}
+            required
+            error={errors.mobile}
+            className="rounded-2xl border-gray-100 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold"
+          />
+        </div>
       </div>
 
-      <div className="mt-4 flex justify-end space-x-2 sm:mt-6 sm:space-x-3">
-        <button
+      <div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100/50">
+        <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Address Details</h4>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <FormInput
+              label="Street Address"
+              type="text"
+              name="address"
+              placeholder="House No, Street, Landmark"
+              value={formData.address || ''}
+              onChange={handleChange}
+              className="rounded-2xl border-gray-100 focus:border-blue-500 focus:ring-blue-500 transition-all font-medium"
+            />
+          </div>
+          <FormInput
+            label="City"
+            type="text"
+            name="city"
+            value={formData.city || ''}
+            onChange={handleChange}
+            className="rounded-2xl border-gray-100 focus:border-blue-500 focus:ring-blue-500 transition-all font-medium"
+          />
+          <FormInput
+            label="Pincode"
+            type="text"
+            name="pincode"
+            value={formData.pincode || ''}
+            onChange={handleChange}
+            error={errors.pincode}
+            className="rounded-2xl border-gray-100 focus:border-blue-500 focus:ring-blue-500 transition-all font-bold"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end space-x-4 pt-4">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="button"
           onClick={onClose}
-          className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="px-6 py-3 text-sm font-black uppercase tracking-widest text-gray-500 hover:text-gray-900 transition-all"
         >
-          Cancel
-        </button>
-        <button
+          Discard
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="submit"
-          className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="flex items-center space-x-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all"
         >
-          Save Changes
-        </button>
+          <Save className="h-4 w-4" />
+          <span>Save Profile</span>
+        </motion.button>
       </div>
     </form>
   );
 };
+
+export default EditProfileForm;
 
 export default EditProfileForm;
