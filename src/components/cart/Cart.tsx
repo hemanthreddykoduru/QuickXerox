@@ -362,7 +362,7 @@ const Cart: React.FC<CartProps> = ({
                           Select Print Shop
                         </h3>
                       </div>
-                      <div className="space-y-3 px-0.5">
+                      <div className="space-y-3 px-0.5 pb-24">
                         {shops.map((shop) => (
                           <MotionDiv
                             whileHover={{ scale: 1.005 }}
