@@ -52,14 +52,7 @@ function CustomerDashboard() {
       return;
     }
 
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const headerHeight = 80;
-      setShowFloatingCart(scrollPosition > headerHeight);
-    };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, [navigate]);
 
   // Get user location on mount
@@ -418,7 +411,7 @@ function CustomerDashboard() {
       <FloatingCartButton
         itemCount={printJobs.length}
         onClick={() => setIsCartOpen(true)}
-        isVisible={showFloatingCart && printJobs.length > 0}
+        isVisible={printJobs.length > 0}
       />
 
       {/* Cart */}
