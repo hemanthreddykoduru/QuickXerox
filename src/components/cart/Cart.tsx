@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy, Trash2, ChevronRight } from 'lucide-react';
+import { X, Eye, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy, Trash2, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PrintJob, PrintShop } from '../../types';
 import RazorpayCheckout from './RazorpayCheckout';
@@ -341,16 +341,29 @@ const Cart: React.FC<CartProps> = ({
                                 </div>
                               </div>
                             </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onRemove(item.id);
-                              }}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all self-end sm:self-center"
-                              title="Remove item"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
+                            <div className="flex items-center space-x-1 self-end sm:self-center">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setFileToPreview(item.file);
+                                  setShowFilePreviewModal(true);
+                                }}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                title="Preview file"
+                              >
+                                <Eye className="h-5 w-5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onRemove(item.id);
+                                }}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                title="Remove item"
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </button>
+                            </div>
                           </MotionDiv>
                         ))}
                       </AnimatePresence>
