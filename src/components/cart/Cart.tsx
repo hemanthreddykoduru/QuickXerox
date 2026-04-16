@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy } from 'lucide-react';
+import { X, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy, Trash2, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PrintJob, PrintShop } from '../../types';
 import RazorpayCheckout from './RazorpayCheckout';
 import { toast } from 'react-hot-toast';
@@ -42,8 +43,6 @@ const Cart: React.FC<CartProps> = ({
   const [generatedOTP, setGeneratedOTP] = useState<string>('');
   const [orderId, setOrderId] = useState<string>('');
   const [itemsWithUrls, setItemsWithUrls] = useState<any[]>([]); // To store items with uploaded URLs
-
-  if (!isOpen) return null;
 
   const totalPages = items.reduce((sum, job) => sum + (job.pageCount * job.copies), 0);
   const totalAmount = totalPages * basePrice;
@@ -206,153 +205,236 @@ const Cart: React.FC<CartProps> = ({
   };
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4 sm:p-6">
-      <div className="bg-white rounded-lg shadow-xl max-w-full md:max-w-2xl w-full max-h-[calc(100vh-32px)] sm:max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="sticky top-0 bg-white z-10 px-4 py-3 border-b flex-shrink-0">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Cart</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 p-1"
-              aria-label="Close cart"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-        </div>
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 sm:p-6">
+          {/* Backdrop Blur */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
+          />
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 flex-grow">
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+            className="relative bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl max-w-full md:max-w-2xl w-full max-h-[calc(100vh-32px)] sm:max-h-[90vh] flex flex-col overflow-hidden border border-white/20"
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-white/50 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100 flex-shrink-0">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Your Cart</h2>
+                  <p className="text-sm text-gray-500 mt-0.5">{items.length} print {items.length === 1 ? 'job' : 'jobs'} ready</p>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-all duration-200"
+                  aria-label="Close cart"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 flex-grow scroll-smooth">
           {items.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Your cart is empty</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <Printer className="h-10 w-10 text-gray-300" />
+              </div>
+              <p className="text-gray-500 font-medium">Your cart is empty</p>
+              <button onClick={onClose} className="mt-4 text-blue-600 font-semibold hover:underline">
+                Go pick a shop
+              </button>
+            </div>
           ) : (
             <>
-              <div className="space-y-4 mb-6">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg cursor-pointer gap-3 sm:gap-0"
-                    onClick={() => {
-                      setFileToPreview(item.file);
-                      setShowFilePreviewModal(true);
-                    }}
-                  >
-                    <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 w-full sm:w-auto overflow-hidden">
-                      {item.file.type.startsWith('image/') ? (
-                        <ImagePreview file={item.file} />
-                      ) : item.file.type === 'application/pdf' ? (
-                        <FileText className="h-6 w-6 text-red-600 flex-shrink-0" />
-                      ) : (
-                        <FileText className="h-6 w-6 text-gray-600 flex-shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-gray-900 truncate">
-                          {item.file.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {item.copies} {item.copies === 1 ? 'copy' : 'copies'} × {item.pageCount} {item.pageCount === 1 ? 'page' : 'pages'} •{' '}
-                          {item.isColor ? 'Color' : 'B&W'}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemove(item.id);
+              <div className="space-y-4 mb-8">
+                <AnimatePresence mode="popLayout">
+                  {items.map((item) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      key={item.id}
+                      className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm rounded-xl cursor-pointer transition-all duration-200 gap-3"
+                      onClick={() => {
+                        setFileToPreview(item.file);
+                        setShowFilePreviewModal(true);
                       }}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium self-end sm:self-center"
                     >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-start sm:items-center space-x-4 w-full sm:w-auto overflow-hidden">
+                        <div className="flex-shrink-0">
+                          {item.file.type.startsWith('image/') ? (
+                            <ImagePreview file={item.file} />
+                          ) : (
+                            <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center border border-red-100">
+                              <FileText className="h-5 w-5 text-red-600" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                            {item.file.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                            <span className="text-xs font-medium text-gray-500 flex items-center">
+                              <Copy className="h-3 w-3 mr-1" />
+                              {item.copies} {item.copies === 1 ? 'copy' : 'copies'}
+                            </span>
+                            <span className="text-xs font-medium text-gray-500 flex items-center">
+                              <FileText className="h-3 w-3 mr-1" />
+                              {item.pageCount} {item.pageCount === 1 ? 'page' : 'pages'}
+                            </span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${item.isColor ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'}`}>
+                              {item.isColor ? 'Color' : 'B&W'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemove(item.id);
+                        }}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all self-end sm:self-center"
+                        title="Remove item"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
 
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Select Print Shop
-                </h3>
-                <div className="space-y-4">
+              <div className="border-t border-gray-100 pt-8 pb-4">
+                <div className="flex items-center space-x-2 mb-6">
+                  <Printer className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Select Print Shop
+                  </h3>
+                </div>
+                <div className="space-y-4 px-1">
                   {shops.map((shop) => (
-                    <div
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
                       key={shop.id}
-                      className={`p-3 sm:p-4 border rounded-lg cursor-pointer ${selectedShop?.id === shop.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200'
+                      className={`relative group p-4 border rounded-2xl cursor-pointer transition-all duration-300 ${selectedShop?.id === shop.id
+                        ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500/20'
+                        : 'border-gray-100 bg-white hover:border-gray-300 hover:shadow-lg'
                         }`}
                       onClick={() => onShopSelect(shop.id.toString())}
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {shop.name}
-                          </h4>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <div className="flex items-center text-sm text-gray-500">
-                              <MapPin className="h-3.5 w-3.5 mr-1" />
-                              {shop.distance} km
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500">
-                              <Clock className="h-3.5 w-3.5 mr-1" />
-                              {shop.eta} min
+                      {selectedShop?.id === shop.id && (
+                        <motion.div 
+                          layoutId="selected-glow"
+                          className="absolute inset-0 rounded-2xl bg-blue-400/5 blur-xl -z-10"
+                        />
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className={`p-3 rounded-xl transition-colors ${selectedShop?.id === shop.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                            <Printer className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 leading-tight">
+                              {shop.name}
+                            </h4>
+                            <div className="flex items-center space-x-4 mt-1.5">
+                              <div className="flex items-center text-xs font-medium text-gray-500">
+                                <MapPin className="h-3 w-3 mr-1 text-blue-500" />
+                                {shop.distance} km
+                              </div>
+                              <div className="flex items-center text-xs font-medium text-gray-500">
+                                <Clock className="h-3 w-3 mr-1 text-blue-500" />
+                                {shop.eta} min
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex justify-between sm:block items-center border-t sm:border-t-0 pt-2 sm:pt-0 sm:text-right">
-                          <span className="sm:hidden text-sm text-gray-500">Price/Page</span>
-                          <div>
-                            <p className="font-medium text-gray-900 text-lg sm:text-base">
+                        <div className="text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-xl font-black text-gray-900 tracking-tight">
                               ₹{shop.price.toFixed(2)}
-                            </p>
-                            <p className="hidden sm:block text-sm text-gray-500">per page</p>
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">per page</span>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-white border-t border-gray-200 pt-4 pb-4 px-3 sm:px-6 flex-shrink-0">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-gray-600">Total Pages:</span>
-                  <span className="font-medium text-gray-900">{totalPages}</span>
-                </div>
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-gray-600">Total Amount:</span>
-                  <span className="text-lg font-bold text-gray-900">
-                    ₹{totalAmount.toFixed(2)}
-                  </span>
+              <div className="sticky bottom-0 bg-white/80 backdrop-blur-lg border-t border-gray-100 pt-6 pb-6 px-6 sm:px-8 mt-auto flex-shrink-0 mx-[-24px] mb-[-24px]">
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between items-center text-sm font-medium">
+                    <span className="text-gray-500">Total Pages:</span>
+                    <span className="text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md leading-none">{totalPages}</span>
+                  </div>
+                  <div className="flex justify-between items-end border-t border-gray-50 pt-3">
+                    <span className="text-gray-500 font-medium">Total Amount</span>
+                    <div className="text-right">
+                      <span className="text-3xl font-black text-blue-600 tracking-tight">
+                        ₹{totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {selectedShop ? (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleCheckout}
                     disabled={isProcessing || isUploading}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 flex justify-center items-center"
+                    className="group w-full relative h-14 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-200 overflow-hidden flex justify-center items-center transition-all disabled:opacity-50"
                   >
-                    {isUploading ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Uploading...
-                      </>
-                    ) : isProcessing ? (
-                      'Processing...'
-                    ) : (
-                      'Proceed to Checkout'
-                    )}
-                  </button>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 group-hover:from-blue-500 group-hover:to-blue-400 transition-all duration-300" />
+                    <span className="relative flex items-center">
+                      {isUploading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Uploading Files...
+                        </>
+                      ) : isProcessing ? (
+                        'Initializing Razorpay...'
+                      ) : (
+                        <>
+                          Proceed to Checkout
+                          <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </span>
+                  </motion.button>
                 ) : (
-                  <p className="text-center text-red-600 text-sm">
-                    Select a print shop to continue
-                  </p>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center justify-center space-x-2"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    <p className="text-red-700 text-sm font-bold">
+                      Select a print shop to continue
+                    </p>
+                  </motion.div>
                 )}
               </div>
             </>
           )}
         </div>
+      </motion.div>
 
         {isProcessing && selectedShop && (
           <RazorpayCheckout
