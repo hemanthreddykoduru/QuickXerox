@@ -124,6 +124,10 @@ const Cart: React.FC<CartProps> = ({
   const [orderId, setOrderId] = useState<string>('');
   const [itemsWithUrls, setItemsWithUrls] = useState<any[]>([]);
 
+  // Type-safe motion components workaround for React 19 types mismatch
+  const MotionDiv = motion.div as any;
+  const MotionButton = motion.button as any;
+
   const totalPages = items.reduce((sum, job) => sum + (job.pageCount * job.copies), 0);
   const totalAmount = totalPages * basePrice;
 
@@ -249,7 +253,7 @@ const Cart: React.FC<CartProps> = ({
       {isOpen && (
         <>
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4 sm:p-6">
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -257,7 +261,7 @@ const Cart: React.FC<CartProps> = ({
               className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
             />
 
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -296,7 +300,7 @@ const Cart: React.FC<CartProps> = ({
                     <div className="space-y-4 mb-8">
                       <AnimatePresence mode="popLayout">
                         {items.map((item) => (
-                          <motion.div
+                          <MotionDiv
                             layout
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -347,61 +351,65 @@ const Cart: React.FC<CartProps> = ({
                             >
                               <Trash2 className="h-5 w-5" />
                             </button>
-                          </motion.div>
+                          </MotionDiv>
                         ))}
                       </AnimatePresence>
                     </div>
 
-                    <div className="border-t border-gray-100 pt-8 pb-4">
-                      <div className="flex items-center space-x-2 mb-6">
-                        <Printer className="h-5 w-5 text-blue-600" />
-                        <h3 className="text-lg font-bold text-gray-900">Select Print Shop</h3>
+                    <div className="border-t border-gray-100 pt-6 pb-2">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <Printer className="h-4 w-4 text-blue-600" />
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">
+                          Select Print Shop
+                        </h3>
                       </div>
-                      <div className="space-y-4 px-1">
+                      <div className="space-y-3 px-0.5">
                         {shops.map((shop) => (
-                          <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
+                          <MotionDiv
+                            whileHover={{ scale: 1.005 }}
+                            whileTap={{ scale: 0.995 }}
                             key={shop.id}
-                            className={`relative group p-4 border rounded-2xl cursor-pointer transition-all duration-300 ${selectedShop?.id === shop.id
-                              ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500/20'
-                              : 'border-gray-100 bg-white hover:border-gray-300 hover:shadow-lg'
+                            className={`relative group p-3 border rounded-xl cursor-pointer transition-all duration-300 ${selectedShop?.id === shop.id
+                              ? 'border-blue-500 bg-blue-50/40 shadow-sm ring-1 ring-blue-500/10'
+                              : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
                             }`}
                             onClick={() => onShopSelect(shop.id.toString())}
                           >
                             {selectedShop?.id === shop.id && (
-                              <motion.div
+                              <MotionDiv
                                 layoutId="selected-glow"
-                                className="absolute inset-0 rounded-2xl bg-blue-400/5 blur-xl -z-10"
+                                className="absolute inset-0 rounded-xl bg-blue-400/5 blur-lg -z-10"
                               />
                             )}
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-4">
-                                <div className={`p-3 rounded-xl transition-colors ${selectedShop?.id === shop.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                  <Printer className="h-6 w-6" />
+                              <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-lg transition-colors ${selectedShop?.id === shop.id ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
+                                  <Printer className="h-5 w-5" />
                                 </div>
-                                <div>
-                                  <h4 className="font-bold text-gray-900 leading-tight">{shop.name}</h4>
-                                  <div className="flex items-center space-x-4 mt-1.5">
-                                    <div className="flex items-center text-xs font-medium text-gray-500">
-                                      <MapPin className="h-3 w-3 mr-1 text-blue-500" />
+                                <div className="min-w-0">
+                                  <h4 className="font-bold text-gray-900 leading-none mb-1 text-sm sm:text-base">
+                                    {shop.name}
+                                  </h4>
+                                  <div className="flex items-center space-x-3">
+                                    <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                                      <MapPin className="h-2.5 w-2.5 mr-1 text-blue-500" />
                                       {shop.distance} km
                                     </div>
-                                    <div className="flex items-center text-xs font-medium text-gray-500">
-                                      <Clock className="h-3 w-3 mr-1 text-blue-500" />
+                                    <div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                                      <Clock className="h-2.5 w-2.5 mr-1 text-blue-500" />
                                       {shop.eta} min
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <div className="flex flex-col items-end">
-                                  <span className="text-xl font-black text-gray-900 tracking-tight">₹{shop.price.toFixed(2)}</span>
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">per page</span>
-                                </div>
+                              <div className="text-right flex flex-col items-end">
+                                <span className="text-lg font-black text-gray-900 tracking-tighter">
+                                  ₹{shop.price.toFixed(2)}
+                                </span>
+                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">per page</span>
                               </div>
                             </div>
-                          </motion.div>
+                          </MotionDiv>
                         ))}
                       </div>
                     </div>
@@ -421,7 +429,7 @@ const Cart: React.FC<CartProps> = ({
                       </div>
 
                       {selectedShop ? (
-                        <motion.button
+                        <MotionButton
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={handleCheckout}
@@ -447,22 +455,22 @@ const Cart: React.FC<CartProps> = ({
                               </>
                             )}
                           </span>
-                        </motion.button>
+                        </MotionButton>
                       ) : (
-                        <motion.div
+                        <MotionDiv
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           className="p-4 bg-red-50 rounded-xl border border-red-100 flex items-center justify-center space-x-2"
                         >
                           <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                           <p className="text-red-700 text-sm font-bold">Select a print shop to continue</p>
-                        </motion.div>
+                        </MotionDiv>
                       )}
                     </div>
                   </>
                 )}
               </div>
-            </motion.div>
+            </MotionDiv>
           </div>
 
           {isProcessing && selectedShop && (
