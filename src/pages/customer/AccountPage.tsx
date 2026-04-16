@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, LogOut, LayoutDashboard, Shield } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import AccountDetails from '../../components/account/AccountDetails';
 import OrderHistory from '../../components/account/OrderHistory';
 import EditProfileModal from '../../components/account/EditProfileModal';
@@ -9,49 +8,66 @@ import { useProfile } from '../../hooks/useProfile';
 import { Order } from '../../types';
 import { db, auth } from '../../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import DashboardSkeleton from '../../components/common/DashboardSkeleton';
+import Skeleton from '../../components/common/Skeleton';
 
 const AccountPage = () => {
   const navigate = useNavigate();
-  const { profile, updateProfile, isInitialized } = useProfile();
+  const { profile, updateProfile, isInitialized, refreshProfile } = useProfile();
+  console.log("AccountPage rendering, isInitialized:", isInitialized, "Profile mobile:", profile?.mobile);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const MotionDiv = motion.div as any;
-  const MotionButton = motion.button as any;
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
+    // Check if the user is authenticated
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (!isAuthenticated) {
       navigate('/login', { replace: true });
+      return;
     }
+
+    // REMOVED: Aggressive auto-logout. It was causing race conditions.
+    // Instead, we will handle empty profiles in the UI.
   }, [navigate]);
 
+  // Auto-redirect if initialized but not authenticated (fixes "Welcome" screen issue)
   useEffect(() => {
     if (isInitialized && !profile.email && !profile.mobile) {
+      // If we are initialized but have no profile data, checks if we are actually logged out
       if (!auth.currentUser) {
+        console.log("AccountPage: No user found, redirecting to login");
         navigate('/login', { replace: true });
       }
     }
   }, [isInitialized, profile, navigate]);
 
+  // State for orders
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
   useEffect(() => {
+    // Wait for validation - prevent fetching if we don't have a user identifier
     if (!profile.email && !profile.mobile && isInitialized) {
       setIsLoadingOrders(false);
       return;
     }
+
+    // Wait for profile to load (if not initialized yet)
     if (!isInitialized) return;
 
     const startFetching = async () => {
+      // Use EMAIL to find orders as per user request
       const userEmail = profile.email || localStorage.getItem('userEmail');
+
       if (!userEmail) {
+        console.log("No email found for order history");
         setOrders([]);
         setIsLoadingOrders(false);
         return;
       }
 
       setIsLoadingOrders(true);
+      console.log("Fetching orders for customer email:", userEmail);
+
       try {
         const q = query(
           collection(db, 'orders'),
@@ -63,11 +79,16 @@ const AccountPage = () => {
           querySnapshot.forEach((doc: any) => {
             fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
           });
+
+          // Sort client-side to avoid index requirement for now
           fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+          console.log("Fetched orders:", fetchedOrders);
           setOrders(fetchedOrders);
           setIsLoadingOrders(false);
         }, (error: any) => {
           console.error("Error fetching order history:", error);
+          // toast.error("Failed to load order history"); // Silent fail
           setIsLoadingOrders(false);
         });
 
@@ -79,6 +100,10 @@ const AccountPage = () => {
     };
 
     startFetching();
+    return () => {
+      // cleanup
+    };
+
   }, [profile.email, isInitialized]);
 
   const handleProfileUpdate = (updatedProfile: typeof profile) => {
@@ -86,7 +111,7 @@ const AccountPage = () => {
   };
 
   const handleBack = () => {
-    navigate('/customerdashboard');
+    navigate('/customerdashboard', { replace: true });
   };
 
   const handleLogout = () => {
@@ -96,99 +121,111 @@ const AccountPage = () => {
     navigate('/login');
   };
 
+  const handleRetryProfile = async () => {
+    if (auth.currentUser) {
+      setIsRetrying(true);
+      await refreshProfile(auth.currentUser.uid);
+      setIsRetrying(false);
+    }
+  };
+
   if (!isInitialized) {
-    return <DashboardSkeleton />;
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Skeleton Loader Code kept same but simplified for brevity in replace if needed, 
+             but here keeping it existing or returning standard skeleton */}
+        <header className="bg-white shadow-sm"><div className="p-4"><Skeleton width={150} height={32} /></div></header>
+        <main className="p-8"><Skeleton width="100%" height={200} /></main>
+      </div>
+    );
+  }
+
+  // Fallback if initialized but empty (First-time user or data sync issue)
+  if (isInitialized && !profile.email && !profile.mobile) {
+    // Check if user is actually logged in but profile is empty (Sync error)
+    if (auth.currentUser) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Unable to Load Profile</h2>
+            <p className="text-gray-600 mb-6">
+              We couldn't load your profile data. Please try again.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleRetryProfile}
+                disabled={isRetrying}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              >
+                {isRetrying ? 'Retrying...' : 'Retry'}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Welcome to QuickXerox!</h2>
+          <p className="text-gray-600 mb-6">
+            It looks like this is your first time using the app. Please sign in with your mobile number to get started.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Sign In to Continue
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] relative overflow-hidden">
-      {/* Premium Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-100/40 blur-[120px] rounded-full" />
-        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[50%] bg-indigo-50/40 blur-[120px] rounded-full" />
-        <div className="absolute -bottom-[10%] left-[20%] w-[50%] h-[30%] bg-blue-50/40 blur-[120px] rounded-full" />
-      </div>
-
-      <header className="bg-white/70 backdrop-blur-xl border-b border-white/40 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <MotionButton
-              whileHover={{ scale: 1.05, x: -2 }}
-              whileTap={{ scale: 0.95 }}
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <button
               onClick={handleBack}
-              className="p-2 text-gray-500 hover:text-blue-600 bg-white shadow-sm border border-gray-100 rounded-xl transition-all"
+              className="text-gray-600 hover:text-gray-900 p-1 sm:p-0 flex items-center justify-center"
+              title="Back to Dashboard"
+              aria-label="Back to Dashboard"
             >
               <ArrowLeft className="h-6 w-6" />
-            </MotionButton>
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 tracking-tight">Account</h1>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">
-                Security & Preferences
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <MotionButton
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/customerdashboard')}
-              className="hidden sm:flex items-center space-x-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-600 shadow-sm hover:border-blue-200 hover:text-blue-600 transition-all"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Dashboard</span>
-            </MotionButton>
-            <MotionButton
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLogout}
-              className="p-2.5 text-red-500 hover:bg-red-50 bg-white border border-gray-100 rounded-xl shadow-sm transition-all"
-              title="Logout"
-            >
-              <LogOut className="h-5 w-5" />
-            </MotionButton>
+            </button>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Account</h1>
           </div>
         </div>
       </header>
 
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
-          <div className="lg:col-span-1 lg:sticky lg:top-32">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="lg:col-span-1">
             <AccountDetails
               profile={profile}
               onEdit={() => setIsEditModalOpen(true)}
             />
-            
-            <MotionDiv
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="mt-8 p-6 bg-blue-600 rounded-3xl text-white shadow-xl shadow-blue-200 relative overflow-hidden"
-            >
-              <div className="relative z-10">
-                <Shield className="h-8 w-8 mb-4 opacity-80" />
-                <h3 className="text-xl font-black mb-2">Secure Printing</h3>
-                <p className="text-sm opacity-80 leading-relaxed font-medium">
-                  Your documents are encrypted and automatically deleted after printing.
-                </p>
-              </div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 rounded-full" />
-            </MotionDiv>
           </div>
-
           <div className="lg:col-span-2">
             <OrderHistory
               orders={orders}
               isLoading={isLoadingOrders}
               userEmail={profile.email}
             />
+
+
           </div>
         </div>
-      </MotionDiv>
+      </main>
 
       <EditProfileModal
         isOpen={isEditModalOpen}

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Printer, FileText, Clock, Shield, Eye, X, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Printer, FileText, Clock, Shield, Eye, X } from 'lucide-react';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
+
 
 interface OrderHistoryProps {
   orders: (Order & { otp?: string })[];
@@ -13,7 +13,6 @@ interface OrderHistoryProps {
 const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const ITEMS_PER_PAGE = 5;
-  const MotionDiv = motion.div as any;
 
   const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
   const getPaginatedOrders = () => {
@@ -23,226 +22,289 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
 
   const paginatedOrders = getPaginatedOrders();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'text-green-600 bg-green-50 border-green-100';
-      case 'processing': return 'text-blue-600 bg-blue-50 border-blue-100';
-      case 'pending': return 'text-orange-600 bg-orange-50 border-orange-100';
-      case 'rejected':
-      case 'failed': return 'text-red-600 bg-red-50 border-red-100';
-      default: return 'text-gray-600 bg-gray-50 border-gray-100';
-    }
-  };
+  // handleInvoice function removed
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between px-2">
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight">Order History</h2>
-        {!isLoading && orders.length > 0 && (
-          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-sm">
-            {orders.length} Total
-          </span>
-        )}
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-4 sm:p-6 border-b border-gray-200">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Order History</h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="divide-y divide-gray-200">
         {isLoading ? (
           Array(3).fill(0).map((_, i) => (
-            <div key={i} className="bg-white/70 backdrop-blur-md rounded-3xl p-6 border border-white/40 shadow-sm animate-pulse">
-              <div className="flex justify-between mb-4">
-                <Skeleton width={120} height={24} />
-                <Skeleton width={80} height={24} />
-              </div>
-              <Skeleton width="100%" height={80} className="rounded-2xl mb-4" />
+            <div key={i} className="p-4 sm:p-6 space-y-4">
               <div className="flex justify-between">
-                <Skeleton width={150} height={20} />
-                <Skeleton width={60} height={24} />
+                <div className="flex space-x-3 w-1/2">
+                  <Skeleton width={20} height={20} variant="circular" />
+                  <div className="w-full space-y-2">
+                    <Skeleton width="60%" height={20} />
+                    <Skeleton width="40%" height={16} />
+                  </div>
+                </div>
+                <Skeleton width={80} height={24} className="rounded-full" />
+              </div>
+              <div className="space-y-3">
+                <div className="flex space-x-3">
+                  <Skeleton width={20} height={20} variant="circular" />
+                  <div className="w-3/4 space-y-1">
+                    <Skeleton width="50%" height={16} />
+                    <Skeleton width="30%" height={12} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between pt-2">
+                <Skeleton width={120} height={16} />
+                <Skeleton width={60} height={20} />
               </div>
             </div>
           ))
         ) : orders.length === 0 ? (
-          <MotionDiv
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/70 backdrop-blur-md rounded-3xl p-12 text-center border border-white/40 shadow-sm"
-          >
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Printer className="h-10 w-10 text-gray-300" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900">No orders yet</h3>
-            <p className="text-gray-500 mt-2">When you place orders, they will appear here.</p>
-          </MotionDiv>
+          <div className="p-4 sm:p-6 text-center text-gray-500">
+            No orders yet
+          </div>
         ) : (
-          <AnimatePresence mode="popLayout">
-            {paginatedOrders.map((order, index) => (
-              <MotionDiv
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                key={order.id}
-                className="group bg-white/70 backdrop-blur-md rounded-3xl border border-white/40 shadow-lg shadow-gray-200/20 hover:shadow-xl hover:shadow-blue-500/5 transition-all overflow-hidden"
-              >
-                <div className="p-5 sm:p-7">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                        <Printer className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-0.5">Order ID</p>
-                        <p className="font-black text-gray-900 text-base sm:text-lg">#{order.id.slice(-8).toUpperCase()}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                      <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-tight">
-                        {new Date(order.timestamp).toLocaleString('en-US', {
-                          month: 'short', day: '2-digit', year: 'numeric',
-                          hour: 'numeric', minute: '2-digit', hour12: true
-                        })}
+          paginatedOrders.map((order) => (
+            <div key={order.id} className="p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <Printer className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm sm:text-base">Order #{order.id}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {new Date(order.timestamp).toLocaleString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                    {order.paymentId && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        Payment ID: <span className="font-mono">{order.paymentId}</span>
                       </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Tracking Bar */}
+              {order.status !== 'rejected' && order.status !== 'failed' ? (
+                <div className="my-6 px-2 sm:px-6">
+                  <div className="relative">
+                    {/* 
+                        To keep the line exactly horizontally centered between the circles,
+                        we inset it by half the width of a circle. 
+                        Circles are w-8 sm:w-10 (2rem or 2.5rem). 
+                        Half of 2rem is 1rem (16px). Half of 2.5rem is 1.25rem (20px).
+                    */}
+                    <div className="absolute top-4 sm:top-5 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
+                      {/* Active tracking line (Fills parent based on percentage) */}
+                      <div
+                        className="h-full bg-[#48b4a2] rounded transition-all duration-500"
+                        style={{
+                          width: order.status === 'completed' ? '100%' :
+                            order.status === 'processing' ? '50%' : '0%'
+                        }}
+                      ></div>
+                    </div>
+
+                    {/* Nodes */}
+                    <div className="relative flex justify-between">
+                      {/* Step 1: Pending (Placed) */}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['pending', 'processing', 'completed'].includes(order.status)
+                          ? 'bg-[#48b4a2] text-white'
+                          : 'bg-[#4e5e65] text-white'
+                          }`}>
+                          1
+                        </div>
+                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['pending', 'processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                          }`}>PLACED</span>
+                      </div>
+
+                      {/* Step 2: Processing (Printing) */}
+                      <div className="flex flex-col items-center" style={{ width: '40px' }}>
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['processing', 'completed'].includes(order.status)
+                          ? 'bg-[#48b4a2] text-white'
+                          : 'bg-[#4e5e65] text-white'
+                          }`}>
+                          2
+                        </div>
+                        {/* the label container needs positioning or absolute to prevent it from altering the flex gap */}
+                        <div className="absolute top-12 sm:top-14 mt-1 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                            }`}>PROCESSING</span>
+                        </div>
+                      </div>
+
+                      {/* Step 3: Completed (Ready) */}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${order.status === 'completed'
+                          ? 'bg-[#48b4a2] text-white'
+                          : 'bg-[#4e5e65] text-white'
+                          }`}>
+                          3
+                        </div>
+                        <div className="mt-3 relative flex justify-center w-full">
+                          <span className={`absolute text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${order.status === 'completed' ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
+                            }`}>READY</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Progress Tracking Bar */}
-                  {order.status !== 'rejected' && order.status !== 'failed' ? (
-                    <div className="bg-gray-50/50 rounded-2xl p-5 mb-6 border border-gray-100/50">
-                      <div className="relative">
-                        <div className="absolute top-4 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{
-                              width: order.status === 'completed' ? '100%' :
-                                order.status === 'processing' ? '50%' : '5%'
-                            }}
-                            className="h-full bg-blue-600"
-                          />
-                        </div>
+                  {/* Since labels are absolute now to not disrupt grid spacing, we need a spacer */}
+                  <div className="h-8 sm:h-10"></div>
+                </div>
+              ) : (
+                <div className="my-4 p-3 bg-red-50 rounded-lg text-center">
+                  <span className="text-red-700 font-medium flex justify-center items-center">
+                    <X className="h-5 w-5 mr-1" /> {order.status === 'failed' ? 'Payment Failed' : 'Order Cancelled'}
+                  </span>
+                </div>
+              )}
 
-                        <div className="relative flex justify-between">
-                          {[
-                            { step: 1, label: 'PLACED', active: true },
-                            { step: 2, label: 'PRINTING', active: ['processing', 'completed'].includes(order.status) },
-                            { step: 3, label: 'READY', active: order.status === 'completed' }
-                          ].map((s, i) => (
-                            <div key={i} className="flex flex-col items-center">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all duration-500 border-2 ${s.active ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200' : 'bg-white border-gray-200 text-gray-400'}`}>
-                                {s.active ? <CheckCircle2 className="h-5 w-5" /> : <span className="text-xs font-bold">{s.step}</span>}
-                              </div>
-                              <span className={`mt-2 text-[10px] font-black tracking-widest uppercase transition-colors ${s.active ? 'text-blue-600' : 'text-gray-400'}`}>
-                                {s.label}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+              <div className="space-y-2 sm:space-y-3 mt-4">
+                {order.items.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-2 sm:space-x-3">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900">{item.fileName}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">
+                        {item.copies} {item.copies === 1 ? 'copy' : 'copies'} •
+                        {item.isColor ? ' Color' : ' B&W'} •
+                        {item.pages} pages
+                      </p>
                     </div>
-                  ) : (
-                    <div className="bg-red-50/50 rounded-2xl p-4 text-center border border-red-100 mb-6 font-bold text-red-600 text-sm flex items-center justify-center">
-                      <X className="h-5 w-5 mr-2" /> {order.status === 'failed' ? 'Payment Failed' : 'Order Cancelled'}
-                    </div>
-                  )}
+                  </div>
+                ))}
+              </div>
 
-                  <div className="space-y-3 mb-6">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 group/item hover:border-blue-100 transition-colors">
-                        <div className="flex items-center space-x-3 min-w-0">
-                          <div className="p-2 rounded-lg bg-red-50 text-red-600">
-                            <FileText className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-gray-900 truncate">{item.fileName}</p>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                              {item.copies} copies • {item.pages} pages • {item.isColor ? 'Color' : 'B&W'}
-                            </p>
-                          </div>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-gray-300 group-hover/item:text-blue-600 transition-colors" />
+              <div className="mt-3 sm:mt-4 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                  <span className="text-xs sm:text-sm text-gray-500">
+                    {order.status === 'completed'
+                      ? order.completedAt
+                        ? `Completed on ${new Date(order.completedAt).toLocaleString('en-US', {
+                          month: 'numeric',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}`
+                        : 'Completed'
+                      : order.status === 'rejected'
+                        ? 'Order Cancelled'
+                        : order.status === 'failed'
+                          ? 'Payment Failed'
+                          : 'Expected in 15-20 mins'}
+                  </span>
+                </div>
+                <p className="font-medium text-gray-900 text-sm sm:text-base">
+                  ₹{order.total.toFixed(2)}
+                </p>
+              </div>
+
+              {/* View Invoice Button */}
+              {order.invoiceUrl && (
+                <div className="mt-3 flex justify-end">
+                  <a
+                    href={order.invoiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View Invoice</span>
+                  </a>
+                </div>
+              )}
+
+              {/* OTP Display Section */}
+              {order.status === 'processing' && order.isPaid && order.otp && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Shield className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-900">Your Verification Code</span>
+                  </div>
+
+                  <div className="flex justify-center space-x-2 mb-3">
+                    {(order.otp || '').split('').map((digit, index) => (
+                      <div
+                        key={index}
+                        className="w-10 h-10 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center"
+                      >
+                        <span className="text-lg font-bold text-blue-600">
+                          {digit}
+                        </span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-between pt-5 border-t border-gray-100">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-1.5 text-gray-500">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-xs font-bold uppercase tracking-tight">
-                          {order.status === 'completed' ? 'Delivered' : 'Est. 15-20 min'}
-                        </span>
-                      </div>
-                      {order.invoiceUrl && (
-                        <a
-                          href={order.invoiceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center space-x-1.5 text-blue-600 hover:text-blue-800 text-xs font-black uppercase tracking-widest transition-colors"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span>Invoice</span>
-                        </a>
-                      )}
-                    </div>
-                    <p className="text-xl font-black text-gray-900 tracking-tighter">
-                      ₹{order.total.toFixed(2)}
-                    </p>
-                  </div>
-
-                  {/* OTP Section */}
-                  {order.status === 'processing' && order.isPaid && order.otp && (
-                    <MotionDiv
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      className="mt-6 pt-6 border-t border-dashed border-gray-200 overflow-hidden"
-                    >
-                      <div className="bg-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-200">
-                        <div className="flex items-center space-x-2 mb-4 opacity-90">
-                          <Shield className="h-4 w-4" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Verification Key</span>
-                        </div>
-                        <div className="flex justify-center space-x-3">
-                          {order.otp.split('').map((digit, i) => (
-                            <div key={i} className="w-12 h-14 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30">
-                              <span className="text-2xl font-black">{digit}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-center text-[10px] font-bold mt-4 opacity-80 uppercase tracking-tight italic">
-                          Show this code to collect your prints
-                        </p>
-                      </div>
-                    </MotionDiv>
-                  )}
+                  <p className="text-xs text-gray-500 text-center">
+                    Show this code to the seller when collecting your prints
+                  </p>
                 </div>
-              </MotionDiv>
-            ))}
-          </AnimatePresence>
+              )}
+            </div>
+          ))
         )}
       </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 pt-4">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            Page {currentPage} of {totalPages}
-          </p>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="p-2 bg-white rounded-xl border border-gray-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-gray-600 transition-all"
-            >
-              <ChevronRight className="h-5 w-5 rotate-180" />
-            </button>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="p-2 bg-white rounded-xl border border-gray-200 text-gray-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-gray-600 transition-all"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, orders.length)}</span> of <span className="font-medium">{orders.length}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                >
+                  <span className="sr-only">Previous</span>
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                >
+                  <span className="sr-only">Next</span>
+                  Next
+                </button>
+              </nav>
+            </div>
+          </div>
+          <div className="flex flex-col sm:hidden w-full gap-3">
+            <div className="flex justify-between items-center w-full">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`relative inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 flex-1 mr-2 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`relative inline-flex items-center justify-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 flex-1 ml-2 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Next
+              </button>
+            </div>
+            <p className="text-xs text-center text-gray-500">
+              Page {currentPage} of {totalPages}
+            </p>
           </div>
         </div>
       )}
@@ -251,4 +313,3 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
 };
 
 export default OrderHistory;
-story;
