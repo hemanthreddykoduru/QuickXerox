@@ -23,6 +23,7 @@ import { toast } from 'react-hot-toast';
 import { useProfile } from '../../hooks/useProfile'; // Import useProfile
 import Skeleton from '../../components/common/Skeleton';
 import DashboardSkeleton from '../../components/common/DashboardSkeleton';
+import SimplePreviewModal from '../../components/common/SimplePreviewModal';
 
 function CustomerDashboard() {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ function CustomerDashboard() {
   const [showOTPVerification, setShowOTPVerification] = useState(false);
   const [selectedOrderForOTP, setSelectedOrderForOTP] = useState<Order | null>(null);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [fileToPreview, setFileToPreview] = useState<File | null>(null);
 
 
   useEffect(() => {
@@ -343,6 +345,7 @@ function CustomerDashboard() {
                 jobs={printJobs}
                 onUpdateJob={handleUpdateJob}
                 onRemoveJob={handleRemoveJob}
+                onPreview={(file) => setFileToPreview(file)}
               />
             )}
           </div>
@@ -498,6 +501,14 @@ function CustomerDashboard() {
         isOpen={isNotificationCenterOpen}
         onClose={() => setIsNotificationCenterOpen(false)}
       />
+
+      {/* Simple Preview Modal */}
+      {fileToPreview && (
+        <SimplePreviewModal
+          file={fileToPreview}
+          onClose={() => setFileToPreview(null)}
+        />
+      )}
     </div>
   );
 }

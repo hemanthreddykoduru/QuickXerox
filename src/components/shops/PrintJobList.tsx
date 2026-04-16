@@ -1,5 +1,4 @@
-import React from 'react';
-import { File as FileIcon, X } from 'lucide-react';
+import { File as FileIcon, Eye, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PrintJob } from '../../types';
 
@@ -7,9 +6,10 @@ interface PrintJobListProps {
   jobs: PrintJob[];
   onUpdateJob: (job: PrintJob) => void;
   onRemoveJob: (id: string) => void;
+  onPreview: (file: File) => void;
 }
 
-const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemoveJob }) => {
+const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemoveJob, onPreview }) => {
   const MotionDiv = motion.div as any;
 
   return (
@@ -63,13 +63,23 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
             </div>
 
             
-            <button
-              onClick={() => onRemoveJob(job.id)}
-              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-95"
-              aria-label="Remove item"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => onPreview(job.file)}
+                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
+                title="Preview file"
+                aria-label="Preview file"
+              >
+                <Eye className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => onRemoveJob(job.id)}
+                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-95"
+                aria-label="Remove item"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
           </div>
 
