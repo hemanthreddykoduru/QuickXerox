@@ -30,10 +30,10 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Order History</h2>
       </div>
 
-      <div className="divide-y divide-gray-200">
+      <div className="p-4 sm:p-6 space-y-4">
         {isLoading ? (
           Array(3).fill(0).map((_, i) => (
-            <div key={i} className="p-4 sm:p-6 space-y-4">
+            <div key={i} className="border border-gray-200 rounded-xl p-4 sm:p-5 space-y-4 animate-pulse">
               <div className="flex justify-between">
                 <div className="flex space-x-3 w-1/2">
                   <Skeleton width={20} height={20} variant="circular" />
@@ -60,198 +60,168 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
             </div>
           ))
         ) : orders.length === 0 ? (
-          <div className="p-4 sm:p-6 text-center text-gray-500">
-            No orders yet
+          <div className="py-12 text-center text-gray-400">
+            <Printer className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="text-sm font-medium">No orders yet</p>
           </div>
         ) : (
-          paginatedOrders.map((order) => (
-            <div key={order.id} className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <Printer className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm sm:text-base">Order #{order.id}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {new Date(order.timestamp).toLocaleString('en-US', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
-                    </p>
-                    {order.paymentId && (
-                      <p className="text-xs text-gray-400 mt-1">
-                        Payment ID: <span className="font-mono">{order.paymentId}</span>
+          paginatedOrders.map((order) => {
+            const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+              pending:    { label: 'Placed',     bg: 'bg-blue-50',   text: 'text-blue-700',   dot: 'bg-blue-500' },
+              processing: { label: 'Ready',      bg: 'bg-amber-50',  text: 'text-amber-700',  dot: 'bg-amber-500' },
+              completed:  { label: 'Completed',  bg: 'bg-green-50',  text: 'text-green-700',  dot: 'bg-green-500' },
+              rejected:   { label: 'Cancelled',  bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
+              failed:     { label: 'Failed',     bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
+            };
+            const s = statusConfig[order.status] ?? { label: order.status, bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-400' };
+
+            return (
+              <div
+                key={order.id}
+                className="border border-gray-200 rounded-xl shadow-sm bg-white overflow-hidden"
+              >
+                {/* ── Card Header ──────────────────────────────────────── */}
+                <div className="flex items-start justify-between px-4 pt-4 pb-3 sm:px-5 sm:pt-5 border-b border-gray-100">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="flex-shrink-0 p-2 bg-indigo-50 rounded-lg">
+                      <Printer className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                        Order #{order.id}
                       </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Tracking Bar */}
-              {order.status !== 'rejected' && order.status !== 'failed' ? (
-                <div className="my-6 px-2 sm:px-6">
-                  <div className="relative">
-                    {/* 
-                        To keep the line exactly horizontally centered between the circles,
-                        we inset it by half the width of a circle. 
-                        Circles are w-8 sm:w-10 (2rem or 2.5rem). 
-                        Half of 2rem is 1rem (16px). Half of 2.5rem is 1.25rem (20px).
-                    */}
-                    <div className="absolute top-4 sm:top-5 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-[#4e5e65] -translate-y-1/2 rounded">
-                      {/* Active tracking line (Fills parent based on percentage) */}
-                      <div
-                        className="h-full bg-[#48b4a2] rounded transition-all duration-500"
-                        style={{
-                          width: order.status === 'completed' ? '100%' :
-                            order.status === 'processing' ? '50%' : '0%'
-                        }}
-                      ></div>
-                    </div>
-
-                    {/* Nodes */}
-                    <div className="relative flex justify-between">
-                      {/* Step 1: Pending (Placed) */}
-                      <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['pending', 'processing', 'completed'].includes(order.status)
-                          ? 'bg-[#48b4a2] text-white'
-                          : 'bg-[#4e5e65] text-white'
-                          }`}>
-                          1
-                        </div>
-                        <span className={`mt-3 text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['pending', 'processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                          }`}>PLACED</span>
-                      </div>
-
-                      {/* Step 2: Processing (Printing) */}
-                      <div className="flex flex-col items-center" style={{ width: '40px' }}>
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${['processing', 'completed'].includes(order.status)
-                          ? 'bg-[#48b4a2] text-white'
-                          : 'bg-[#4e5e65] text-white'
-                          }`}>
-                          2
-                        </div>
-                        {/* the label container needs positioning or absolute to prevent it from altering the flex gap */}
-                        <div className="absolute top-12 sm:top-14 mt-1 text-center whitespace-nowrap">
-                          <span className={`text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${['processing', 'completed'].includes(order.status) ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                            }`}>PROCESSING</span>
-                        </div>
-                      </div>
-
-                      {/* Step 3: Completed (Ready) */}
-                      <div className="flex flex-col items-center">
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-medium z-10 transition-colors ${order.status === 'completed'
-                          ? 'bg-[#48b4a2] text-white'
-                          : 'bg-[#4e5e65] text-white'
-                          }`}>
-                          3
-                        </div>
-                        <div className="mt-3 relative flex justify-center w-full">
-                          <span className={`absolute text-[10px] sm:text-xs font-semibold tracking-widest uppercase ${order.status === 'completed' ? 'text-[#4e5e65]' : 'text-[#4e5e65]'
-                            }`}>READY</span>
-                        </div>
-                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {new Date(order.timestamp).toLocaleString('en-IN', {
+                          day: '2-digit', month: 'short', year: 'numeric',
+                          hour: 'numeric', minute: '2-digit', hour12: true
+                        })}
+                      </p>
+                      {order.paymentId && (
+                        <p className="text-[10px] text-gray-400 mt-0.5 font-mono truncate max-w-[200px]">
+                          {order.paymentId}
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  {/* Since labels are absolute now to not disrupt grid spacing, we need a spacer */}
-                  <div className="h-8 sm:h-10"></div>
-                </div>
-              ) : (
-                <div className="my-4 p-3 bg-red-50 rounded-lg text-center">
-                  <span className="text-red-700 font-medium flex justify-center items-center">
-                    <X className="h-5 w-5 mr-1" /> {order.status === 'failed' ? 'Payment Failed' : 'Order Cancelled'}
+                  {/* Status Badge */}
+                  <span className={`flex-shrink-0 ml-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                    {s.label}
                   </span>
                 </div>
-              )}
 
-              <div className="space-y-2 sm:space-y-3 mt-4">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-2 sm:space-x-3">
-                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                    <div className="flex-1">
-                      <p className="text-xs sm:text-sm font-medium text-gray-900">{item.fileName}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">
-                        {item.copies} {item.copies === 1 ? 'copy' : 'copies'} •
-                        {item.isColor ? ' Color' : ' B&W'} •
-                        {item.pages} pages
-                      </p>
+                {/* ── Progress Bar ─────────────────────────────────────── */}
+                {order.status !== 'rejected' && order.status !== 'failed' ? (
+                  <div className="px-6 sm:px-8 py-5">
+                    <div className="relative">
+                      <div className="absolute top-4 sm:top-5 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-slate-100 -translate-y-1/2 rounded">
+                        <div
+                          className="h-full bg-indigo-600 rounded transition-all duration-500"
+                          style={{
+                            width: order.status === 'completed' ? '100%' :
+                              order.status === 'processing' ? '50%' : '0%'
+                          }}
+                        />
+                      </div>
+                      <div className="relative flex justify-between">
+                        {[
+                          { step: 1, label: 'PLACED',    active: ['pending','processing','completed'] },
+                          { step: 2, label: 'READY',     active: ['processing','completed'] },
+                          { step: 3, label: 'DONE',      active: ['completed'] },
+                        ].map(({ step, label, active }) => (
+                          <div key={step} className="flex flex-col items-center flex-1">
+                            <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors duration-300 ${active.includes(order.status) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
+                              {step}
+                            </div>
+                            <span className={`mt-2 text-[9px] sm:text-xs font-bold tracking-widest uppercase ${active.includes(order.status) ? 'text-indigo-600' : 'text-slate-400'}`}>
+                              {label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-3 sm:mt-4 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                  <span className="text-xs sm:text-sm text-gray-500">
-                    {order.status === 'completed'
-                      ? order.completedAt
-                        ? `Completed on ${new Date(order.completedAt).toLocaleString('en-US', {
-                          month: 'numeric',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        })}`
-                        : 'Completed'
-                      : order.status === 'rejected'
-                        ? 'Order Cancelled'
-                        : order.status === 'failed'
-                          ? 'Payment Failed'
-                          : 'Expected in 15-20 mins'}
-                  </span>
-                </div>
-                <p className="font-medium text-gray-900 text-sm sm:text-base">
-                  ₹{order.total.toFixed(2)}
-                </p>
-              </div>
-
-              {/* View Invoice Button */}
-              {order.invoiceUrl && (
-                <div className="mt-3 flex justify-end">
-                  <a
-                    href={order.invoiceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                  >
-                    <Eye className="h-4 w-4" />
-                    <span>View Invoice</span>
-                  </a>
-                </div>
-              )}
-
-              {/* OTP Display Section */}
-              {order.status === 'processing' && order.isPaid && order.otp && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <Shield className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-900">Your Verification Code</span>
+                ) : (
+                  <div className="mx-4 sm:mx-5 my-4 p-3 bg-red-50 rounded-lg text-center">
+                    <span className="text-red-700 font-medium text-sm flex justify-center items-center gap-1">
+                      <X className="h-4 w-4" />
+                      {order.status === 'failed' ? 'Payment Failed' : 'Order Cancelled'}
+                    </span>
                   </div>
+                )}
 
-                  <div className="flex justify-center space-x-2 mb-3">
-                    {(order.otp || '').split('').map((digit, index) => (
-                      <div
-                        key={index}
-                        className="w-10 h-10 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center"
+                {/* ── File Items ───────────────────────────────────────── */}
+                <div className="px-4 sm:px-5 pb-3 space-y-2">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-2 sm:space-x-3 bg-gray-50 rounded-lg px-3 py-2">
+                      <FileText className="h-4 w-4 flex-shrink-0 text-indigo-400" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{item.fileName}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+                          {item.copies} {item.copies === 1 ? 'copy' : 'copies'} · {item.isColor ? 'Color' : 'B&W'} · {item.pages} {item.pages === 1 ? 'page' : 'pages'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── Footer: Time + Amount + Invoice ─────────────────── */}
+                <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-gray-50 border-t border-gray-100">
+                  <div className="flex items-center space-x-1.5 text-xs text-gray-500">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>
+                      {order.status === 'completed'
+                        ? order.completedAt
+                          ? `Completed ${new Date(order.completedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}`
+                          : 'Completed'
+                        : order.status === 'rejected'
+                          ? 'Cancelled'
+                          : order.status === 'failed'
+                            ? 'Payment Failed'
+                            : 'Expected in 15–20 mins'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {order.invoiceUrl && (
+                      <a
+                        href={order.invoiceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
                       >
-                        <span className="text-lg font-bold text-blue-600">
-                          {digit}
-                        </span>
-                      </div>
-                    ))}
+                        <Eye className="h-3.5 w-3.5" />
+                        Invoice
+                      </a>
+                    )}
+                    <p className="font-bold text-gray-900 text-sm">₹{order.total.toFixed(2)}</p>
                   </div>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    Show this code to the seller when collecting your prints
-                  </p>
                 </div>
-              )}
-            </div>
-          ))
+
+                {/* ── OTP Section ──────────────────────────────────────── */}
+                {order.status === 'processing' && order.isPaid && order.otp && (
+                  <div className="px-4 sm:px-5 pb-4 pt-1">
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Shield className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-semibold text-blue-900">Your Verification Code</span>
+                      </div>
+                      <div className="flex justify-center gap-2 mb-2">
+                        {(order.otp || '').split('').map((digit, index) => (
+                          <div
+                            key={index}
+                            className="w-11 h-11 border-2 border-blue-200 bg-white rounded-xl flex items-center justify-center shadow-sm"
+                          >
+                            <span className="text-xl font-black text-blue-700">{digit}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-blue-600 text-center">Show this code to the seller when collecting your prints</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 

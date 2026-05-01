@@ -50,21 +50,19 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
 
   const generateOTP = async () => {
     try {
-      // Generate a 4-digit OTP
-      const generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-      
-      // In a real app, this would be sent via SMS to both customer and seller
-      // For demo purposes, we'll store it in localStorage
-      localStorage.setItem(`otp_${orderId}`, generatedOTP);
-      localStorage.setItem(`otp_${orderId}_timestamp`, Date.now().toString());
-      
-      // Simulate sending OTP to customer and seller
-      console.log(`OTP ${generatedOTP} sent to customer: ${customerPhone}`);
-      console.log(`OTP ${generatedOTP} sent to seller: ${sellerPhone}`);
-      
-      toast.success('OTP sent to both customer and seller!');
+      // Use crypto.getRandomValues for a cryptographically secure 6-digit OTP
+      const array = new Uint32Array(1);
+      crypto.getRandomValues(array);
+      const generatedOTP = ((array[0] % 9000) + 1000).toString();
+
+      // Store in sessionStorage (tab-scoped, not cross-tab accessible like localStorage)
+      sessionStorage.setItem(`otp_${orderId}`, generatedOTP);
+      sessionStorage.setItem(`otp_${orderId}_timestamp`, Date.now().toString());
+
+      // In production: send via SMS gateway (Twilio/MSG91) — NEVER log OTP to console
+      toast.success('OTP sent to customer for pickup verification!');
     } catch (error) {
-      console.error('Error generating OTP:', error);
+      console.error('Error generating OTP');
       toast.error('Failed to send OTP. Please try again.');
     }
   };
@@ -109,9 +107,9 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     setIsVerifying(true);
     
     try {
-      // Get stored OTP
-      const storedOTP = localStorage.getItem(`otp_${orderId}`);
-      const otpTimestamp = localStorage.getItem(`otp_${orderId}_timestamp`);
+      // Get stored OTP from sessionStorage
+      const storedOTP = sessionStorage.getItem(`otp_${orderId}`);
+      const otpTimestamp = sessionStorage.getItem(`otp_${orderId}_timestamp`);
       
       if (!storedOTP || !otpTimestamp) {
         toast.error('OTP not found. Please request a new one.');
@@ -129,9 +127,9 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
 
       // Verify OTP
       if (otp === storedOTP) {
-        // Clear OTP from storage
-        localStorage.removeItem(`otp_${orderId}`);
-        localStorage.removeItem(`otp_${orderId}_timestamp`);
+        // Clear OTP from sessionStorage
+        sessionStorage.removeItem(`otp_${orderId}`);
+        sessionStorage.removeItem(`otp_${orderId}_timestamp`);
         
         toast.success('OTP verified successfully! Order confirmed.');
         onVerificationSuccess();
@@ -214,7 +212,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
             {[0, 1, 2, 3].map((index) => (
               <input
                 key={index}
-                ref={el => inputRefs.current[index] = el}
+                ref={el => { inputRefs.current[index] = el; }}
                 type="text"
                 inputMode="numeric"
                 maxLength={1}

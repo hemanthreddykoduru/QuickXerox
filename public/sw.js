@@ -1,4 +1,4 @@
-const CACHE_NAME = "quickxerox-v3-fix";
+const CACHE_NAME = "quickxerox-v5";
 const urlsToCache = [
   "/",
   "/index.html",
@@ -40,14 +40,19 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch event - NETWORK FIRST strategy
-// This ensures we always get the latest index.html and assets.
+// Fetch event - same-origin NETWORK FIRST, cross-origin passthrough
+// Critically: do NOT call respondWith() for cross-origin requests.
+// If we fetch() them inside the SW, the browser applies connect-src CSP,
+// which blocks scripts/images that are allowed via script-src/img-src.
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // Skip cross-origin — let browser handle them natively
+  if (url.origin !== location.origin) return;
+
+  // Same-origin: network first, fall back to cache for offline
   event.respondWith(
     fetch(event.request)
-      .catch(() => {
-        // Fallback to cache ONLY if network fails (offline)
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });

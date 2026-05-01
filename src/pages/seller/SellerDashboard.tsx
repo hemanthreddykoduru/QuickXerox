@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, MapPin, Bell, CreditCard, BarChart, X, Globe, BellRing, Shield, Settings, LogOut, Clock } from 'lucide-react';
+import { MapPin, Bell, CreditCard, BarChart, X, Globe, BellRing, Shield, Settings, LogOut, Clock } from 'lucide-react';
 import { auth, db } from '../../firebase';
 import { doc, setDoc, getDoc, query, collection, onSnapshot, where, updateDoc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { toast } from 'react-hot-toast';
@@ -51,10 +51,12 @@ const SellerDashboard: React.FC = () => {
           fetchedOrders.push({ ...doc.data(), id: doc.id } as Order);
         });
 
-        // Sort by timestamp descending
-        fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-        setOrders(fetchedOrders);
+        // Exclude failed/cancelled orders and sort by timestamp descending
+        setOrders(
+          fetchedOrders
+            .filter(order => order.status !== 'failed')
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        );
         setLoading(false);
 
         // Auto-cleanup: Delete files from orders completed more than 24 hours ago
@@ -586,10 +588,10 @@ const SellerDashboard: React.FC = () => {
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
+            <div className="flex items-center space-x-3">
+              <img src="/favicon.svg" alt="QuickXerox" className="h-8 w-8 sm:h-9 sm:w-9" />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Print Shop Dashboard</h1>
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">QuickXerox <span className="text-indigo-600">Partner</span></h1>
                 <div className="flex items-center space-x-2">
                   <p className="text-xs sm:text-sm text-gray-500">{settings.shop.name}</p>
                   <span className="flex items-center text-xs sm:text-sm text-gray-500">

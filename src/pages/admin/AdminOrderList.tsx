@@ -17,6 +17,9 @@ interface Order {
   createdAt: string;
   timestampMs: number;
   paymentId?: string;
+  couponCode?: string;
+  discountAmount?: number;
+  originalAmount?: number;
   items?: any[];
 }
 
@@ -68,6 +71,9 @@ const AdminOrderList = () => {
             totalAmount: data.total || data.totalAmount || 0,
             status: data.status || 'Unknown',
             paymentId: data.paymentId || 'N/A',
+            couponCode: data.couponCode,
+            discountAmount: data.discountAmount,
+            originalAmount: data.originalAmount,
             createdAt: formattedDate,
             timestampMs: tsMs,
             items: data.items || [],
@@ -461,6 +467,19 @@ const AdminOrderList = () => {
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
                   <p className="text-lg font-bold text-gray-900 dark:text-gray-100">₹{selectedOrder.totalAmount.toFixed(2)}</p>
+                  {selectedOrder.couponCode && (
+                    <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800/30">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium text-green-700 dark:text-green-400">Coupon: {selectedOrder.couponCode}</span>
+                        <span className="text-xs font-bold text-green-700 dark:text-green-400">-₹{selectedOrder.discountAmount?.toFixed(2)}</span>
+                      </div>
+                      {selectedOrder.originalAmount && (
+                        <p className="text-[10px] text-green-600/70 dark:text-green-400/50 mt-0.5 line-through">
+                          Original: ₹{selectedOrder.originalAmount.toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Files & Print Settings</p>

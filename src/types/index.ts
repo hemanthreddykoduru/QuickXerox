@@ -61,6 +61,25 @@ export interface Order {
   completedAt?: string;
   paymentId?: string;
   invoiceUrl?: string;
+  couponCode?: string;
+  discountAmount?: number;
+  originalTotal?: number;
 }
 
 export type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: 'flat' | 'percentage';
+  discountValue: number;
+  minOrderAmount: number;
+  maxDiscount?: number;
+  expiryDate: string;
+  usageLimit: number;
+  usedCount: number;
+  perUserLimit: number;
+  totalDiscountGiven?: number;
+  isActive: boolean;
+  createdAt: string;
+}

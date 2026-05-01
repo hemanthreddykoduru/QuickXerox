@@ -1,7 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
+import { auth, db } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+
+// ─── Secure PrivateRoute ───────────────────────────────────────────────────
+// Verifies auth state via Firebase (not forgeable localStorage flags).
+// Shows a full-screen loader while the auth check is in progress.
+type RouteType = 'customer' | 'seller' | 'admin';
+
+const PrivateRoute = ({
+  children,
+  type = 'customer',
+}: {
+  children: React.ReactNode;
+  type?: RouteType;
+}) => {
+  const location = useLocation();
+  const [status, setStatus] = useState<'loading' | 'allowed' | 'denied'>('loading');
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setStatus('denied');
+        return;
+      }
+
+      try {
+        if (type === 'admin') {
+          const snap = await getDoc(doc(db, 'admins', user.uid));
+          setStatus(snap.exists() ? 'allowed' : 'denied');
+        } else if (type === 'seller') {
+          const snap = await getDoc(doc(db, 'shopOwners', user.uid));
+          setStatus(snap.exists() ? 'allowed' : 'denied');
+        } else {
+          // Customer: any authenticated user is allowed
+          setStatus('allowed');
+        }
+      } catch {
+        setStatus('denied');
+      }
+    });
+
+    return () => unsub();
+  }, [type]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        <img src="/favicon.svg" alt="QuickXerox" className="w-16 h-16 mb-4 animate-pulse" />
+        <div className="flex gap-2 mt-2">
+          <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:-0.3s]" />
+          <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:-0.15s]" />
+          <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" />
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'denied') {
+    const redirectTo =
+      type === 'admin' ? '/admin/login' :
+      type === 'seller' ? '/seller/login' :
+      '/login';
+    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+// ──────────────────────────────────────────────────────────────────────────────
+
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import SellerDashboard from './pages/seller/SellerDashboard';
 import LoginPage from './pages/auth/LoginPage';
@@ -17,6 +85,7 @@ import AdminSellerList from './pages/admin/AdminSellerList';
 import AdminSellerDetails from './pages/admin/AdminSellerDetails';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import AdminEmailTemplates from './pages/admin/AdminEmailTemplates';
+import AdminCoupons from './pages/admin/AdminCoupons';
 import IpBlocked from './pages/legal/IpBlocked';
 import TermsPage from './pages/legal/TermsPage';
 import PrivacyPage from './pages/legal/PrivacyPage';
@@ -25,35 +94,6 @@ import ContactPage from './pages/legal/ContactPage';
 import MaintenancePage from './pages/legal/MaintenancePage';
 import LandingPage from './pages/home/LandingPage';
 import SellerLandingPage from './pages/seller/SellerLandingPage';
-
-
-const PrivateRoute = ({ children, type = 'customer' }: { children: React.ReactNode; type?: 'customer' | 'seller' | 'admin' }) => {
-  const location = useLocation();
-  let isAuthenticated = false;
-
-  if (type === 'seller') {
-    isAuthenticated = localStorage.getItem('isSellerAuthenticated') === 'true';
-  } else if (type === 'admin') {
-    isAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
-  } else {
-    isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-  }
-
-  if (!isAuthenticated) {
-    // Redirect to login page based on type
-    let redirectTo = '/login';
-    if (type === 'seller') {
-      redirectTo = '/seller/login';
-    } else if (type === 'admin') {
-      redirectTo = '/admin/login';
-    }
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
-};
-
-import { Printer } from 'lucide-react';
 import ScrollToTop from './components/common/ScrollToTop';
 
 function App() {
@@ -76,16 +116,13 @@ function App() {
   if (loadingSettings) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        <div className="relative">
-          <Printer className="h-12 w-12 text-blue-600 animate-pulse" />
-          <div className="absolute -inset-4 bg-blue-100/50 rounded-full blur-2xl -z-10 animate-pulse" />
-        </div>
-        <div className="mt-8 space-y-3 flex flex-col items-center">
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">QuickXerox</h2>
-          <div className="flex gap-1.5 align-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-[bounce_1s_infinite_100ms]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-[bounce_1s_infinite_200ms]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-[bounce_1s_infinite_300ms]" />
+        <div className="animate-in fade-in zoom-in duration-700 flex flex-col items-center">
+          <img src="/favicon.svg" alt="QuickXerox" className="w-32 h-32 mb-8 animate-pulse" />
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">QuickXerox</h2>
+          <div className="mt-6 flex gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-bounce" />
           </div>
         </div>
       </div>
@@ -195,6 +232,14 @@ function App() {
             element={
               <PrivateRoute type="admin">
                 <AdminEmailTemplates />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/coupons"
+            element={
+              <PrivateRoute type="admin">
+                <AdminCoupons />
               </PrivateRoute>
             }
           />

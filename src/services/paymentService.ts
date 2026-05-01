@@ -1,12 +1,5 @@
-import { functions } from '../firebase';
-import { httpsCallable } from 'firebase/functions';
 
 const VERCEL_API_URL = 'https://quickxerox-api.vercel.app/api';
-
-interface PaymentDetails {
-  amount: number;
-  currency: string;
-}
 
 /**
  * Initialize Payment
@@ -14,6 +7,8 @@ interface PaymentDetails {
 export const createPayment = async (paymentDetails: {
   amount: number;
   currency: string;
+  couponCode?: string;
+  userId?: string;
 }) => {
   try {
     // Call Vercel API instead of Firebase Cloud Function
@@ -69,6 +64,76 @@ export const verifyPayment = async (
 
   } catch (error) {
     console.error('Error verifying payment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Apply Coupon
+ */
+export const applyCoupon = async (
+  couponCode: string,
+  orderAmount: number,
+  userId?: string
+) => {
+  try {
+    const response = await fetch(`${VERCEL_API_URL}/apply-coupon`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        couponCode,
+        orderAmount,
+        userId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to apply coupon');
+    }
+
+    return await response.json(); // Returns { success: true, discount, finalAmount, couponId, code }
+
+  } catch (error) {
+    console.error('Error applying coupon:', error);
+    throw error;
+  }
+};
+
+/**
+ * Record Coupon Usage
+ */
+export const recordCouponUsage = async (
+  couponId: string,
+  orderId: string,
+  discountAmount: number,
+  userId?: string
+) => {
+  try {
+    const response = await fetch(`${VERCEL_API_URL}/use-coupon`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        couponId,
+        orderId,
+        discountAmount,
+        userId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to record coupon usage');
+    }
+
+    return await response.json();
+
+  } catch (error) {
+    console.error('Error recording coupon usage:', error);
     throw error;
   }
 };

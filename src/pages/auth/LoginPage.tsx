@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Printer, Eye, EyeOff, Mail, MapPin, Phone, Github } from 'lucide-react';
+import { Eye, EyeOff, Mail, MapPin, Phone, Github } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { auth, provider, githubProvider, db } from '../../firebase';
@@ -41,8 +41,14 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [lastLoginAttempt, setLastLoginAttempt] = useState<Date | null>(null);
+  // Rate limiting stored in sessionStorage so it survives page refresh
+  const [loginAttempts, setLoginAttempts] = useState(() =>
+    parseInt(sessionStorage.getItem('loginAttempts') || '0', 10)
+  );
+  const [lastLoginAttempt, setLastLoginAttempt] = useState<Date | null>(() => {
+    const ts = sessionStorage.getItem('lastLoginAttempt');
+    return ts ? new Date(parseInt(ts, 10)) : null;
+  });
   const [isResetPasswordModalOpen, setIsResetPasswordModalOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
 
@@ -73,7 +79,10 @@ const LoginPage = () => {
         toast.error(`Too many attempts. Please try again in ${minutesLeft} minutes.`);
         return;
       }
+      // Lockout window expired — reset
       setLoginAttempts(0);
+      sessionStorage.removeItem('loginAttempts');
+      sessionStorage.removeItem('lastLoginAttempt');
     }
 
     setIsLoading(true);
@@ -197,8 +206,13 @@ const LoginPage = () => {
       }
 
       toast.error(errorMessage);
-      setLoginAttempts(prev => prev + 1);
-      setLastLoginAttempt(new Date());
+      const newAttempts = loginAttempts + 1;
+      const now = new Date();
+      setLoginAttempts(newAttempts);
+      setLastLoginAttempt(now);
+      // Persist so refresh doesn't reset the lockout
+      sessionStorage.setItem('loginAttempts', String(newAttempts));
+      sessionStorage.setItem('lastLoginAttempt', String(now.getTime()));
       setIsLoading(false);
     }
   };
@@ -436,9 +450,9 @@ const LoginPage = () => {
       {/* Navbar */}
       <nav className="border-b border-gray-100 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Printer className="h-8 w-8 text-blue-600" strokeWidth={1.5} />
-            <span className="text-xl font-bold text-gray-900 tracking-tight">QuickXerox</span>
+          <div className="flex items-center gap-3">
+            <img src="/favicon.svg" alt="QuickXerox" className="h-8 w-8" />
+            <span className="text-xl font-black text-slate-900 tracking-tight">QuickXerox</span>
           </div>
           <button
             onClick={() => {
@@ -472,8 +486,9 @@ const LoginPage = () => {
                 {/* Glow effect */}
                 <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-20 rounded-full scale-150"></div>
 
-                {/* Icon without white background */}
-                <Printer className="relative w-32 h-32 lg:w-40 lg:h-40 text-blue-600 drop-shadow-lg" strokeWidth={1.5} />
+                <div className="flex flex-col items-center">
+                  <img src="/favicon.svg" alt="QuickXerox" className="w-48 h-48 lg:w-64 lg:h-64 drop-shadow-xl" />
+                </div>
               </div>
             </div>
           </div>
@@ -657,9 +672,9 @@ const LoginPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Printer className="h-6 w-6 text-blue-600" strokeWidth={1.5} />
-                <h3 className="text-lg font-bold text-gray-900">QuickXerox</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <img src="/favicon.svg" alt="QuickXerox" className="h-7 w-7" />
+                <h3 className="text-lg font-black text-slate-900">QuickXerox</h3>
               </div>
               <p className="text-gray-500 text-sm leading-relaxed">
                 Your one-stop destination for fast, reliable, and secure printing services.

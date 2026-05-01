@@ -15,11 +15,11 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
   return (
     <div className="space-y-4">
       {jobs.map((job) => (
-        <div key={job.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div key={job.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-slate-300 transition-colors">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 flex-1">
-              <div className="relative mt-1">
-                <FileIcon className="h-6 w-6 text-blue-600" />
+              <div className="relative mt-1 text-indigo-600">
+                <FileIcon className="h-6 w-6" />
                 <MotionDiv
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -47,17 +47,11 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
               
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-gray-900 line-clamp-1">{job.file.name}</p>
-                  <MotionDiv
-                    initial={{ width: 40, opacity: 0.5 }}
-                    animate={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="h-1 bg-blue-500 rounded-full"
-                  />
+                  <p className="font-semibold text-slate-900 line-clamp-1">{job.file.name}</p>
                 </div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                   {(job.file.size / 1024 / 1024).toFixed(2)} MB &nbsp;•&nbsp;
-                  <span className="text-blue-600 font-black">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
+                  <span className="text-indigo-600 font-black">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
                 </p>
               </div>
             </div>
@@ -66,7 +60,7 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
             <div className="flex items-center space-x-1">
               <button
                 onClick={() => onPreview(job.file)}
-                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-95"
+                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all active:scale-95"
                 title="Preview file"
                 aria-label="Preview file"
               >
@@ -85,7 +79,7 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
 
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
                 Copies
               </label>
               <input
@@ -96,11 +90,11 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                   ...job,
                   copies: parseInt(e.target.value) || 1
                 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all text-sm outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
                 Print Type
               </label>
               <select
@@ -109,7 +103,7 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                   ...job,
                   isColor: e.target.value === 'color'
                 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all text-sm outline-none appearance-none"
               >
                 <option value="bw">Black & White</option>
                 <option value="color">Color</option>

@@ -12,11 +12,33 @@ import {
     Menu,
     X
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const LandingPage = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    useEffect(() => {
+        // Load YouTube IFrame API
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(tag);
+
+        // Once API is ready, create player and hook seamless loop
+        (window as any).onYouTubeIframeAPIReady = () => {
+            new (window as any).YT.Player('youtube-hero-bg', {
+                events: {
+                    onStateChange: (event: any) => {
+                        // State 0 = ended → seek to 0 and play again instantly
+                        if (event.data === 0) {
+                            event.target.seekTo(0);
+                            event.target.playVideo();
+                        }
+                    },
+                },
+            });
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900">
@@ -25,11 +47,9 @@ const LandingPage = () => {
             <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                            <div className="bg-blue-600 p-2 rounded-lg">
-                                <Printer className="h-6 w-6 text-white" strokeWidth={2.5} />
-                            </div>
-                            <span className="text-xl font-bold tracking-tight">QuickXerox</span>
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+                            <img src="/favicon.svg" alt="QuickXerox" className="h-8 w-8 sm:h-9 sm:w-9" />
+                            <span className="text-xl font-black text-slate-900 tracking-tight">QuickXerox</span>
                         </div>
 
                         <div className="hidden md:flex items-center space-x-8">
@@ -91,33 +111,39 @@ const LandingPage = () => {
 
             {/* Hero Section */}
             <section className="pt-24 pb-16 lg:pt-40 lg:pb-32 overflow-hidden relative">
-                {/* Video Background - Moved to top of section for better stacking control */}
+                {/* YouTube Video Background */}
                 <div className="absolute inset-0 overflow-hidden">
-                    <video
-                        autoPlay
-                        loop
-                        muted={true}
-                        playsInline
-                        className="w-full h-full object-cover"
-                    >
-                        <source src="/hero.mp4" type="video/mp4" />
-                        Your browser does not support the video tag.
-                    </video>
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]"></div>
+                    <iframe
+                        id="youtube-hero-bg"
+                        src="https://www.youtube.com/embed/zx5gPgmTUoQ?autoplay=1&mute=1&controls=0&loop=1&playlist=zx5gPgmTUoQ&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&disablekb=1&enablejsapi=1"
+                        allow="autoplay; encrypted-media"
+                        title="Hero Background"
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            width: 'max(100%, 177.78vh)',
+                            height: 'max(56.25vw, 100%)',
+                            transform: 'translate(-50%, -50%)',
+                            border: 'none',
+                            pointerEvents: 'none',
+                        }}
+                    />
+                    {/* Dark overlay for premium feel */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/90 border border-blue-100 text-blue-700 font-medium text-sm mb-8 animate-fade-in-up backdrop-blur-sm">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-blue-300 font-medium text-sm mb-8 animate-fade-in-up backdrop-blur-sm">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
                         </span>
                         Live Gitam University,Bengaluru
                     </div>
 
-                    <h1 className="text-3xl md:text-7xl font-extrabold text-gray-900 tracking-tight mb-6 md:mb-8 leading-tight">
-                        Print from <span className="text-blue-600 relative inline-block">
+                    <h1 className="text-3xl md:text-7xl font-extrabold text-white tracking-tight mb-6 md:mb-8 leading-tight">
+                        Print from <span className="text-blue-400 relative inline-block">
                             Anywhere
                             <svg className="absolute w-full h-3 bottom-1 left-0 text-blue-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
                                 <path d="M0 5 Q 50 10 100 5 L 100 10 L 0 10 Z" fill="currentColor" />
@@ -125,7 +151,7 @@ const LandingPage = () => {
                         </span>,<br className="hidden md:block" /> Pick up Anytime.
                     </h1>
 
-                    <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-900 mb-8 md:mb-10 leading-relaxed font-medium">
+                    <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-200 mb-8 md:mb-10 leading-relaxed font-medium">
                         Skip the long lines and USB drive hassles. Upload your documents securely, pay online, and collect your prints from the nearest shop in minutes.
                     </p>
 
@@ -138,31 +164,31 @@ const LandingPage = () => {
                         </button>
                         <a
                             href="#how-it-works"
-                            className="w-full sm:w-auto px-8 py-4 bg-white text-gray-700 text-lg font-bold rounded-full border border-gray-200 hover:bg-gray-50 transition-all hover:border-gray-300"
+                            className="w-full sm:w-auto px-8 py-4 bg-white/10 text-white text-lg font-bold rounded-full border border-white/30 hover:bg-white/20 transition-all backdrop-blur-sm"
                         >
                             How it works
                         </a>
                     </div>
 
-                    <div className="mt-10 md:mt-16 grid grid-cols-2 md:flex md:flex-row items-center justify-center gap-3 md:gap-8 text-gray-800 text-sm font-semibold max-w-md mx-auto md:max-w-none">
-                        <div className="col-span-2 md:col-span-1 flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-blue-100 shadow-sm justify-center">
-                            <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
-                            <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">No Subscription required <span className="text-blue-600 font-bold ml-1">FREE</span></span>
+                    <div className="mt-10 md:mt-16 grid grid-cols-2 md:flex md:flex-row items-center justify-center gap-3 md:gap-8 text-white text-sm font-semibold max-w-md mx-auto md:max-w-none">
+                        <div className="col-span-2 md:col-span-1 flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20 shadow-sm justify-center backdrop-blur-sm">
+                            <CheckCircle className="h-5 w-5 text-green-400 shrink-0" />
+                            <span className="text-sm font-semibold text-white whitespace-nowrap">No Subscription required <span className="text-blue-400 font-bold ml-1">FREE</span></span>
                         </div>
-                        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-2 sm:px-4 py-2 bg-white rounded-lg border border-blue-100 shadow-sm justify-center text-center sm:text-left">
-                            <span className="text-gray-500 text-[10px] sm:text-xs font-semibold">Authentication by</span>
+                        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-2 sm:px-4 py-2 bg-white/15 rounded-lg border border-white/30 shadow-sm justify-center text-center sm:text-left backdrop-blur-sm">
+                            <span className="text-gray-300 text-[10px] sm:text-xs font-semibold">Authentication by</span>
                             <img
                                 src="https://www.vectorlogo.zone/logos/firebase/firebase-ar21.svg"
                                 alt="Firebase"
-                                className="h-5 sm:h-6"
+                                className="h-5 sm:h-6 brightness-0 invert"
                             />
                         </div>
-                        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-2 sm:px-4 py-2 bg-white rounded-lg border border-blue-100 shadow-sm justify-center text-center sm:text-left">
-                            <span className="text-gray-500 text-[10px] sm:text-xs font-semibold">Secured by</span>
+                        <div className="col-span-1 md:col-span-1 flex flex-col sm:flex-row items-center gap-1 sm:gap-3 px-2 sm:px-4 py-2 bg-white/15 rounded-lg border border-white/30 shadow-sm justify-center text-center sm:text-left backdrop-blur-sm">
+                            <span className="text-gray-300 text-[10px] sm:text-xs font-semibold">Secured by</span>
                             <img
                                 src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg"
                                 alt="Razorpay"
-                                className="h-5 sm:h-6"
+                                className="h-5 sm:h-6 brightness-0 invert"
                             />
                         </div>
                     </div>
@@ -328,9 +354,9 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid md:grid-cols-4 gap-8 mb-8">
                         <div className="col-span-1 md:col-span-2">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Printer className="h-6 w-6 text-blue-500" />
-                                <span className="text-xl font-bold">QuickXerox</span>
+                            <div className="flex items-center gap-3 mb-4">
+                                <img src="/favicon.svg" alt="QuickXerox" className="h-6 w-6" />
+                                <span className="text-xl font-black tracking-tight">QuickXerox</span>
                             </div>
                             <p className="text-gray-400 max-w-md">
                                 Simplifying the printing experience for everyone. Fast, reliable, and secure document printing services at your fingertips.

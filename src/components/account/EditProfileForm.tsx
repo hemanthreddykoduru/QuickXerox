@@ -75,7 +75,6 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
         updatedAt: new Date().toISOString()
       } as UserProfile;
 
-      console.log('Submitting profile update:', updatedProfile);
 
       // Call parent handler (AccountPage) to execute update and refresh local state
       await onSave(updatedProfile);

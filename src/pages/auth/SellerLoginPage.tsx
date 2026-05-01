@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Printer, Mail, Lock, ArrowRight, Eye, EyeOff, Building2, Shield } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Building2, Shield } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -91,12 +91,12 @@ const SellerLoginPage = () => {
         <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20 transform transition-all duration-300 hover:scale-[1.02]">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-6">
-              <Printer className="h-14 w-14 text-blue-600 animate-pulse-slow" />
+            <div className="flex flex-col items-center mb-6">
+              <img src="/favicon.svg" alt="QuickXerox" className="w-24 h-24 mb-6" />
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                QuickXerox <span className="text-indigo-600">Partner</span>
+              </h2>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              QuickXerox Partner
-            </h2>
             <p className="text-gray-600 text-lg">
               Sign in to your print shop dashboard
             </p>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Shield, Printer } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db } from '../../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -47,15 +47,15 @@ const AdminLoginPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto w-full sm:w-full sm:max-w-md">
         <div className="bg-white/80 backdrop-blur-sm py-8 px-4 sm:px-8 shadow-xl rounded-2xl border border-white/20">
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <Printer className="h-12 w-12 sm:h-14 sm:w-14 text-blue-600 animate-pulse-slow" />
+          <div className="flex flex-col items-center mb-10">
+            <img src="/favicon.svg" alt="QuickXerox" className="w-24 h-24 mb-6" />
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight text-center">
+              QuickXerox <span className="text-indigo-600">Admin</span>
+            </h2>
+            <p className="text-center text-sm sm:text-base text-slate-500 mt-2">
+              Secure System Access
+            </p>
           </div>
-          <h2 className="mt-2 text-center text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-1 sm:mb-2">
-            QuickXerox
-          </h2>
-          <p className="text-center text-sm sm:text-base md:text-lg text-gray-600 mb-6 sm:mb-8">
-            Admin Portal - Secure Access
-          </p>
 
           <form className="space-y-6" onSubmit={handleSubmit} autoComplete="on" method="post">
             <div>

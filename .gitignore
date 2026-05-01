@@ -33,3 +33,7 @@ src/services/twilio.service.ts
 functions/.runtimeconfig.json
 *.bak
 **/serviceAccountKey.json
+
+# Large video files
+13088114_3840_2160_30fps.mp4
+public/hero.mp4

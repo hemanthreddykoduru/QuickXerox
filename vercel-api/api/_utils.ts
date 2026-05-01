@@ -55,3 +55,70 @@ export const allowCors = (fn: (req: VercelRequest, res: VercelResponse) => Promi
     }
     return await fn(req, res);
 };
+
+export const validateCoupon = async (couponCode: string, orderAmount: number, userId: string = 'guest') => {
+    const couponsRef = adminDb.collection('coupons');
+    const querySnapshot = await couponsRef.where('code', '==', couponCode.toUpperCase()).get();
+
+    if (querySnapshot.empty) {
+        throw new Error('Invalid coupon code');
+    }
+
+    const couponDoc = querySnapshot.docs[0];
+    const coupon = couponDoc.data();
+
+    if (!coupon.isActive) {
+        throw new Error('Coupon is not active');
+    }
+
+    const now = new Date();
+    const expiryDate = coupon.expiryDate.toDate();
+    
+    if (now > expiryDate) {
+        console.log(`Coupon Expired: Now(${now.toISOString()}) > Expiry(${expiryDate.toISOString()})`);
+        throw new Error('Coupon has expired');
+    }
+
+    if (orderAmount < coupon.minOrderAmount) {
+        throw new Error(`Minimum order amount is ₹${coupon.minOrderAmount}`);
+    }
+
+    if (coupon.usedCount >= coupon.usageLimit) {
+        throw new Error('Coupon global usage limit reached');
+    }
+
+    // Check per-user limit
+    const perUserLimit = coupon.perUserLimit || 1;
+    const usageQuery = await adminDb.collection('couponUsage')
+        .where('couponId', '==', couponDoc.id)
+        .where('userId', '==', userId)
+        .count()
+        .get();
+
+    if (usageQuery.data().count >= perUserLimit) {
+        throw new Error(`You have already used this coupon maximum allowed times.`);
+    }
+
+    let discount = 0;
+    if (coupon.discountType === 'flat') {
+        discount = coupon.discountValue;
+    } else if (coupon.discountType === 'percentage') {
+        discount = (orderAmount * coupon.discountValue) / 100;
+        if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+            discount = coupon.maxDiscount;
+        }
+    }
+
+    if (discount > orderAmount) {
+        discount = orderAmount;
+    }
+
+    const finalAmount = orderAmount - discount;
+
+    return {
+        discount: Math.round(discount),
+        finalAmount: Math.round(finalAmount),
+        couponId: couponDoc.id,
+        code: coupon.code,
+    };
+};

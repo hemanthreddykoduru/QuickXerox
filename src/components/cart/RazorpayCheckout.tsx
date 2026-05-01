@@ -10,7 +10,10 @@ interface RazorpayCheckoutProps {
   receipt: string;
   printJobs: string;
   shopId: string;
+  shopName?: string;
   generatedOrderId?: string;
+  couponCode?: string;
+  originalAmount?: number;
   userProfile?: {
     name: string;
     mobile: string;
@@ -32,7 +35,10 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   receipt,
   printJobs,
   shopId,
+  shopName,
   generatedOrderId,
+  couponCode,
+  originalAmount,
   userProfile,
   onSuccess,
   onError,
@@ -48,8 +54,22 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   };
 
   const generateOTP = () => {
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    // Use Web Crypto API for a cryptographically secure 6-digit OTP
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const otp = ((array[0] % 9000) + 1000).toString();
     return { otp };
+  };
+
+  const safeParsePrintJobs = (raw: string) => {
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) throw new Error('printJobs must be an array');
+      return parsed;
+    } catch {
+      console.error('Invalid printJobs payload');
+      return [];
+    }
   };
 
   useEffect(() => {
@@ -71,8 +91,10 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
         // 1. Create Order via Backend
         const orderData = await createPayment({
-          amount,
+          amount: originalAmount || amount,
           currency,
+          couponCode,
+          userId: auth.currentUser?.uid,
         });
 
         if (!orderData) {
@@ -98,7 +120,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
               if (isVerified) {
                 // Save Order to Firestore
                 try {
-                  const items = JSON.parse(printJobs);
+                  const items = safeParsePrintJobs(printJobs);
                   // Use generated Order ID (ORD-...) as the primary ID, falling back to Razorpay ID
                   const orderId = generatedOrderId || response.razorpay_order_id || `ORD-${Date.now()}`;
 
@@ -110,6 +132,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
                   const newOrder = {
                     id: orderId,
+                    customerId: auth.currentUser?.uid || '',
                     customerName: userName,
                     customerPhone: userPhone,
                     customerEmail: userEmail,
@@ -119,6 +142,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
                     status: 'pending',
                     timestamp: new Date().toISOString(),
                     shopId: shopId,
+                    shopName: shopName || 'the shop',
                     isPaid: true,
                     paymentId: response.razorpay_payment_id,
                     otpVerified: false,
@@ -128,7 +152,6 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
                   // Use setDoc to force the Document ID to match our Order ID
                   await setDoc(doc(db, 'orders', orderId), newOrder);
-                  console.log('Order saved to Firestore:', newOrder);
 
                   toast.dismiss();
 
@@ -157,6 +180,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             name: localStorage.getItem('userName') || 'Customer',
             email: localStorage.getItem('userEmail') || 'customer@example.com',
             contact: localStorage.getItem('userPhone') || '',
+            vpa: 'success@razorpay',
           },
           notes: {
             printJobs,
@@ -167,7 +191,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           },
           modal: {
             ondismiss: async function () {
-              const items = JSON.parse(printJobs);
+              const items = safeParsePrintJobs(printJobs);
               const orderId = generatedOrderId || `ORD-${Date.now()}`;
               const authUser = auth.currentUser;
               const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
@@ -176,6 +200,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
               const newOrder = {
                 id: orderId,
+                customerId: auth.currentUser?.uid || '',
                 customerName: userName,
                 customerPhone: userPhone,
                 customerEmail: userEmail,
@@ -185,15 +210,14 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
                 status: 'failed',
                 timestamp: new Date().toISOString(),
                 shopId: shopId,
+                shopName: shopName || 'the shop',
                 isPaid: false,
                 paymentId: 'Cancelled by user',
                 otpVerified: false,
-                otpGeneratedAt: new Date().toISOString(),
-                otp: generateOTP().otp
+                // No OTP generated for cancelled orders
               };
               try {
                 await setDoc(doc(db, 'orders', orderId), newOrder);
-                console.log('Cancelled order saved to Firestore:', newOrder);
               } catch (dbError) {
                 console.error('Error saving cancelled order to DB:', dbError);
               }
@@ -211,7 +235,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         rzp1.on('payment.failed', async function (response: any) {
           console.error(response.error);
 
-          const items = JSON.parse(printJobs);
+          const items = safeParsePrintJobs(printJobs);
           const orderId = generatedOrderId || `ORD-${Date.now()}`;
           const authUser = auth.currentUser;
           const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
@@ -220,6 +244,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
           const newOrder = {
             id: orderId,
+            customerId: auth.currentUser?.uid || '',
             customerName: userName,
             customerPhone: userPhone,
             customerEmail: userEmail,
@@ -229,16 +254,15 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             status: 'failed',
             timestamp: new Date().toISOString(),
             shopId: shopId,
+            shopName: shopName || 'the shop',
             isPaid: false,
             paymentId: response.error?.metadata?.payment_id || 'Failed Payment',
             paymentError: response.error?.description || 'Payment Failed',
             otpVerified: false,
-            otpGeneratedAt: new Date().toISOString(),
-            otp: generateOTP().otp
+            // No OTP generated for failed payments
           };
           try {
             await setDoc(doc(db, 'orders', orderId), newOrder);
-            console.log('Failed order saved to Firestore:', newOrder);
           } catch (dbError) {
             console.error('Error saving failed order to DB:', dbError);
           }

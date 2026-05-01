@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-    Printer,
     TrendingUp,
     Smartphone,
     DollarSign,
@@ -21,11 +20,9 @@ const SellerLandingPage = () => {
             <nav className="fixed w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                            <div className="bg-blue-600 p-2 rounded-lg">
-                                <Printer className="h-6 w-6 text-white" strokeWidth={2.5} />
-                            </div>
-                            <span className="text-xl font-bold tracking-tight">QuickXerox <span className="text-blue-600">Partner</span></span>
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+                            <img src="/favicon.svg" alt="QuickXerox" className="h-8 w-8 sm:h-9 sm:w-9" />
+                            <span className="text-xl font-black text-slate-900 tracking-tight">QuickXerox <span className="text-indigo-600">Partner</span></span>
                         </div>
 
                         {/* Desktop Menu */}

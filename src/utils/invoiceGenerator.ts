@@ -60,7 +60,8 @@ export const generateInvoice = async (order: Order, userEmail?: string, returnBl
     if (order.paymentId) {
         doc.text(`Payment ID: ${order.paymentId}`, 140, 40);
     }
-    doc.text(`Status: ${order.status.toUpperCase()}`, 140, 45);
+    const displayStatus = order.status === 'pending' ? 'PLACED' : order.status.toUpperCase();
+    doc.text(`Status: ${displayStatus}`, 140, 45);
 
     // Bill To
     doc.text('Bill To:', 14, 55);

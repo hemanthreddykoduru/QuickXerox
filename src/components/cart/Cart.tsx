@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Eye, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy, Trash2, ChevronRight } from 'lucide-react';
+import { X, Eye, Printer, MapPin, Clock, FileText, Shield, CheckCircle, Copy, Trash2, ChevronRight, CreditCard, Tag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PrintJob, PrintShop } from '../../types';
+import { PrintJob, PrintShop, UserProfile } from '../../types';
 import RazorpayCheckout from './RazorpayCheckout';
 import { toast } from 'react-hot-toast';
-import { UserProfile } from '../../types';
 import { uploadFile } from '../../services/storageService';
 import { auth, db } from '../../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { generateInvoice } from '../../utils/invoiceGenerator';
 import SimplePreviewModal from '../common/SimplePreviewModal';
+import { applyCoupon, recordCouponUsage } from '../../services/paymentService';
 
 interface ImagePreviewProps {
   file: File;
@@ -39,7 +40,6 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ file }) => {
   );
 };
 
-
 interface CartProps {
   items: PrintJob[];
   onRemove: (id: string) => void;
@@ -50,6 +50,7 @@ interface CartProps {
   onShopSelect: (id: string) => void;
   shops: PrintShop[];
   userProfile: UserProfile | null;
+  onClear?: () => void;
 }
 
 const Cart: React.FC<CartProps> = ({
@@ -62,7 +63,9 @@ const Cart: React.FC<CartProps> = ({
   onShopSelect,
   shops,
   userProfile,
+  onClear,
 }) => {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
@@ -71,6 +74,24 @@ const Cart: React.FC<CartProps> = ({
   const [generatedOTP, setGeneratedOTP] = useState<string>('');
   const [orderId, setOrderId] = useState<string>('');
   const [itemsWithUrls, setItemsWithUrls] = useState<any[]>([]);
+  const [finalAmount, setFinalAmount] = useState<number>(0);
+
+  // Coupon state
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount: number } | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  // Management of body scroll lock
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   // Type-safe motion components workaround for React 19 types mismatch
   const MotionDiv = motion.div as any;
@@ -78,6 +99,27 @@ const Cart: React.FC<CartProps> = ({
 
   const totalPages = items.reduce((sum, job) => sum + (job.pageCount * job.copies), 0);
   const totalAmount = totalPages * basePrice;
+  const finalTotalAmount = appliedCoupon ? Math.max(0, totalAmount - appliedCoupon.discount) : totalAmount;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCodeInput.trim()) return;
+    setIsApplyingCoupon(true);
+    try {
+      const res = await applyCoupon(couponCodeInput.trim(), totalAmount, auth.currentUser?.uid);
+      setAppliedCoupon({ id: res.couponId, code: res.code, discount: res.discount });
+      toast.success(`Coupon applied! You saved ₹${res.discount}`);
+      setCouponCodeInput('');
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid coupon');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    toast.success('Coupon removed');
+  };
 
   const handleCheckout = async () => {
     if (!selectedShop) return;
@@ -123,10 +165,30 @@ const Cart: React.FC<CartProps> = ({
   const handlePaymentSuccess = (response: any) => {
     const otp = response.otp || '';
     setGeneratedOTP(otp);
+    setFinalAmount(finalTotalAmount); // Save total before emptying
     setIsProcessing(false);
     setShowOTPDisplay(true);
 
-    const autoEmailInvoice = async () => {
+    if (onClear) {
+      onClear();
+    }
+
+    const processPostPayment = async () => {
+      // Record coupon usage if applied
+      if (appliedCoupon) {
+        try {
+          await recordCouponUsage(appliedCoupon.id, orderId, appliedCoupon.discount, auth.currentUser?.uid);
+          await updateDoc(doc(db, 'orders', orderId), {
+            couponCode: appliedCoupon.code,
+            discountAmount: appliedCoupon.discount,
+            originalTotal: totalAmount
+          });
+        } catch (err) {
+          console.error("Failed to record coupon usage", err);
+        }
+      }
+
+      // Auto-email invoice
       try {
         if (!userProfile?.email || !selectedShop) return;
 
@@ -142,8 +204,11 @@ const Cart: React.FC<CartProps> = ({
             isColor: item.isColor,
             pages: 1
           })),
-          total: totalAmount,
-          status: 'completed',
+          total: finalTotalAmount,
+          originalTotal: totalAmount,
+          discountAmount: appliedCoupon?.discount || 0,
+          couponCode: appliedCoupon?.code || '',
+          status: 'pending',
           timestamp: new Date().toISOString(),
           shopId: parseInt(selectedShop.id),
           isPaid: true,
@@ -187,7 +252,7 @@ const Cart: React.FC<CartProps> = ({
       }
     };
 
-    autoEmailInvoice();
+    processPostPayment();
   };
 
   const handlePaymentError = (error: any) => {
@@ -214,7 +279,7 @@ const Cart: React.FC<CartProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
-              className="relative bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl max-w-full md:max-w-2xl w-full max-h-[calc(100vh-32px)] sm:max-h-[90vh] flex flex-col overflow-hidden border border-white/20"
+              className={`relative bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl max-w-full md:max-w-2xl w-full max-h-[calc(100vh-32px)] sm:max-h-[90vh] flex flex-col overflow-hidden border border-white/20 transition-opacity duration-300 ${showOTPDisplay ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
               <div className="sticky top-0 bg-white/50 backdrop-blur-md z-10 px-6 py-4 border-b border-gray-100 flex-shrink-0">
                 <div className="flex justify-between items-center">
@@ -380,10 +445,51 @@ const Cart: React.FC<CartProps> = ({
                           <span className="text-gray-500">Total Pages:</span>
                           <span className="text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md leading-none">{totalPages}</span>
                         </div>
-                        <div className="flex justify-between items-end border-t border-gray-50 pt-3">
+                        <div className="flex justify-between items-center text-sm font-medium">
+                          <span className="text-gray-500">Subtotal:</span>
+                          <span className="text-gray-900 font-semibold">₹{totalAmount.toFixed(2)}</span>
+                        </div>
+                        
+                        {/* Coupon Section */}
+                        {appliedCoupon ? (
+                          <div className="flex justify-between items-center bg-green-50 p-2 rounded-lg border border-green-100">
+                            <div className="flex items-center gap-2">
+                              <Tag className="w-4 h-4 text-green-600" />
+                              <span className="text-sm font-bold text-green-700">{appliedCoupon.code}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-bold text-green-700">-₹{appliedCoupon.discount.toFixed(2)}</span>
+                              <button onClick={handleRemoveCoupon} className="text-gray-400 hover:text-red-500">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                              <input 
+                                type="text"
+                                placeholder="Coupon Code"
+                                value={couponCodeInput}
+                                onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 uppercase"
+                              />
+                            </div>
+                            <button 
+                              onClick={handleApplyCoupon}
+                              disabled={isApplyingCoupon || !couponCodeInput.trim()}
+                              className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                            >
+                              {isApplyingCoupon ? '...' : 'Apply'}
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-end border-t border-gray-50 pt-3 mt-3">
                           <span className="text-gray-500 font-medium">Total Amount</span>
                           <div className="text-right">
-                            <span className="text-3xl font-black text-blue-600 tracking-tight">₹{totalAmount.toFixed(2)}</span>
+                            <span className="text-3xl font-black text-blue-600 tracking-tight">₹{finalTotalAmount.toFixed(2)}</span>
                           </div>
                         </div>
                       </div>
@@ -435,7 +541,9 @@ const Cart: React.FC<CartProps> = ({
 
           {isProcessing && selectedShop && (
             <RazorpayCheckout
-              amount={totalAmount}
+              amount={finalTotalAmount}
+              originalAmount={totalAmount}
+              couponCode={appliedCoupon?.code}
               currency="INR"
               receipt={orderId}
               printJobs={JSON.stringify(itemsWithUrls.length > 0 ? itemsWithUrls : items.map(item => ({
@@ -446,6 +554,7 @@ const Cart: React.FC<CartProps> = ({
                 pages: 1
               })))}
               shopId={selectedShop.id.toString()}
+              shopName={selectedShop.name}
               generatedOrderId={orderId}
               userProfile={userProfile || undefined}
               onSuccess={handlePaymentSuccess}
@@ -461,68 +570,103 @@ const Cart: React.FC<CartProps> = ({
           )}
 
           {showOTPDisplay && (
-            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-full">
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Payment Successful!</h3>
-                      <p className="text-sm text-gray-500">Order confirmed</p>
-                    </div>
-                  </div>
-                  <button onClick={() => { setShowOTPDisplay(false); onClose(); }} className="text-gray-400 hover:text-gray-600 transition-colors p-1">
-                    <X className="h-6 w-6" />
-                  </button>
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+              <MotionDiv 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto font-sans border border-slate-100"
+              >
+                <div className="flex flex-col items-center text-center mb-6">
+                  <MotionDiv
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="p-3 bg-emerald-50 rounded-full mb-3"
+                  >
+                    <CheckCircle className="h-8 w-8 text-emerald-600" />
+                  </MotionDiv>
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">Payment Successful</h3>
+                  <p className="text-slate-500 text-sm mt-1">Order confirmed and ready</p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4 mb-6 text-center">
-                  <p className="font-medium text-gray-900">Order #{orderId}</p>
-                  <div className="flex justify-center space-x-4 mt-2 text-sm text-gray-500">
-                    <span className="flex items-center"><Printer className="h-3 w-3 mr-1" /> {selectedShop?.name}</span>
-                    <span>₹{totalAmount.toFixed(2)}</span>
+                <div className="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Order ID</span>
+                    <span className="text-sm font-mono font-medium text-slate-900">#{orderId}</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm text-slate-600">
+                      <Printer className="h-4 w-4 mr-2 text-slate-400" />
+                      {selectedShop?.name}
+                    </div>
+                    <div className="flex items-center text-sm font-bold text-indigo-600">
+                      <CreditCard className="h-4 w-4 mr-2 text-indigo-500" />
+                      Total: ₹{finalAmount.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
                 <div className="text-center mb-6">
-                  <div className="flex items-center justify-center space-x-2 mb-3">
-                    <Shield className="h-5 w-5 text-blue-600" />
-                    <h4 className="font-semibold text-gray-900">Verification Code</h4>
+                  <div className="flex items-center justify-center space-x-2 mb-4">
+                    <Shield className="h-4 w-4 text-slate-400" />
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Verification Code</h4>
                   </div>
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
-                    <div className="flex justify-center space-x-2 sm:space-x-3 mb-3">
+                  
+                  <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-sm">
+                    <div className="flex justify-center space-x-3">
                       {generatedOTP.split('').map((digit, index) => (
-                        <div key={index} className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-blue-300 bg-white rounded-lg flex items-center justify-center">
-                          <span className="text-xl sm:text-2xl font-bold text-blue-600">{digit}</span>
-                        </div>
+                        <MotionDiv 
+                          key={index}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="w-12 h-14 bg-white border border-slate-200 rounded-lg flex items-center justify-center shadow-sm"
+                        >
+                          <span className="text-2xl font-bold text-slate-900">{digit}</span>
+                        </MotionDiv>
                       ))}
                     </div>
-                    <p className="text-xs sm:text-sm text-blue-700">Show this code to collection point</p>
                   </div>
-                  <button
-                    onClick={() => { navigator.clipboard.writeText(generatedOTP); toast.success('OTP copied to clipboard!'); }}
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm"
+
+                  <MotionButton
+                    whileHover={{ backgroundColor: '#f8fafc' }}
+                    onClick={() => { navigator.clipboard.writeText(generatedOTP); toast.success('Copied!'); }}
+                    className="mt-4 inline-flex items-center space-x-2 px-4 py-2 text-indigo-600 hover:text-indigo-700 transition-all text-xs font-bold"
                   >
                     <Copy className="h-4 w-4" />
                     <span>Copy Code</span>
-                  </button>
+                  </MotionButton>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <h5 className="font-medium text-yellow-900 mb-2 text-sm">Important:</h5>
-                  <ul className="text-xs sm:text-sm text-yellow-800 space-y-1 text-left list-disc pl-4">
-                    <li>Show this OTP to the seller to collect prints.</li>
-                    <li>Keep this OTP safe.</li>
-                  </ul>
-                </div>
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-50 rounded-xl border-l-4 border-indigo-400">
+                    <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                      Show this code to the shopkeeper to collect your prints.
+                    </p>
+                  </div>
 
-                <div className="flex flex-col-reverse sm:flex-row gap-3">
-                  <button onClick={() => { setShowOTPDisplay(false); onClose(); }} className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors">Close</button>
-                  <button onClick={() => { setShowOTPDisplay(false); onClose(); toast.success('Track your order in My Account'); }} className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">Track Order</button>
+                  <div className="flex flex-col-reverse sm:flex-row gap-3">
+                    <button 
+                      onClick={() => { setShowOTPDisplay(false); onClose(); }} 
+                      className="flex-1 px-6 py-3 bg-white text-slate-500 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-sm"
+                    >
+                      Close
+                    </button>
+                    <MotionButton 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { 
+                        setShowOTPDisplay(false); 
+                        onClose(); 
+                        navigate('/account');
+                      }} 
+                      className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all text-sm flex items-center justify-center"
+                    >
+                      Track Order
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </MotionButton>
+                  </div>
                 </div>
-              </div>
+              </MotionDiv>
             </div>
           )}
         </>

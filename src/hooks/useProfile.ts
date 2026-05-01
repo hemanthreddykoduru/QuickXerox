@@ -9,9 +9,6 @@ export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => {
     // Initialize based on current auth state and session storage
     const currentUser = auth.currentUser;
-    console.log("useProfile init: currentUser?.phoneNumber", currentUser?.phoneNumber);
-    console.log("useProfile init: sessionStorage.getItem('userPhone')", sessionStorage.getItem('userPhone'));
-    console.log("useProfile init: currentUser", currentUser);
 
     const initialProfile = {
       name: currentUser?.displayName || sessionStorage.getItem('userName') || '',
@@ -25,7 +22,6 @@ export const useProfile = () => {
       updatedAt: new Date().toISOString()
     };
 
-    console.log("useProfile initial profile:", initialProfile);
     return initialProfile;
   });
 
@@ -111,8 +107,6 @@ export const useProfile = () => {
           sessionStorage.setItem(key, value);
         });
 
-        console.log("✅ fetchProfile SUCCESS - Profile loaded:", fetchedProfile);
-        console.log("✅ Session storage updated with userPhone:", fetchedProfile.mobile);
 
         return fetchedProfile;
       } else {
@@ -240,7 +234,6 @@ export const useProfile = () => {
       sessionStorage.setItem('userPhone', persistedProfile.mobile);
       sessionStorage.setItem('userEmail', persistedProfile.email);
 
-      console.log('Profile updated successfully:', completeProfile);
       toast.success('Profile updated successfully');
       return completeProfile;
     } catch (err) {

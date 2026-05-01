@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Printer, Mail, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Mail, ChevronLeft, ChevronRight, Ticket } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
@@ -458,13 +458,17 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm">
+      <header className="bg-white dark:bg-gray-900 shadow-sm border-b-4 border-indigo-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <Printer className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600" />
+          <div className="flex items-center space-x-3">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+              <img src="/favicon.svg" alt="QuickXerox" className="h-6 w-6 sm:h-7 sm:w-7 brightness-0 invert" />
+            </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Manage QuickXerox</p>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-gray-100 tracking-tight">QuickXerox <span className="text-indigo-600">Admin</span></h1>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                Signed in as <span className="font-medium text-indigo-600">{adminProfile?.email}</span>
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -478,7 +482,7 @@ const AdminDashboard = () => {
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-4 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+              className="flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-gray-700 rounded-md hover:border-red-300 transition-colors"
             >
               <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="hidden sm:inline">Logout</span>
@@ -487,67 +491,87 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-page">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* ...existing dashboard cards... */}
-          {/* (cards code unchanged) */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        {/* Welcome banner */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Manage your platform from one place.</p>
+        </div>
+
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
           {/* Manage Sellers Card */}
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
-            <Users className="h-6 w-6 sm:h-7 sm:w-7 text-purple-600" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Manage Sellers</h3>
-            <p className="text-sm text-gray-500">View, add, and manage print shop partners.</p>
-            <div className="w-full space-y-2 mt-3">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <Users className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Manage Sellers</h3>
+                <p className="text-xs text-gray-400">View and manage print shop partners.</p>
+              </div>
+            </div>
+            <div className="space-y-2 mt-auto">
               <button
                 onClick={() => navigate('/admin/sellers')}
-                className="w-full bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+                className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
               >
                 View All Sellers
               </button>
               <button
                 onClick={() => navigate('/admin/invite-seller')}
-                className="w-full bg-purple-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-purple-700 transition-colors text-sm"
+                className="w-full bg-white text-indigo-600 border border-indigo-100 px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors text-sm"
               >
                 Invite New Seller
               </button>
             </div>
-            {recentSellers.length > 0 ? (
-              <div className="w-full mt-3 border-t pt-3">
-                <p className="text-xs font-medium text-gray-500 mb-2">Recent Sellers:</p>
-                <div className="max-h-24 overflow-y-auto space-y-1 text-sm">
+            {recentSellers.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-2">Recent (last 30 min)</p>
+                <div className="space-y-1">
                   {recentSellers.map((seller) => (
-                    <div key={seller.id} className="flex justify-between items-center text-gray-700">
-                      <span>{seller.name}</span>
-                      <span className="text-gray-500 text-xs">{seller.shopName}</span>
+                    <div key={seller.id} className="flex justify-between items-center">
+                      <span className="text-xs text-gray-700">{seller.name}</span>
+                      <span className="text-xs text-gray-400">{seller.shopName}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            ) : isLoading ? (
-              <div className="w-full mt-3 border-t pt-3 space-y-2">
-                <Skeleton variant="text" width={80} height={12} className="mb-2" />
-                <Skeleton variant="text" width="100%" height={20} />
-                <Skeleton variant="text" width="100%" height={20} />
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 mt-2">No recent sellers found.</p>
             )}
           </div>
-          {/* ...other cards unchanged... */}
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
-            <ShoppingBag className="h-6 w-6 sm:h-7 sm:w-7 text-green-600" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Review Orders</h3>
-            <p className="text-sm text-gray-500">Monitor customer orders across all shops.</p>
+
+          {/* Review Orders Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <ShoppingBag className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Review Orders</h3>
+                <p className="text-xs text-gray-400">Monitor customer orders across all shops.</p>
+              </div>
+            </div>
             <button
               onClick={() => navigate('/admin/orders')}
-              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+              className="mt-auto w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
               View All Orders
             </button>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
-            <Settings className="h-6 w-6 sm:h-7 sm:w-7 text-gray-600" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">System Settings</h3>
-            <p className="text-sm text-gray-500">Configure global application settings.</p>
+
+          {/* System Settings Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <Settings className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">System Settings</h3>
+                <p className="text-xs text-gray-400">Configure global application settings.</p>
+              </div>
+            </div>
             <button
               onClick={async () => {
                 try {
@@ -562,33 +586,48 @@ const AdminDashboard = () => {
                   setShowSystemSettings(true);
                 }
               }}
-              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+              className="mt-auto w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
               Configure Settings
             </button>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
-            <BarChart className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Analytics & Reports</h3>
-            <p className="text-sm text-gray-500">Access detailed performance reports.</p>
+
+          {/* Analytics Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <BarChart className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Analytics & Reports</h3>
+                <p className="text-xs text-gray-400">Access detailed performance reports.</p>
+              </div>
+            </div>
             <button
               onClick={() => setShowAnalytics(true)}
-              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+              className="mt-auto w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
               View Analytics
             </button>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
-            <Users className="h-6 w-6 sm:h-7 sm:w-7 text-orange-600" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Customer Management</h3>
-            <p className="text-sm text-gray-500">Oversee all customer accounts.</p>
+
+          {/* Customer Management Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <Users className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Customer Management</h3>
+                <p className="text-xs text-gray-400">Oversee all customer accounts.</p>
+              </div>
+            </div>
             <button
               onClick={async () => {
                 setShowCustomers(true);
                 setCustomersLoading(true);
                 setCustomersError(null);
                 try {
-                  // Try to order by createdAt if present
                   const usersRef = collection(db, 'users');
                   let usersSnap;
                   try {
@@ -607,52 +646,79 @@ const AdminDashboard = () => {
                   setCustomersLoading(false);
                 }
               }}
-              className="w-full bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+              className="mt-auto w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
               View All Customers
             </button>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex flex-col items-start space-y-3">
-            <Mail className="h-6 w-6 sm:h-7 sm:w-7 text-red-600" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Email & Notifications</h3>
-            <p className="text-sm text-gray-500">Configure communication settings.</p>
+
+          {/* Email & Notifications Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <Mail className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Email & Notifications</h3>
+                <p className="text-xs text-gray-400">Configure communication settings.</p>
+              </div>
+            </div>
             <button
               onClick={() => navigate('/admin/email-templates')}
-              className="mt-auto bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-blue-700 transition-colors text-sm"
+              className="mt-auto w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
             >
               Manage Communications
+            </button>
+          </div>
+
+          {/* Coupon Management Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <Ticket className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Coupon Management</h3>
+                <p className="text-xs text-gray-400">Create and track discount coupons.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/admin/coupons')}
+              className="mt-auto w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
+            >
+              Manage Coupons
             </button>
           </div>
         </div>
 
         {/* Metrics Section */}
-        <div className="mt-10 mb-8">
-          <h2 className="text-xl font-bold mb-4">Dashboard Metrics</h2>
+        <div className="mt-8 mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Platform Overview</h2>
           {metrics ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-                <div className="text-gray-500 dark:text-gray-400 text-sm">Total Sellers</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics?.sellers ?? 0}</div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
+                <div className="text-xs text-gray-400 mb-1">Total Sellers</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics?.sellers ?? 0}</div>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-                <div className="text-gray-500 dark:text-gray-400 text-sm">Total Orders</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics?.orders ?? 0}</div>
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
+                <div className="text-xs text-gray-400 mb-1">Total Orders</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics?.orders ?? 0}</div>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-                <div className="text-gray-500 dark:text-gray-400 text-sm">Total Revenue</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">₹{metrics?.revenue ?? 0}</div>
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
+                <div className="text-xs text-gray-400 mb-1">Total Revenue</div>
+                <div className="text-2xl font-bold text-gray-900">₹{metrics?.revenue ?? 0}</div>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-                <div className="text-gray-500 dark:text-gray-400 text-sm">Pending Sellers</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{metrics?.pendingSellers ?? 0}</div>
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
+                <div className="text-xs text-gray-400 mb-1">Pending Sellers</div>
+                <div className="text-2xl font-bold text-gray-900">{metrics?.pendingSellers ?? 0}</div>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {Array(4).fill(0).map((_, i) => (
-                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 text-center">
-                  <Skeleton variant="text" width={80} height={16} className="mx-auto mb-2" />
-                  <Skeleton variant="text" width={40} height={32} className="mx-auto" />
+                <div key={i} className="bg-white rounded-lg border border-gray-100 shadow-sm p-4">
+                  <Skeleton variant="text" width={80} height={12} className="mb-2" />
+                  <Skeleton variant="text" width={50} height={28} />
                 </div>
               ))}
             </div>
@@ -662,37 +728,52 @@ const AdminDashboard = () => {
         {/* Audit Logs Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Audit Logs</h2>
+            <h2 className="text-xl font-bold text-gray-900">Recent Audit Logs</h2>
             <button
               onClick={() => navigate('/admin/audit-logs')}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center gap-1"
             >
-              View All Logs
+              View All Logs →
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
-              <thead>
-                <tr className="border-b dark:border-gray-700">
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-300">Timestamp</th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-300">Admin</th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-300">Action</th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-300">Details</th>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <table className="min-w-full">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Timestamp</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Details</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {auditLogs && auditLogs.length > 0 ? (
-                  auditLogs.map((log, idx) => (
-                    <tr key={idx} className="border-t dark:border-gray-700">
-                      <td className="px-4 py-2 text-gray-900 dark:text-gray-100">{log.timestamp}</td>
-                      <td className="px-4 py-2 text-gray-900 dark:text-gray-100">{log.adminEmail}</td>
-                      <td className="px-4 py-2 text-gray-900 dark:text-gray-100">{log.action}</td>
-                      <td className="px-4 py-2 text-gray-900 dark:text-gray-100">{log.details}</td>
-                    </tr>
-                  ))
+                  auditLogs.map((log, idx) => {
+                    const actionColor = (() => {
+                      const a = log.action?.toUpperCase() || '';
+                      if (a.includes('LOGIN') || a.includes('AUTH')) return 'bg-blue-100 text-blue-700';
+                      if (a.includes('EXPORT') || a.includes('DOWNLOAD')) return 'bg-green-100 text-green-700';
+                      if (a.includes('DELETE') || a.includes('REMOVE')) return 'bg-red-100 text-red-700';
+                      if (a.includes('UPDATE') || a.includes('EDIT') || a.includes('SAVE')) return 'bg-amber-100 text-amber-700';
+                      if (a.includes('INVITE') || a.includes('CREATE') || a.includes('ADD')) return 'bg-purple-100 text-purple-700';
+                      return 'bg-gray-100 text-gray-600';
+                    })();
+                    return (
+                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                        <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{log.timestamp}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">{log.adminEmail}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${actionColor}`}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">{log.details}</td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={4} className="px-4 py-10 text-center text-gray-400 text-sm">
                       No audit logs found.
                     </td>
                   </tr>

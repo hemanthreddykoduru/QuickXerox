@@ -2,9 +2,117 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ── Helper functions ───────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isSeller() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/shopOwners/$(request.auth.uid));
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── User profiles ──────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Profile mirror ─────────────────────────────────────────────────────────
+    match /profiles/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) || isAdmin();
+    }
+
+    // ── Orders ─────────────────────────────────────────────────────────────────
+    match /orders/{orderId} {
+      // Customers can create & read their own orders; sellers/admins can read all
+      allow create: if isSignedIn();
+      allow read: if isSignedIn() && (
+        resource.data.customerId == request.auth.uid ||
+        isSeller() ||
+        isAdmin()
+      );
+      // Only sellers and admins can update status/OTP (not the customer)
+      allow update: if isSeller() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Shops (public catalog) ─────────────────────────────────────────────────
+    match /shops/{shopId} {
+      allow read: if true;                            // public read
+      allow write: if isOwner(shopId) || isAdmin();  // only the owning seller
+    }
+
+    // ── Shop owners / sellers ──────────────────────────────────────────────────
+    match /shopOwners/{sellerId} {
+      allow read: if true;                             // public — shop catalog is visible to everyone
+      allow create: if isAdmin();
+      allow update: if isOwner(sellerId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Admins collection ──────────────────────────────────────────────────────
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── System settings ────────────────────────────────────────────────────────
+    match /systemSettings/{docId} {
+      allow read: if true;      // public — needed before auth (maintenance mode check)
+      allow write: if isAdmin();
+    }
+
+    // ── Audit logs ─────────────────────────────────────────────────────────────
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();   // any authenticated action can create a log
+      allow update, delete: if false;  // logs are immutable
+    }
+
+    // ── Notifications ──────────────────────────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && (
+        resource.data.recipientId == request.auth.uid || isAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.recipientId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // ── Seller invitations ─────────────────────────────────────────────────────
+    match /sellerInvitations/{inviteId} {
+      allow read: if true;       // needed for invitation acceptance link
+      allow write: if isAdmin();
+    }
+
+    // ── Coupons ────────────────────────────────────────────────────────────────
+    match /coupons/{couponId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── Coupon Usage ───────────────────────────────────────────────────────────
+    match /couponUsage/{usageId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ── Deny everything else ───────────────────────────────────────────────────
     match /{document=**} {
-      // Require authentication for all data access by default
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
-} 
+}

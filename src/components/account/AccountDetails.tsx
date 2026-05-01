@@ -8,8 +8,7 @@ interface AccountDetailsProps {
 }
 
 const AccountDetails: React.FC<AccountDetailsProps> = ({ profile, onEdit }) => {
-  console.log('AccountDetails received profile:', profile);
-  console.log('AccountDetails profile keys:', Object.keys(profile || {}));
+
 
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">

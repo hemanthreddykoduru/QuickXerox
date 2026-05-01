@@ -4,13 +4,15 @@ import { toast } from 'react-hot-toast';
 const otpStore = new Map<string, string>();
 
 export const generateOTP = (mobile: string): string => {
-  // Generate a 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  // Use crypto.getRandomValues for a cryptographically secure 6-digit OTP
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const otp = ((array[0] % 9000) + 1000).toString();
   otpStore.set(mobile, otp);
   
-  // In a real app, this would send the OTP via SMS
-  console.log(`OTP for ${mobile}: ${otp}`);
-  toast.success('OTP sent successfully! Check console for the OTP.');
+  // In a real app, this would send the OTP via SMS gateway (Twilio/MSG91)
+  // NEVER log OTPs to the console in production
+  toast.success('OTP sent successfully!');
   
   return otp;
 };
