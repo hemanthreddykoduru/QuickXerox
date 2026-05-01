@@ -44,65 +44,56 @@ const AccountPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
-  useEffect(() => {
-    // Wait for validation - prevent fetching if we don't have a user identifier
-    if (!profile.email && !profile.mobile && isInitialized) {
-      setIsLoadingOrders(false);
-      return;
-    }
-
-    // Wait for profile to load (if not initialized yet)
-    if (!isInitialized) return;
-
+    // Use a ref to store the unsubscribe function to ensure it's accessible for cleanup
     let unsubscribe: (() => void) | undefined;
 
-    const startFetching = async () => {
+    if (isInitialized) {
       const userEmail = profile.email || localStorage.getItem('userEmail');
 
       if (!userEmail) {
-        console.log("No email found for order history");
+        console.log("AccountPage: No email for orders, clearing list.");
         setOrders([]);
         setIsLoadingOrders(false);
-        return;
-      }
+      } else {
+        setIsLoadingOrders(true);
+        console.log("AccountPage: Setting up direct listener for:", userEmail);
 
-      setIsLoadingOrders(true);
-      console.log("Subscribing to real-time orders for:", userEmail);
+        try {
+          const q = query(
+            collection(db, 'orders'),
+            where('customerEmail', '==', userEmail)
+          );
 
-      try {
-        const q = query(
-          collection(db, 'orders'),
-          where('customerEmail', '==', userEmail)
-        );
+          unsubscribe = onSnapshot(q, (querySnapshot) => {
+            console.log("AccountPage: Real-time update received from Firestore!");
+            const fetchedOrders: Order[] = [];
+            querySnapshot.forEach((doc) => {
+              fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
+            });
 
-        unsubscribe = onSnapshot(q, (querySnapshot: any) => {
-          const fetchedOrders: Order[] = [];
-          querySnapshot.forEach((doc: any) => {
-            fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
+            // Sort by timestamp descending
+            fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            
+            console.log(`AccountPage: Setting ${fetchedOrders.length} orders to state.`);
+            setOrders(fetchedOrders);
+            setIsLoadingOrders(false);
+          }, (error) => {
+            console.error("AccountPage: Firestore listener error:", error);
+            setIsLoadingOrders(false);
           });
-
-          fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-          setOrders(fetchedOrders);
+        } catch (err) {
+          console.error("AccountPage: Setup error:", err);
           setIsLoadingOrders(false);
-        }, (error: any) => {
-          console.error("Error in real-time listener:", error);
-          setIsLoadingOrders(false);
-        });
-      } catch (err) {
-        console.error("Setup error:", err);
-        setIsLoadingOrders(false);
+        }
       }
-    };
+    }
 
-    startFetching();
-    
     return () => {
       if (unsubscribe) {
-        console.log("Unsubscribing from real-time orders");
+        console.log("AccountPage: Cleaning up listener");
         unsubscribe();
       }
     };
-
   }, [profile.email, isInitialized]);
 
   const handleProfileUpdate = (updatedProfile: typeof profile) => {
