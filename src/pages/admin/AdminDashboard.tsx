@@ -1178,9 +1178,18 @@ const AdminDashboard = () => {
                         }
                         setSendingTestEmail(true);
                         try {
-                          const sendTestEmail = httpsCallable(functions, 'sendTestEmail');
-                          await sendTestEmail({ email });
-                          toast.success(`Test email sent to ${email} `);
+                          const response = await fetch('https://quickxerox-api.vercel.app/api/send-test-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email })
+                          });
+                          
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Failed to send test email');
+                          }
+                          
+                          toast.success(`Test email sent to ${email} via Vercel!`);
                         } catch (error: any) {
                           console.error('Error sending test email:', error);
                           // Fallback for demo/dev if functions not deployed
