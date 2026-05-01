@@ -85,6 +85,9 @@
     "minimatch": "^9.0.5",
     "uuid": "^14.0.0",
     "undici": "^6.24.1",
-    "@tootallnate/once": "^3.0.1"
+    "@tootallnate/once": "^3.0.1",
+    "follow-redirects": "^1.15.6",
+    "picomatch": "^4.0.1",
+    "flatted": "^3.3.1"
   }
 }
