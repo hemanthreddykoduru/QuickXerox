@@ -96,14 +96,16 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
           </div>
         ) : (
           paginatedOrders.map((order) => {
+            const currentStatus = (order.status || 'pending').toLowerCase();
             const statusConfig: Record<string, { label: string; bg: string; text: string; dot: string }> = {
               pending:    { label: 'Placed',     bg: 'bg-blue-50',   text: 'text-blue-700',   dot: 'bg-blue-500' },
               processing: { label: 'Ready',      bg: 'bg-amber-50',  text: 'text-amber-700',  dot: 'bg-amber-500' },
+              ready:      { label: 'Ready',      bg: 'bg-amber-50',  text: 'text-amber-700',  dot: 'bg-amber-500' },
               completed:  { label: 'Completed',  bg: 'bg-green-50',  text: 'text-green-700',  dot: 'bg-green-500' },
               rejected:   { label: 'Cancelled',  bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
               failed:     { label: 'Failed',     bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
             };
-            const s = statusConfig[order.status] ?? { label: order.status, bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-400' };
+            const s = statusConfig[currentStatus] ?? { label: order.status, bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-400' };
 
             return (
               <div
@@ -141,29 +143,29 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                 </div>
 
                 {/* ── Progress Bar ─────────────────────────────────────── */}
-                {order.status !== 'rejected' && order.status !== 'failed' ? (
+                {currentStatus !== 'rejected' && currentStatus !== 'failed' ? (
                   <div className="px-6 sm:px-8 py-5">
                     <div className="relative">
                       <div className="absolute top-4 sm:top-5 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-slate-100 -translate-y-1/2 rounded">
                         <div
                           className="h-full bg-indigo-600 rounded transition-all duration-500"
                           style={{
-                            width: order.status === 'completed' ? '100%' :
-                              order.status === 'processing' ? '50%' : '0%'
+                            width: (currentStatus === 'completed') ? '100%' :
+                              (currentStatus === 'processing' || currentStatus === 'ready') ? '50%' : '0%'
                           }}
                         />
                       </div>
                       <div className="relative flex justify-between">
                         {[
-                          { step: 1, label: 'PLACED',    active: ['pending','processing','completed'] },
-                          { step: 2, label: 'READY',     active: ['processing','completed'] },
+                          { step: 1, label: 'PLACED',    active: ['pending','processing','ready','completed'] },
+                          { step: 2, label: 'READY',     active: ['processing','ready','completed'] },
                           { step: 3, label: 'DONE',      active: ['completed'] },
                         ].map(({ step, label, active }) => (
                           <div key={step} className="flex flex-col items-center flex-1">
-                            <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors duration-300 ${active.includes(order.status) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors duration-300 ${active.includes(currentStatus) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
                               {step}
                             </div>
-                            <span className={`mt-2 text-[9px] sm:text-xs font-bold tracking-widest uppercase ${active.includes(order.status) ? 'text-indigo-600' : 'text-slate-400'}`}>
+                            <span className={`mt-2 text-[9px] sm:text-xs font-bold tracking-widest uppercase ${active.includes(currentStatus) ? 'text-indigo-600' : 'text-slate-400'}`}>
                               {label}
                             </span>
                           </div>
