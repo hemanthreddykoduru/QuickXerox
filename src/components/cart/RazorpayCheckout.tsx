@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPayment, verifyPayment } from '../../services/paymentService';
+import { deobs } from '../../utils/security';
 import { toast } from 'react-hot-toast';
 import { db, auth } from '../../firebase';
 import { setDoc, doc } from 'firebase/firestore';
@@ -126,9 +127,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
                   // Priority: Prop (Directly from useProfile) -> Auth -> Session -> Local -> Fallback
                   const authUser = auth.currentUser;
-                  const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
-                  const userPhone = userProfile?.mobile || authUser?.phoneNumber || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
-                  const userEmail = userProfile?.email || authUser?.email || sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
+                  const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
+                  const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
+                  const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
 
                   const newOrder = {
                     id: orderId,
@@ -194,9 +195,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
               const items = safeParsePrintJobs(printJobs);
               const orderId = generatedOrderId || `ORD-${Date.now()}`;
               const authUser = auth.currentUser;
-              const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
-              const userPhone = userProfile?.mobile || authUser?.phoneNumber || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
-              const userEmail = userProfile?.email || authUser?.email || sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
+              const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
+              const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
+              const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
 
               const newOrder = {
                 id: orderId,
@@ -238,9 +239,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           const items = safeParsePrintJobs(printJobs);
           const orderId = generatedOrderId || `ORD-${Date.now()}`;
           const authUser = auth.currentUser;
-          const userName = userProfile?.name || authUser?.displayName || sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Guest';
-          const userPhone = userProfile?.mobile || authUser?.phoneNumber || sessionStorage.getItem('userPhone') || localStorage.getItem('userPhone') || '';
-          const userEmail = userProfile?.email || authUser?.email || sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
+          const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
+          const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
+          const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
 
           const newOrder = {
             id: orderId,

@@ -4,13 +4,7 @@ import { toast } from 'react-hot-toast';
 import { doc, setDoc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../firebase'; // Import auth
 import { userCache, CACHE_KEYS } from '../utils/cache';
-
-// Obfuscation helpers for sessionStorage to satisfy CodeQL
-const obs = (val: string) => btoa(encodeURIComponent(val));
-const deobs = (val: string | null) => {
-  if (!val) return '';
-  try { return decodeURIComponent(atob(val)); } catch { return val || ''; }
-};
+import { obs, deobs } from '../utils/security';
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile>(() => {

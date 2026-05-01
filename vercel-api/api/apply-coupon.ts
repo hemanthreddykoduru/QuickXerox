@@ -21,8 +21,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
         });
     } catch (error: any) {
         console.error('Error applying coupon:', error);
-        return res.status(500).json({
-            error: 'Failed to apply coupon',
+        return res.status(400).json({
+            error: error.message || 'Failed to apply coupon',
             details: error.message
         });
     }

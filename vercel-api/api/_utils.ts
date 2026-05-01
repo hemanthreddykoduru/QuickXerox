@@ -73,9 +73,12 @@ export const validateCoupon = async (couponCode: string, orderAmount: number, us
 
     const now = new Date();
     const expiryDate = coupon.expiryDate.toDate();
+    // Set expiry to the end of the day (23:59:59.999) to be inclusive
+    const endOfDayExpiry = new Date(expiryDate);
+    endOfDayExpiry.setHours(23, 59, 59, 999);
     
-    if (now > expiryDate) {
-        console.log(`Coupon Expired: Now(${now.toISOString()}) > Expiry(${expiryDate.toISOString()})`);
+    if (now > endOfDayExpiry) {
+        console.log(`Coupon Expired: Now(${now.toISOString()}) > Expiry(${endOfDayExpiry.toISOString()})`);
         throw new Error('Coupon has expired');
     }
 
