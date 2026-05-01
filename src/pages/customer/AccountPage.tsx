@@ -7,7 +7,7 @@ import EditProfileModal from '../../components/account/EditProfileModal';
 import { useProfile } from '../../hooks/useProfile';
 import { Order } from '../../types';
 import { db, auth } from '../../firebase';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, or } from 'firebase/firestore';
 import Skeleton from '../../components/common/Skeleton';
 
 const AccountPage = () => {
@@ -60,9 +60,20 @@ const AccountPage = () => {
         console.log("AccountPage: Setting up direct listener for:", userEmail);
 
         try {
+          const userId = auth.currentUser?.uid;
+          const userEmail = profile.email || localStorage.getItem('userEmail') || auth.currentUser?.email;
+          const userPhone = profile.mobile || localStorage.getItem('userPhone') || auth.currentUser?.phoneNumber;
+
+          console.log("AccountPage: Setting up direct listener for UserID:", userId);
+
+          // Use the new Firestore OR filter for maximum reliability
           const q = query(
             collection(db, 'orders'),
-            where('customerEmail', '==', userEmail)
+            or(
+              where('customerId', '==', userId || '---'),
+              where('customerEmail', '==', userEmail || '---'),
+              where('customerPhone', '==', userPhone || '---')
+            )
           );
 
           unsubscribe = onSnapshot(q, (querySnapshot) => {
