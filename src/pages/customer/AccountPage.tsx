@@ -54,8 +54,9 @@ const AccountPage = () => {
     // Wait for profile to load (if not initialized yet)
     if (!isInitialized) return;
 
+    let unsubscribe: (() => void) | undefined;
+
     const startFetching = async () => {
-      // Use EMAIL to find orders as per user request
       const userEmail = profile.email || localStorage.getItem('userEmail');
 
       if (!userEmail) {
@@ -66,7 +67,7 @@ const AccountPage = () => {
       }
 
       setIsLoadingOrders(true);
-      console.log("Fetching orders for customer email:", userEmail);
+      console.log("Subscribing to real-time orders for:", userEmail);
 
       try {
         const q = query(
@@ -74,25 +75,19 @@ const AccountPage = () => {
           where('customerEmail', '==', userEmail)
         );
 
-        const unsubscribe = onSnapshot(q, (querySnapshot: any) => {
+        unsubscribe = onSnapshot(q, (querySnapshot: any) => {
           const fetchedOrders: Order[] = [];
           querySnapshot.forEach((doc: any) => {
             fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
           });
 
-          // Sort client-side to avoid index requirement for now
           fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-          console.log("Fetched orders:", fetchedOrders);
           setOrders(fetchedOrders);
           setIsLoadingOrders(false);
         }, (error: any) => {
-          console.error("Error fetching order history:", error);
-          // toast.error("Failed to load order history"); // Silent fail
+          console.error("Error in real-time listener:", error);
           setIsLoadingOrders(false);
         });
-
-        return unsubscribe;
       } catch (err) {
         console.error("Setup error:", err);
         setIsLoadingOrders(false);
@@ -100,8 +95,12 @@ const AccountPage = () => {
     };
 
     startFetching();
+    
     return () => {
-      // cleanup
+      if (unsubscribe) {
+        console.log("Unsubscribing from real-time orders");
+        unsubscribe();
+      }
     };
 
   }, [profile.email, isInitialized]);
