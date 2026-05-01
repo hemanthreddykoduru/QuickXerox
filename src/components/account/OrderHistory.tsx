@@ -12,12 +12,18 @@ interface OrderHistoryProps {
 
 const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [activeTab, setActiveTab] = React.useState<'all' | 'pending' | 'processing' | 'completed'>('all');
   const ITEMS_PER_PAGE = 5;
 
-  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+  const filteredOrders = orders.filter(order => {
+    if (activeTab === 'all') return true;
+    return order.status === activeTab;
+  });
+
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const getPaginatedOrders = () => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    return filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   };
 
   const paginatedOrders = getPaginatedOrders();
@@ -28,6 +34,30 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
     <div className="bg-white rounded-lg shadow">
       <div className="p-4 sm:p-6 border-b border-gray-200">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Order History</h2>
+      </div>
+
+      {/* Status Tabs */}
+      <div className="flex border-b border-gray-100 bg-gray-50/50 p-1">
+        {[
+          { id: 'all', label: 'ALL' },
+          { id: 'pending', label: 'PLACED' },
+          { id: 'processing', label: 'READY' },
+          { id: 'completed', label: 'DONE' }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id as any);
+              setCurrentPage(1);
+            }}
+            className={`flex-1 py-2.5 text-[10px] sm:text-xs font-black tracking-widest transition-all duration-200 rounded-md ${activeTab === tab.id
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-gray-400 hover:text-gray-600'
+              }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className="p-4 sm:p-6 space-y-4">
@@ -59,10 +89,10 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               </div>
             </div>
           ))
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="py-12 text-center text-gray-400">
             <Printer className="h-10 w-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium">No orders yet</p>
+            <p className="text-sm font-medium">No {activeTab !== 'all' ? activeTab : ''} orders found</p>
           </div>
         ) : (
           paginatedOrders.map((order) => {
@@ -231,7 +261,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, orders.length)}</span> of <span className="font-medium">{orders.length}</span> results
+                Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)}</span> of <span className="font-medium">{filteredOrders.length}</span> results
               </p>
             </div>
             <div>
