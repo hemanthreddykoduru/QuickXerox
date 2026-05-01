@@ -44,6 +44,7 @@ const AccountPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
+  useEffect(() => {
     // Use a ref to store the unsubscribe function to ensure it's accessible for cleanup
     let unsubscribe: (() => void) | undefined;
 
