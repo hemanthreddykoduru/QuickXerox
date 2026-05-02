@@ -199,13 +199,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
               {/* Header */}
               <div className="sticky top-0 bg-white/50 backdrop-blur-md z-10 px-6 py-4 border-b border-slate-100 flex-shrink-0">
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-indigo-50 rounded-lg">
-                      <Bell className="h-6 w-6 text-indigo-600" />
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg flex-shrink-0">
+                      <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
                     </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Notifications</h2>
-                      <p className="text-sm text-slate-500 mt-0.5">
+                    <div className="min-w-0">
+                      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight truncate">Notifications</h2>
+                      <p className="text-[10px] sm:text-sm text-slate-500 mt-0.5">
                         {unreadCount > 0 ? `${unreadCount} unread updates` : 'All caught up!'}
                       </p>
                     </div>

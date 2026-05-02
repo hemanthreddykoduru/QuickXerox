@@ -144,9 +144,9 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
 
                 {/* ── Progress Bar ─────────────────────────────────────── */}
                 {currentStatus !== 'rejected' && currentStatus !== 'failed' ? (
-                  <div className="px-6 sm:px-8 py-5">
+                  <div className="px-4 sm:px-8 py-4 sm:py-5">
                     <div className="relative">
-                      <div className="absolute top-4 sm:top-5 left-[1rem] right-[1rem] sm:left-[1.25rem] sm:right-[1.25rem] h-1 bg-slate-100 -translate-y-1/2 rounded">
+                      <div className="absolute top-3.5 sm:top-5 left-[0.75rem] right-[0.75rem] sm:left-[1.25rem] sm:right-[1.25rem] h-0.5 sm:h-1 bg-slate-100 -translate-y-1/2 rounded">
                         <div
                           className="h-full bg-indigo-600 rounded transition-all duration-500"
                           style={{
@@ -162,10 +162,10 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                           { step: 3, label: 'DONE',      active: ['completed'] },
                         ].map(({ step, label, active }) => (
                           <div key={step} className="flex flex-col items-center flex-1">
-                            <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold z-10 transition-colors duration-300 ${active.includes(currentStatus) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
+                            <div className={`w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[10px] sm:text-sm font-bold z-10 transition-colors duration-300 ${active.includes(currentStatus) ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-400'}`}>
                               {step}
                             </div>
-                            <span className={`mt-2 text-[9px] sm:text-xs font-bold tracking-widest uppercase ${active.includes(currentStatus) ? 'text-indigo-600' : 'text-slate-400'}`}>
+                            <span className={`mt-1.5 text-[8px] sm:text-xs font-bold tracking-widest uppercase ${active.includes(currentStatus) ? 'text-indigo-600' : 'text-slate-400'}`}>
                               {label}
                             </span>
                           </div>

@@ -13,13 +13,13 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
   const MotionDiv = motion.div as any;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {jobs.map((job) => (
-        <div key={job.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-slate-300 transition-colors">
+        <div key={job.id} className="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 hover:border-slate-300 transition-colors">
           <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3 flex-1">
-              <div className="relative mt-1 text-indigo-600">
-                <FileIcon className="h-6 w-6" />
+            <div className="flex items-start space-x-2 sm:space-x-3 flex-1">
+              <div className="relative mt-1 text-indigo-600 flex-shrink-0">
+                <FileIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 <MotionDiv
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -33,7 +33,7 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                     strokeWidth="4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="w-2 h-2 text-white"
+                    className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white"
                   >
                     <motion.path
                       initial={{ pathLength: 0 }}
@@ -45,11 +45,11 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                 </MotionDiv>
               </div>
               
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-slate-900 line-clamp-1">{job.file.name}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <p className="font-semibold text-slate-900 text-sm sm:text-base truncate pr-2">{job.file.name}</p>
                 </div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
                   {(job.file.size / 1024 / 1024).toFixed(2)} MB &nbsp;•&nbsp;
                   <span className="text-indigo-600 font-black">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
                 </p>
@@ -57,29 +57,29 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
             </div>
 
             
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-0.5 sm:space-x-1 flex-shrink-0">
               <button
                 onClick={() => onPreview(job.file)}
-                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all active:scale-95"
+                className="p-1.5 sm:p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all active:scale-95"
                 title="Preview file"
                 aria-label="Preview file"
               >
-                <Eye className="h-5 w-5" />
+                <Eye className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={() => onRemoveJob(job.id)}
-                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-95"
+                className="p-1.5 sm:p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-95"
                 aria-label="Remove item"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               </button>
             </div>
 
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="mt-3 sm:mt-4 grid grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-1.5">
                 Copies
               </label>
               <input
@@ -90,12 +90,12 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                   ...job,
                   copies: parseInt(e.target.value) || 1
                 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all text-sm outline-none"
+                className="w-full px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all text-xs sm:text-sm outline-none"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                Print Type
+              <label className="block text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-1.5">
+                Type
               </label>
               <select
                 value={job.isColor ? 'color' : 'bw'}
@@ -103,9 +103,9 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
                   ...job,
                   isColor: e.target.value === 'color'
                 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all text-sm outline-none appearance-none"
+                className="w-full px-2.5 py-1.5 sm:px-3 sm:py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white transition-all text-xs sm:text-sm outline-none appearance-none"
               >
-                <option value="bw">Black & White</option>
+                <option value="bw">B&W</option>
                 <option value="color">Color</option>
               </select>
             </div>

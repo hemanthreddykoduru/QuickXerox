@@ -11,12 +11,12 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ profile, onEdit }) => {
 
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-      <div className="flex justify-between items-center mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Account Details</h2>
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
+      <div className="flex justify-between items-center mb-5 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Account Details</h2>
         <button
           onClick={onEdit}
-          className="px-4 py-2 text-sm sm:px-4 sm:py-2 sm:text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 rounded-lg sm:bg-transparent sm:hover:bg-transparent"
+          className="px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 rounded-lg transition-colors"
         >
           Edit Profile
         </button>

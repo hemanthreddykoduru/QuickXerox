@@ -104,7 +104,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3.5 sm:gap-6 sm:grid-cols-2">
         <FormInput
           label="Name"
           type="text"
@@ -171,17 +171,17 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose, profile, onS
         />
       </div>
 
-      <div className="mt-4 flex justify-end space-x-2 sm:mt-6 sm:space-x-3">
+      <div className="mt-6 sm:mt-8 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-3">
         <button
           type="button"
           onClick={onClose}
-          className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="w-full sm:w-auto px-6 py-2.5 sm:py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all"
         >
           Save Changes
         </button>

@@ -9,27 +9,29 @@ interface FloatingCartButtonProps {
 }
 
 const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({ itemCount, onClick, isVisible }) => {
+  const MotionDiv = motion.div as any;
+
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, scale: 0.5, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.5, y: 20 }}
           className="fixed bottom-6 right-6 z-40"
         >
-          <motion.div
+          <MotionDiv
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-white rounded-full shadow-lg p-2"
+            className="bg-white rounded-full shadow-lg p-1.5 sm:p-2"
           >
             <CartButton
               itemCount={itemCount}
               onClick={onClick}
               className="!p-3"
             />
-          </motion.div>
-        </motion.div>
+          </MotionDiv>
+        </MotionDiv>
       )}
     </AnimatePresence>
   );

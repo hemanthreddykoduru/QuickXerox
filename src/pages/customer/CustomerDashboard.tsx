@@ -293,22 +293,22 @@ function CustomerDashboard() {
             <MotionDiv 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-2 sm:space-x-4"
+              className="flex items-center space-x-1 sm:space-x-4"
             >
-              <div className="hidden lg:flex items-center px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200">
-                <MapPin className="h-3.5 w-3.5 text-indigo-500 mr-2" />
-                <span className="text-slate-600 text-xs font-semibold truncate max-w-[120px]" title={userLocation}>{userLocation}</span>
+              <div className="flex items-center px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200 overflow-hidden max-w-[100px] xs:max-w-none">
+                <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-indigo-500 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <span className="text-slate-600 text-[10px] sm:text-xs font-semibold truncate max-w-[50px] xs:max-w-[120px]" title={userLocation}>{userLocation}</span>
               </div>
               
-              <div className="flex items-center space-x-1 sm:space-x-2 bg-slate-50/50 p-1 rounded-xl border border-slate-100">
+              <div className="flex items-center space-x-1 bg-slate-50/50 p-1 rounded-xl border border-slate-100">
                 <button
                   onClick={() => setIsNotificationCenterOpen(true)}
-                  className="relative p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
+                  className="relative p-1.5 sm:p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"
                   title="Notifications"
                 >
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                   {notificationCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 bg-rose-500 text-white text-[9px] font-bold rounded-full h-3.5 w-3.5 flex items-center justify-center ring-2 ring-white">
+                    <span className="absolute top-1 right-1 bg-rose-500 text-white text-[8px] sm:text-[9px] font-bold rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 flex items-center justify-center ring-2 ring-white">
                       {notificationCount}
                     </span>
                   )}
@@ -319,23 +319,23 @@ function CustomerDashboard() {
                   onClick={() => setIsCartOpen(true)}
                 />
 
-                <div className="w-px h-5 bg-slate-200 mx-0.5" />
+                <div className="w-px h-4 bg-slate-200 mx-0.5" />
 
                 <button
                   onClick={() => navigate('/account')}
-                  className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all group"
+                  className="p-1.5 sm:p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg transition-all group"
                   title="View Account"
                 >
-                  <User className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                  <User className="h-4.5 w-4.5 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform" />
                 </button>
                 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 sm:space-x-2 p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all font-medium"
+                  className="flex items-center space-x-1 p-1.5 sm:p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all font-medium"
                   title="Logout"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline text-[11px] font-bold uppercase tracking-wider">Exit</span>
+                  <span className="hidden xs:inline text-[9px] sm:text-[11px] font-bold uppercase tracking-wider">Exit</span>
                 </button>
               </div>
             </MotionDiv>
