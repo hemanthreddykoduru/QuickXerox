@@ -125,3 +125,32 @@ export const validateCoupon = async (couponCode: string, orderAmount: number, us
         code: coupon.code,
     };
 };
+
+export const calculateOrderAmount = async (shopId: string, items: any[]) => {
+    if (!shopId) throw new Error('Shop ID is required');
+    if (!items || !Array.isArray(items) || items.length === 0) throw new Error('Order items are required');
+
+    const shopDoc = await adminDb.collection('shopOwners').doc(shopId).get();
+    if (!shopDoc.exists) {
+        throw new Error('Shop not found');
+    }
+
+    const shopData = shopDoc.data();
+    const perPageCostAdjustment = shopData?.settings?.preferences?.perPageCostAdjustment ?? 0;
+    const basePrice = perPageCostAdjustment + 1;
+
+    let totalPages = 0;
+    for (const item of items) {
+        // Ensure pages and copies are valid numbers
+        const pages = Number(item.pages || item.pageCount || 1);
+        const copies = Number(item.copies || 1);
+        
+        if (isNaN(pages) || pages <= 0) throw new Error(`Invalid page count for item: ${item.fileName || 'unknown'}`);
+        if (isNaN(copies) || copies <= 0) throw new Error(`Invalid copies for item: ${item.fileName || 'unknown'}`);
+        
+        totalPages += pages * copies;
+    }
+
+    const totalAmount = totalPages * basePrice;
+    return Math.round(totalAmount);
+};

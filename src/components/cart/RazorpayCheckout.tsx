@@ -3,7 +3,7 @@ import { createPayment, verifyPayment } from '../../services/paymentService';
 import { deobs } from '../../utils/security';
 import { toast } from 'react-hot-toast';
 import { db, auth } from '../../firebase';
-import { setDoc, doc } from 'firebase/firestore';
+import { updateDoc, doc } from 'firebase/firestore';
 
 interface RazorpayCheckoutProps {
   amount: number;
@@ -54,13 +54,6 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
     });
   };
 
-  const generateOTP = () => {
-    // Use Web Crypto API for a cryptographically secure 6-digit OTP
-    const array = new Uint32Array(1);
-    crypto.getRandomValues(array);
-    const otp = ((array[0] % 9000) + 1000).toString();
-    return { otp };
-  };
 
   const safeParsePrintJobs = (raw: string) => {
     try {
@@ -90,12 +83,22 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           return;
         }
 
+        // Priority: Prop (Directly from useProfile) -> Auth -> Session -> Local -> Fallback
+        const authUser = auth.currentUser;
+        const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
+        const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
+        const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
+
         // 1. Create Order via Backend
         const orderData = await createPayment({
-          amount: originalAmount || amount,
+          shopId,
+          items: safeParsePrintJobs(printJobs),
           currency,
           couponCode,
           userId: auth.currentUser?.uid,
+          customerName: userName,
+          customerEmail: userEmail,
+          customerPhone: userPhone,
         });
 
         if (!orderData) {
@@ -119,50 +122,21 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
               );
 
               if (isVerified) {
-                // Save Order to Firestore
+                // Fulfillment is now handled by server-side webhook
+                // We just need to wait for the document to update or proceed
                 try {
-                  const items = safeParsePrintJobs(printJobs);
-                  // Use generated Order ID (ORD-...) as the primary ID, falling back to Razorpay ID
-                  const orderId = generatedOrderId || response.razorpay_order_id || `ORD-${Date.now()}`;
-
-                  // Priority: Prop (Directly from useProfile) -> Auth -> Session -> Local -> Fallback
-                  const authUser = auth.currentUser;
-                  const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
-                  const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
-                  const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
-
-                  const newOrder = {
-                    id: orderId,
-                    customerId: auth.currentUser?.uid || '',
-                    customerName: userName,
-                    customerPhone: userPhone,
-                    customerEmail: userEmail,
-                    sellerPhone: '',
-                    items: items,
-                    total: amount,
-                    status: 'pending',
-                    timestamp: new Date().toISOString(),
-                    shopId: shopId,
-                    shopName: shopName || 'the shop',
-                    isPaid: true,
-                    paymentId: response.razorpay_payment_id,
-                    otpVerified: false,
-                    otpGeneratedAt: new Date().toISOString(),
-                    otp: generateOTP().otp // Persist OTP to database for seller visibility
-                  };
-
-                  // Use setDoc to force the Document ID to match our Order ID
-                  await setDoc(doc(db, 'orders', orderId), newOrder);
-
+                  const orderId = orderData.orderId;
+                  
+                  // In a real scenario, we might want to poll or use onSnapshot to wait for OTP
+                  // For now, we proceed to onSuccess and let the parent component handle the redirect
+                  // which likely has its own Firestore listener for the order
+                  
                   toast.dismiss();
-
-                  // Pass the generated Order ID and OTP back
-                  onSuccess({ ...response, orderId: orderId, otp: newOrder.otp });
+                  onSuccess({ ...response, orderId: orderId });
                 } catch (dbError: any) {
-                  console.error('Error saving order to DB:', dbError);
+                  console.error('Error handling post-verification:', dbError);
                   toast.dismiss();
-                  toast.error(`Critical Error: Order not saved. ${dbError.message}`);
-                  // DO NOT call onSuccess here, so the user knows it failed
+                  toast.error(`Error: ${dbError.message}`);
                   onError(dbError);
                 }
               } else {
@@ -192,35 +166,15 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           },
           modal: {
             ondismiss: async function () {
-              const items = safeParsePrintJobs(printJobs);
-              const orderId = generatedOrderId || `ORD-${Date.now()}`;
-              const authUser = auth.currentUser;
-              const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
-              const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
-              const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
-
-              const newOrder = {
-                id: orderId,
-                customerId: auth.currentUser?.uid || '',
-                customerName: userName,
-                customerPhone: userPhone,
-                customerEmail: userEmail,
-                sellerPhone: '',
-                items: items,
-                total: amount,
-                status: 'failed',
-                timestamp: new Date().toISOString(),
-                shopId: shopId,
-                shopName: shopName || 'the shop',
-                isPaid: false,
-                paymentId: 'Cancelled by user',
-                otpVerified: false,
-                // No OTP generated for cancelled orders
-              };
+              const orderId = orderData.orderId;
               try {
-                await setDoc(doc(db, 'orders', orderId), newOrder);
+                const orderRef = doc(db, 'orders', orderId);
+                await updateDoc(orderRef, {
+                  status: 'cancelled',
+                  paymentId: 'Cancelled by user',
+                });
               } catch (dbError) {
-                console.error('Error saving cancelled order to DB:', dbError);
+                console.error('Error updating cancelled order in DB:', dbError);
               }
               onError('Payment cancelled by user');
             }
@@ -236,36 +190,16 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         rzp1.on('payment.failed', async function (response: any) {
           console.error(response.error);
 
-          const items = safeParsePrintJobs(printJobs);
-          const orderId = generatedOrderId || `ORD-${Date.now()}`;
-          const authUser = auth.currentUser;
-          const userName = userProfile?.name || authUser?.displayName || deobs(sessionStorage.getItem('userName')) || deobs(localStorage.getItem('userName')) || 'Guest';
-          const userPhone = userProfile?.mobile || authUser?.phoneNumber || deobs(sessionStorage.getItem('userPhone')) || deobs(localStorage.getItem('userPhone')) || '';
-          const userEmail = userProfile?.email || authUser?.email || deobs(sessionStorage.getItem('userEmail')) || deobs(localStorage.getItem('userEmail')) || '';
-
-          const newOrder = {
-            id: orderId,
-            customerId: auth.currentUser?.uid || '',
-            customerName: userName,
-            customerPhone: userPhone,
-            customerEmail: userEmail,
-            sellerPhone: '',
-            items: items,
-            total: amount,
-            status: 'failed',
-            timestamp: new Date().toISOString(),
-            shopId: shopId,
-            shopName: shopName || 'the shop',
-            isPaid: false,
-            paymentId: response.error?.metadata?.payment_id || 'Failed Payment',
-            paymentError: response.error?.description || 'Payment Failed',
-            otpVerified: false,
-            // No OTP generated for failed payments
-          };
+          const orderId = orderData.orderId;
           try {
-            await setDoc(doc(db, 'orders', orderId), newOrder);
+            const orderRef = doc(db, 'orders', orderId);
+            await updateDoc(orderRef, {
+              status: 'failed',
+              paymentId: response.error?.metadata?.payment_id || 'Failed Payment',
+              paymentError: response.error?.description || 'Payment Failed',
+            });
           } catch (dbError) {
-            console.error('Error saving failed order to DB:', dbError);
+            console.error('Error updating failed order in DB:', dbError);
           }
 
           onError(response.error);

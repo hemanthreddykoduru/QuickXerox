@@ -5,10 +5,14 @@ const VERCEL_API_URL = 'https://quickxerox-api.vercel.app/api';
  * Initialize Payment
  */
 export const createPayment = async (paymentDetails: {
-  amount: number;
+  shopId: string;
+  items: any[];
   currency: string;
   couponCode?: string;
   userId?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
 }) => {
   try {
     // Call Vercel API instead of Firebase Cloud Function
