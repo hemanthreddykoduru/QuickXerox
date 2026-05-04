@@ -11,10 +11,8 @@ interface RazorpayCheckoutProps {
   receipt: string;
   printJobs: string;
   shopId: string;
-  shopName?: string;
   generatedOrderId?: string;
   couponCode?: string;
-  originalAmount?: number;
   userProfile?: {
     name: string;
     mobile: string;
@@ -36,10 +34,8 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   receipt,
   printJobs,
   shopId,
-  shopName,
   generatedOrderId,
   couponCode,
-  originalAmount,
   userProfile,
   onSuccess,
   onError,

@@ -542,7 +542,6 @@ const Cart: React.FC<CartProps> = ({
           {isProcessing && selectedShop && (
             <RazorpayCheckout
               amount={finalTotalAmount}
-              originalAmount={totalAmount}
               couponCode={appliedCoupon?.code}
               currency="INR"
               receipt={orderId}
@@ -554,7 +553,6 @@ const Cart: React.FC<CartProps> = ({
                 pages: 1
               })))}
               shopId={selectedShop.id.toString()}
-              shopName={selectedShop.name}
               generatedOrderId={orderId}
               userProfile={userProfile || undefined}
               onSuccess={handlePaymentSuccess}

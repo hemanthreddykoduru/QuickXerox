@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, ShoppingBag, Settings, LogOut, BarChart, X, Moon, Sun, Mail, ChevronLeft, ChevronRight, Ticket } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions } from '../../firebase';
+import { auth, db } from '../../firebase';
 import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard';
 import Skeleton from '../../components/common/Skeleton';
 
