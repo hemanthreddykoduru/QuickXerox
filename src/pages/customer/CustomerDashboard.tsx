@@ -293,11 +293,11 @@ function CustomerDashboard() {
             <MotionDiv 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center space-x-1 sm:space-x-4"
+              className="flex items-center space-x-1.5 sm:space-x-4"
             >
-              <div className="flex items-center px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200 overflow-hidden max-w-[100px] xs:max-w-none">
-                <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-indigo-500 mr-1.5 sm:mr-2 flex-shrink-0" />
-                <span className="text-slate-600 text-[10px] sm:text-xs font-semibold truncate max-w-[50px] xs:max-w-[120px]" title={userLocation}>{userLocation}</span>
+              <div className="hidden xs:flex items-center px-2.5 py-1.5 bg-slate-100 rounded-full border border-slate-200 overflow-hidden">
+                <MapPin className="h-3 w-3 text-indigo-500 mr-1.5 flex-shrink-0" />
+                <span className="text-slate-600 text-[10px] font-semibold truncate max-w-[80px]" title={userLocation}>{userLocation}</span>
               </div>
               
               <div className="flex items-center space-x-1 bg-slate-50/50 p-1 rounded-xl border border-slate-100">
@@ -335,7 +335,7 @@ function CustomerDashboard() {
                   title="Logout"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="hidden xs:inline text-[9px] sm:text-[11px] font-bold uppercase tracking-wider">Exit</span>
+                  <span className="hidden sm:inline text-[9px] sm:text-[11px] font-bold uppercase tracking-wider">Exit</span>
                 </button>
               </div>
             </MotionDiv>
@@ -348,12 +348,12 @@ function CustomerDashboard() {
         <MotionDiv 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6 sm:mb-12"
+          className="text-center mb-6 sm:mb-12 pt-2"
         >
-          <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-2 sm:mb-3 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-1.5 sm:mb-3 tracking-tight px-2">
             Print Documents Near You
           </h2>
-          <p className="text-sm sm:text-lg text-slate-500 max-w-xl mx-auto px-4">
+          <p className="text-xs sm:text-lg text-slate-500 max-w-xl mx-auto px-6">
             Upload files and collect your prints at trusted local shops.
           </p>
         </MotionDiv>

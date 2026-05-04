@@ -47,9 +47,9 @@ const PrintJobList: React.FC<PrintJobListProps> = ({ jobs, onUpdateJob, onRemove
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 sm:gap-2">
-                  <p className="font-semibold text-slate-900 text-sm sm:text-base truncate pr-2">{job.file.name}</p>
+                  <p className="font-semibold text-slate-900 text-xs sm:text-base truncate pr-2">{job.file.name}</p>
                 </div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                <p className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
                   {(job.file.size / 1024 / 1024).toFixed(2)} MB &nbsp;•&nbsp;
                   <span className="text-indigo-600 font-black">{job.pageCount} {job.pageCount === 1 ? 'page' : 'pages'}</span>
                 </p>

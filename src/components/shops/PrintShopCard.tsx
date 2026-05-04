@@ -58,20 +58,20 @@ const PrintShopCard: React.FC<PrintShopCardProps> = ({ shop, isSelected, onSelec
 
       {/* Content Section */}
       <div className="p-3 sm:p-4">
-        <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 mb-2 sm:mb-3">
+        <h3 className="text-xs sm:text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 mb-1.5 sm:mb-3">
           {shop.name}
         </h3>
 
-        <div className="flex items-center justify-between mb-3 sm:mb-4 px-0.5">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-between mb-2.5 sm:mb-4 px-0.5">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <div className="flex items-center gap-0.5 sm:gap-1">
-              <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-yellow-500" />
-              <span className="text-[10px] sm:text-xs font-bold text-gray-700">{shop.rating}</span>
+              <Star className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-yellow-500 fill-yellow-500" />
+              <span className="text-[9px] sm:text-xs font-bold text-gray-700">{shop.rating}</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-gray-300" />
+            <div className="w-0.5 h-0.5 rounded-full bg-gray-300" />
             <div className="flex items-center gap-0.5 sm:gap-1">
-              <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400" />
-              <span className="text-[10px] sm:text-xs font-medium text-gray-500">{shop.distance} mi</span>
+              <MapPin className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 text-gray-400" />
+              <span className="text-[9px] sm:text-xs font-medium text-gray-500">{shop.distance} mi</span>
             </div>
           </div>
           <div className="flex items-center gap-1 text-slate-400">
