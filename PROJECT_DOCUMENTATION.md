@@ -23,23 +23,21 @@
 
 ## 📖 Project Overview
 
-**QuickXerox** is a full-stack print-on-demand platform that connects customers with local print shops. It enables:
-- Customers to upload documents and place print orders from anywhere
-- Print shops (sellers) to manage orders, verify pickups with OTP, and track revenue
-- Admins to oversee the entire platform, manage users, and view analytics
+**QuickXerox** is a full-stack, "Security-First" print-on-demand platform that connects customers with local print shops. It solves the problem of long queues and data privacy by providing a contactless, pre-paid, and OTP-verified workflow.
 
 **Key Highlights:**
-- Mobile-responsive progressive web app (PWA)
-- Real-time payment processing with Razorpay webhooks
-- Secure file storage and OTP-based pickup verification
-- FREE infrastructure ($0/month cost)
-- Production-ready with full audit logging
+- **Zero-Trust Pricing**: Server-side price recalculation prevents client-side tampering.
+- **Webhook Integrity**: HMAC-SHA256 signature verification for all payment events.
+- **Real-time Synchronization**: Instant order feeds via Firestore `onSnapshot`.
+- **Privacy-Centric Storage**: Files stored in private Supabase buckets with time-limited signed URLs.
+- **Transactional Invoicing**: Automated PDF invoice delivery via Mailtrap.
+- **Mobile-Responsive PWA**: Fully optimized for mobile collection and management.
 
 **Live URLs:**
-- Frontend: https://otp-project-aafc6.web.app
-- Webhook Server: https://quickxerox-production.up.railway.app
+- **Frontend**: `https://quickxerox.web.app`
+- **Backend API**: `https://quickxerox-api.vercel.app`
 
-**Repository:** https://github.com/hemanthreddykoduru/QuickXerox
+---
 
 ---
 
@@ -57,19 +55,20 @@
 - **Notifications:** React Hot Toast 2.4.1
 - **Date/Time:** date-fns 2.30.0
 
-### Backend Services
-- **Authentication:** Firebase Authentication 10.6.0
-- **Database:** Firestore (NoSQL document database)
-- **File Storage:** Supabase Storage
-- **Webhook Server:** Express.js (Node.js) on Railway
-- **Payment Gateway:** Razorpay API
+### Backend & API
+- **Compute:** Vercel Serverless Functions (Node.js 20+)
+- **Authentication:** Firebase Authentication
+- **Database:** Google Cloud Firestore (NoSQL)
+- **File Storage:** Supabase Storage (Private Buckets)
+- **Email:** Mailtrap (Transactional SMTP)
+- **Payments:** Razorpay (API + HMAC Webhooks)
 
-### Hosting & Deployment
-- **Frontend:** Firebase Hosting (Free tier)
-- **Webhook Server:** Railway.app (Free tier)
-- **Database:** Firebase Firestore (Free tier)
-- **File Storage:** Supabase (Free tier)
-- **Version Control:** GitHub
+### Hosting & Infrastructure
+- **Frontend:** Firebase Hosting
+- **API/Backend:** Vercel
+- **Database/Auth:** Google Cloud Platform (GCP)
+- **Storage:** Supabase (PostgreSQL-backed storage)
+- **Version Control:** GitHub with Automated CI/CD
 
 ### Development Tools
 - **Package Manager:** npm
@@ -83,47 +82,61 @@
 
 ### System Architecture
 
+```mermaid
+graph TD
+    subgraph "Frontend (Client Side)"
+        C[Customer Portal]
+        S[Seller Dashboard]
+        A[Admin Panel]
+    end
+
+    subgraph "Infrastructure & API (Vercel)"
+        API[Vercel Serverless Functions]
+        INV[Invoice Generator]
+        WH[Razorpay Webhook Handler]
+    end
+
+    subgraph "External Services"
+        RP[Razorpay - Payments]
+        MT[Mailtrap - Email]
+        FB_AUTH[Firebase Auth]
+    end
+
+    subgraph "Data & Storage Layer"
+        FS[(Cloud Firestore)]
+        SB[(Supabase Storage)]
+    end
+
+    C & S & A -->|Authenticate| FB_AUTH
+    C -->|Upload PDF| SB
+    C -->|Initiate Order| API
+    API -->|Create Order| RP
+    RP -->|Payment Success| WH
+    WH -->|Verify HMAC Signature| FS
+    WH -->|Trigger| MT
+    S -->|Real-time Order Feed| FS
+    S -->|Download Document| SB
+    S -->|Verify OTP| API
+    API -->|Update Order Status| FS
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Client (Browser)                      │
-│              React SPA + Tailwind CSS                    │
-└───────────────────┬─────────────────────────────────────┘
-                    │
-                    ├──── Firebase Auth (Login/Signup)
-                    │
-                    ├──── Firestore (Orders, Users, Shops)
-                    │
-                    ├──── Supabase Storage (File Uploads)
-                    │
-                    └──── Razorpay (Payment Gateway)
-                              │
-                              │ Webhook
-                              ▼
-                    ┌─────────────────────┐
-                    │  Railway Server     │
-                    │  (Express.js)       │
-                    │  - Verify signature │
-                    │  - Update orders    │
-                    │  - Create audit logs│
-                    └─────────────────────┘
-```
 
-### Data Flow
+### Data Flow (A-Z Role Workflows)
 
-**Customer Order Flow:**
-1. Customer uploads files → Supabase Storage
-2. Selects print options → Frontend validation
-3. Proceeds to payment → Razorpay checkout
-4. Payment success → Razorpay webhook → Railway server
-5. Server updates order status in Firestore
-6. Customer receives confirmation
+#### 1. The Customer Journey
+- **Upload**: Files are uploaded to private Supabase buckets.
+- **Pay**: The system uses **Server-Side Price Recalculation** (ignoring client inputs) to generate a Razorpay order.
+- **Track**: After payment, a 4-digit OTP is generated.
+- **Collect**: The customer visits the shop and presents the OTP.
 
-**Seller Order Flow:**
-1. Seller logs in → Firebase Auth
-2. Views orders in real-time (Firestore onSnapshot)
-3. Generates OTP for pickup → Stored in order document
-4. Customer provides OTP → Seller verifies → Order completed
-5. Revenue tracked automatically
+#### 2. The Seller Experience
+- **Real-time Feed**: Orders appear instantly on the dashboard via Firestore listeners.
+- **Download**: Documents are accessed via **60-second Signed URLs** for maximum privacy.
+- **Fulfillment**: The seller verifies the customer's OTP to release the print job.
+
+#### 3. The Admin Controls
+- **Onboarding**: Admins invite sellers and approve shop statuses.
+- **Financials**: Direct integration with the **Razorpay Refund API** for dispute resolution.
+- **Global Control**: Toggle "Maintenance Mode" across the platform from a single dashboard.
 
 ---
 
@@ -401,34 +414,34 @@ const options = {
 };
 ```
 
-2. **Webhook Processing (Railway Server):**
+2. **Webhook Processing (Vercel API):**
 ```javascript
-app.post('/api/webhooks/razorpay', async (req, res) => {
-  // Verify signature
-  const signature = req.headers['x-razorpay-signature'];
-  const expectedSignature = crypto
-    .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
-    .update(JSON.stringify(req.body))
-    .digest('hex');
-  
-  if (signature !== expectedSignature) {
-    return res.status(400).json({ error: 'Invalid signature' });
-  }
-  
-  // Update order in Firestore
-  const { payment, order } = req.body.payload;
-  await updateDoc(doc(db, 'orders', order.id), {
-    paymentStatus: 'success',
-    razorpayPaymentId: payment.entity.id
-  });
-  
-  res.status(200).json({ success: true });
+// vercel-api/api/razorpay-webhook.ts
+const signature = req.headers['x-razorpay-signature'];
+const body = JSON.stringify(req.body);
+
+// Verify HMAC SHA256 signature
+const expectedSignature = crypto
+  .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
+  .update(body)
+  .digest('hex');
+
+if (signature !== expectedSignature) {
+  throw new Error('Invalid signature');
+}
+
+// Atomic update in Firestore
+const orderId = req.body.payload.payment.entity.order_id;
+await db.collection('orders').doc(orderId).update({
+  paymentStatus: 'success',
+  status: 'processing',
+  otp: generateOTP() // 4-digit code
 });
 ```
 
 **Razorpay Dashboard Configuration:**
-- Webhook URL: `https://quickxerox-production.up.railway.app/api/webhooks/razorpay`
-- Events: `payment.authorized`, `payment.captured`, `payment.failed`, `order.paid`
+- Webhook URL: `https://quickxerox-api.vercel.app/api/razorpay-webhook`
+- Events: `order.paid`, `payment.captured`
 - Status: Enabled
 
 ---
@@ -748,44 +761,23 @@ Railway auto-deploys on every push to `main` branch!
 
 ## 🔌 API Endpoints
 
-### Webhook Server (Railway)
+### Vercel Serverless Functions
 
-**Base URL:** `https://quickxerox-production.up.railway.app`
+**Base URL:** `https://quickxerox-api.vercel.app`
 
-#### Health Check
-```
-GET /api/health
+#### 1. Payment Endpoints
+- `POST /api/create-order`: Securely calculates price and creates Razorpay session.
+- `POST /api/razorpay-webhook`: Securely verifies payment and updates Firestore.
+- `POST /api/verify-payment`: Fallback for manual payment verification.
 
-Response:
-{
-  "status": "ok",
-  "timestamp": "2026-01-25T...",
-  "twilioConfigured": false
-}
-```
+#### 2. Communication Endpoints
+- `POST /api/send-invoice`: Generates PDF invoice and emails via Mailtrap.
+- `POST /api/send-invitation`: Sends secure shop owner invitation links.
+- `POST /api/send-verification`: Sends 6-digit identity verification codes.
 
-#### Razorpay Webhook
-```
-POST /api/webhooks/razorpay
-
-Headers:
-  Content-Type: application/json
-  x-razorpay-signature: <signature>
-
-Body:
-{
-  "event": "payment.captured",
-  "payload": {
-    "payment": {...},
-    "order": {...}
-  }
-}
-
-Response:
-{
-  "success": true
-}
-```
+#### 3. Administrative Endpoints
+- `POST /api/razorpay-refund`: Triggers automated refunds via Razorpay API.
+- `POST /api/upload-invoice`: Persists generated invoices to storage.
 
 ---
 
