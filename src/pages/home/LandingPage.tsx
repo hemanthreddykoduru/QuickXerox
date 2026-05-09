@@ -19,18 +19,19 @@ const LandingPage = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
-        // Load YouTube IFrame API
-        const tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
-
-        // Once API is ready, create player and hook seamless loop
-        (window as any).onYouTubeIframeAPIReady = () => {
+        // Function to initialize player
+        const initPlayer = () => {
+            if (!(window as any).YT || !(window as any).YT.Player) return;
+            
             new (window as any).YT.Player('youtube-hero-bg', {
                 events: {
+                    onReady: (event: any) => {
+                        event.target.mute();
+                        event.target.playVideo();
+                    },
                     onStateChange: (event: any) => {
                         // State 0 = ended → seek to 0 and play again instantly
-                        if (event.data === 0) {
+                        if (event.data === (window as any).YT.PlayerState.ENDED) {
                             event.target.seekTo(0);
                             event.target.playVideo();
                         }
@@ -38,6 +39,18 @@ const LandingPage = () => {
                 },
             });
         };
+
+        if (!(window as any).YT) {
+            // Load YouTube IFrame API if not present
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+            (window as any).onYouTubeIframeAPIReady = initPlayer;
+        } else {
+            // API already loaded, init directly
+            initPlayer();
+        }
     }, []);
 
     return (
