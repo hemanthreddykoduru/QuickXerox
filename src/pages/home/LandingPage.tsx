@@ -23,16 +23,26 @@ const PAYMENT_STEPS = [
     { step: '06', label: 'Collect', desc: 'Customer shows OTP at the shop — seller verifies and prints released', emoji: '✅', colors: { ring: '#14b8a6', bg: 'from-teal-500 to-teal-600', badge: '#14b8a6', glow: 'rgba(20,184,166,0.35)' } },
 ];
 
+const CONFETTI_COLORS = ['#f43f5e', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
+
 /* ─── Celebration Confetti keyframes ─────────────────────────── */
-const CONFETTI_KEYFRAMES = `
+const SUCCESS_ANIMATION_KEYFRAMES = `
+@keyframes checkmark-draw {
+    0% { stroke-dashoffset: 48; }
+    100% { stroke-dashoffset: 0; }
+}
+@keyframes ring-expand {
+    0% { transform: scale(0.5); opacity: 0.8; border-width: 4px; }
+    100% { transform: scale(2.5); opacity: 0; border-width: 1px; }
+}
+@keyframes checkmark-pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
 @keyframes confetti-fall {
     0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
     100% { transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(0.4); opacity: 0; }
-}
-@keyframes celebrate-pop {
-    0%   { transform: scale(0.5); opacity: 0; }
-    60%  { transform: scale(1.15); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
 }
 @keyframes star-burst {
     0%   { transform: scale(0) rotate(0deg); opacity:1; }
@@ -41,36 +51,45 @@ const CONFETTI_KEYFRAMES = `
 }
 `;
 
-const CONFETTI_COLORS = ['#f43f5e','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
-
-const Confetti = () => {
-    const pieces = Array.from({ length: 28 }, (_, i) => {
-        const angle = (i / 28) * 360;
-        const dist  = 60 + Math.random() * 90;
-        const tx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
-        const ty    = Math.round(Math.sin((angle * Math.PI) / 180) * dist - 30);
+const SuccessAnimation = () => {
+    const confettiPieces = Array.from({ length: 32 }, (_, i) => {
+        const angle = (i / 32) * 360;
+        const dist = 70 + Math.random() * 100;
+        const tx = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+        const ty = Math.round(Math.sin((angle * Math.PI) / 180) * dist - 20);
         const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-        const size  = 6 + Math.round(Math.random() * 6);
-        const delay = (Math.random() * 0.3).toFixed(2);
-        const dur   = (0.7 + Math.random() * 0.5).toFixed(2);
-        const isCircle = i % 3 === 0;
-        return { tx, ty, color, size, delay, dur, isCircle, rot: Math.round(Math.random() * 720 - 360) };
+        const size = 6 + Math.round(Math.random() * 6);
+        const delay = (0.4 + Math.random() * 0.3).toFixed(2); // Delay until checkmark starts
+        const dur = (0.8 + Math.random() * 0.5).toFixed(2);
+        return { tx, ty, color, size, delay, dur, rot: Math.round(Math.random() * 720 - 360) };
     });
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ zIndex: 20 }}>
-            {pieces.map((p, i) => (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 30 }}>
+            {/* Animated Rings */}
+            <div className="absolute w-20 h-20 border-2 border-emerald-400 rounded-full" style={{ animation: 'ring-expand 0.8s ease-out 0.2s both' }} />
+            <div className="absolute w-20 h-20 border-4 border-emerald-200 rounded-full" style={{ animation: 'ring-expand 1s ease-out 0.1s both' }} />
+            
+            {/* Success Checkmark Circle */}
+            <div className="relative w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg" style={{ animation: 'checkmark-pop 0.5s cubic-bezier(0.65, 0, 0.45, 1) both' }}>
+                <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6L9 17L4 12" style={{ strokeDasharray: 48, strokeDashoffset: 48, animation: 'checkmark-draw 0.4s ease-in-out 0.3s forwards' }} />
+                </svg>
+            </div>
+
+            {/* Confetti */}
+            {confettiPieces.map((p, i) => (
                 <div
                     key={i}
                     style={{
                         position: 'absolute',
                         width: p.size,
-                        height: p.isCircle ? p.size : p.size * 1.6,
+                        height: p.size * 1.4,
                         background: p.color,
-                        borderRadius: p.isCircle ? '50%' : '2px',
+                        borderRadius: i % 3 === 0 ? '50%' : '2px',
                         '--tx': `${p.tx}px`,
                         '--ty': `${p.ty}px`,
-                        '--r':  `${p.rot}deg`,
+                        '--r': `${p.rot}deg`,
                         animation: `confetti-fall ${p.dur}s ease-out ${p.delay}s both`,
                     } as React.CSSProperties}
                 />
@@ -116,7 +135,7 @@ const PaymentFlowAnimation = () => {
     return (
         <div className="mb-20">
             {/* Inject keyframes once */}
-            <style>{CONFETTI_KEYFRAMES}</style>
+            <style>{SUCCESS_ANIMATION_KEYFRAMES}</style>
 
             <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-3">How a Payment Works — Step by Step</p>
             <p className="text-center text-sm text-gray-400 mb-10">Watch the flow animate automatically ↓</p>
@@ -190,8 +209,8 @@ const PaymentFlowAnimation = () => {
                                             style={{ background: s.colors.badge }}
                                         />
                                     )}
-                                    {/* Confetti burst on Collect */}
-                                    {isCollect && isActive && <Confetti key={celebKey} />}
+                                    {/* Success Animation burst on Collect */}
+                                    {isCollect && isActive && <SuccessAnimation key={celebKey} />}
                                 </div>
 
                                 <span
@@ -645,22 +664,23 @@ const LandingPage = () => {
                     {/* ── Payment & Data Flow Pipeline — Animated ── */}
                     <PaymentFlowAnimation />
 
-                    {/* ── Tech Stack ── */}
                     <div className="mb-16">
                         <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-8">Powered By</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                             {[
-                                { name: 'React + Vite', desc: 'Frontend', emoji: '⚛️', bg: 'bg-cyan-50 border-cyan-100 hover:border-cyan-300' },
-                                { name: 'Firebase', desc: 'Auth + Database', emoji: '🔥', bg: 'bg-orange-50 border-orange-100 hover:border-orange-300' },
-                                { name: 'Supabase', desc: 'File Storage', emoji: '🗄️', bg: 'bg-emerald-50 border-emerald-100 hover:border-emerald-300' },
-                                { name: 'Razorpay', desc: 'Payments', emoji: '💳', bg: 'bg-blue-50 border-blue-100 hover:border-blue-300' },
-                                { name: 'Vercel', desc: 'Backend API', emoji: '▲', bg: 'bg-gray-50 border-gray-200 hover:border-gray-400' },
-                                { name: 'Mailtrap', desc: 'Email Delivery', emoji: '📧', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
+                                { name: 'React + Vite', desc: 'Frontend', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg', bg: 'bg-cyan-50 border-cyan-100 hover:border-cyan-300' },
+                                { name: 'Firebase', desc: 'Auth + Database', logo: 'https://www.vectorlogo.zone/logos/firebase/firebase-icon.svg', bg: 'bg-orange-50 border-orange-100 hover:border-orange-300' },
+                                { name: 'Supabase', desc: 'File Storage', logo: 'https://www.vectorlogo.zone/logos/supabase/supabase-icon.svg', bg: 'bg-emerald-50 border-emerald-100 hover:border-emerald-300' },
+                                { name: 'Razorpay', desc: 'Payments', logo: 'https://www.vectorlogo.zone/logos/razorpay/razorpay-icon.svg', bg: 'bg-blue-50 border-blue-100 hover:border-blue-300' },
+                                { name: 'Vercel', desc: 'Backend API', logo: 'https://www.vectorlogo.zone/logos/vercel/vercel-icon.svg', bg: 'bg-gray-50 border-gray-200 hover:border-gray-400' },
+                                { name: 'Mailtrap', desc: 'Email Delivery', logo: 'https://www.vectorlogo.zone/logos/mailtrapio/mailtrapio-icon.svg', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
                             ].map(tech => (
-                                <div key={tech.name} className={`${tech.bg} rounded-2xl p-4 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center`}>
-                                    <div className="text-2xl mb-2">{tech.emoji}</div>
-                                    <div className="font-bold text-gray-900 text-xs">{tech.name}</div>
-                                    <div className="text-gray-400 text-[10px] mt-0.5">{tech.desc}</div>
+                                <div key={tech.name} className={`${tech.bg} rounded-2xl p-5 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center flex flex-col items-center justify-center`}>
+                                    <div className="h-10 w-10 flex items-center justify-center mb-3">
+                                        <img src={tech.logo} alt={tech.name} className="max-h-full max-w-full object-contain" />
+                                    </div>
+                                    <div className="font-bold text-gray-900 text-[10px] leading-tight">{tech.name}</div>
+                                    <div className="text-gray-400 text-[9px] mt-0.5">{tech.desc}</div>
                                 </div>
                             ))}
                         </div>
