@@ -278,6 +278,63 @@ const PaymentFlowAnimation = () => {
     );
 };
 
+const EarningsCalculator = () => {
+    const [orders, setOrders] = useState(20);
+    const [avgValue, setAvgValue] = useState(50);
+    
+    const monthlyRev = orders * avgValue * 30;
+    const weeklyRev = orders * avgValue * 7;
+
+    return (
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+                <div>
+                    <div className="flex justify-between mb-4">
+                        <label className="text-blue-100 font-bold uppercase tracking-wider text-xs">Orders Per Day</label>
+                        <span className="text-white font-black text-xl">{orders}</span>
+                    </div>
+                    <input 
+                        type="range" min="5" max="200" step="5" value={orders}
+                        onChange={(e) => setOrders(parseInt(e.target.value))}
+                        className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                </div>
+                <div>
+                    <div className="flex justify-between mb-4">
+                        <label className="text-blue-100 font-bold uppercase tracking-wider text-xs">Avg. Order Value</label>
+                        <span className="text-white font-black text-xl">₹{avgValue}</span>
+                    </div>
+                    <input 
+                        type="range" min="10" max="500" step="10" value={avgValue}
+                        onChange={(e) => setAvgValue(parseInt(e.target.value))}
+                        className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    />
+                </div>
+            </div>
+
+            <div className="bg-white/5 rounded-3xl p-8 border border-white/10 backdrop-blur-sm">
+                <div className="mb-8">
+                    <p className="text-blue-200/50 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Estimated Weekly Income</p>
+                    <p className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                        ₹{weeklyRev.toLocaleString('en-IN')}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-indigo-200/50 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Estimated Monthly Revenue</p>
+                    <p className="text-5xl md:text-6xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent tracking-tighter">
+                        ₹{monthlyRev.toLocaleString('en-IN')}
+                    </p>
+                </div>
+                <div className="mt-8 pt-6 border-t border-white/5">
+                    <p className="text-[10px] text-gray-500 font-medium italic">
+                        * Estimates based on average market data. Actual earnings may vary based on location and shop performance.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const SellerLandingPage = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -439,6 +496,127 @@ const SellerLandingPage = () => {
                     </div>
 
                     <PaymentFlowAnimation />
+
+                    {/* Dashboard Preview Section */}
+                    <div className="mt-24 mb-32">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">Your Digital Command Center</h2>
+                            <p className="text-lg text-gray-600 max-w-2xl mx-auto font-medium">Manage your entire shop from a single, high-performance dashboard.</p>
+                        </div>
+                        
+                        <div className="relative max-w-5xl mx-auto">
+                            {/* Decorative Background Elements */}
+                            <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+                            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+                            
+                            {/* Dashboard Mockup */}
+                            <div className="bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden p-3 md:p-6 lg:p-8">
+                                <div className="bg-gray-50 rounded-[1.5rem] border border-gray-200 overflow-hidden">
+                                    {/* Mock Browser Header */}
+                                    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                                        <div className="flex gap-2">
+                                            <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                                            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                            <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                                        </div>
+                                        <div className="px-4 py-1.5 bg-gray-100 rounded-lg text-[10px] font-bold text-gray-400 tracking-wider">quickxerox.app/partner/dashboard</div>
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">HK</div>
+                                    </div>
+                                    
+                                    {/* Mock Dashboard Content */}
+                                    <div className="p-4 md:p-8 grid md:grid-cols-4 gap-6">
+                                        <div className="md:col-span-3 space-y-6">
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Total Revenue</p>
+                                                    <p className="text-2xl font-black text-gray-900">₹42,850</p>
+                                                    <p className="text-[10px] text-green-600 font-bold mt-1">↑ 12.5% this week</p>
+                                                </div>
+                                                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Active Orders</p>
+                                                    <p className="text-2xl font-black text-gray-900">14</p>
+                                                    <p className="text-[10px] text-blue-600 font-bold mt-1">4 urgent</p>
+                                                </div>
+                                                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Completed</p>
+                                                    <p className="text-2xl font-black text-gray-900">1,204</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold mt-1">Lifetime</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                                                    <h4 className="font-black text-gray-900">Recent Orders</h4>
+                                                    <span className="text-xs font-bold text-blue-600 cursor-pointer">View All</span>
+                                                </div>
+                                                <div className="divide-y divide-gray-50">
+                                                    {[
+                                                        { id: '#QX-9042', user: 'Rahul S.', type: 'B&W', pages: 42, status: 'Processing' },
+                                                        { id: '#QX-9041', user: 'Priya K.', type: 'Color', pages: 12, status: 'Ready' },
+                                                        { id: '#QX-9040', user: 'Amit B.', type: 'B&W', pages: 8, status: 'Completed' },
+                                                    ].map(order => (
+                                                        <div key={order.id} className="px-6 py-4 flex items-center justify-between">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-xs">{order.id.slice(4)}</div>
+                                                                <div>
+                                                                    <p className="text-sm font-black text-gray-900">{order.user}</p>
+                                                                    <p className="text-[10px] text-gray-400 font-bold">{order.type} • {order.pages} Pages</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                                order.status === 'Processing' ? 'bg-amber-50 text-amber-600' :
+                                                                order.status === 'Ready' ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'
+                                                            }`}>
+                                                                {order.status}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-6">
+                                            <div className="bg-indigo-600 rounded-2xl p-6 text-white shadow-lg">
+                                                <TrendingUp size={24} className="mb-4" />
+                                                <h4 className="font-black mb-2 text-lg">Top Performer</h4>
+                                                <p className="text-indigo-100 text-xs font-medium leading-relaxed mb-4">You are in the top 5% of shops in your area this week.</p>
+                                                <button className="w-full py-2 bg-white text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-wider">View Insights</button>
+                                            </div>
+                                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                                                <h4 className="font-black text-gray-900 mb-4 text-sm">Quick Actions</h4>
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                        <DollarSign size={16} className="text-emerald-500" />
+                                                        <span className="text-xs font-bold text-gray-600">Update Prices</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                        <Smartphone size={16} className="text-blue-500" />
+                                                        <span className="text-xs font-bold text-gray-600">Shop Settings</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Earnings Calculator */}
+                    <div className="mt-24 max-w-4xl mx-auto">
+                        <div className="bg-gradient-to-br from-gray-900 to-slate-900 rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden border border-white/10">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+                            
+                            <div className="relative z-10">
+                                <div className="text-center mb-12">
+                                    <h3 className="text-2xl md:text-4xl font-black text-white mb-4 tracking-tight">Calculate Your Potential</h3>
+                                    <p className="text-blue-200/70 font-medium">See how much your shop can grow with QuickXerox</p>
+                                </div>
+
+                                <EarningsCalculator />
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Powered By Section */}
                     <div className="mt-20">
