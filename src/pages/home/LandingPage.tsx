@@ -153,12 +153,13 @@ const PaymentFlowAnimation = () => {
                 {/* Animated connector line (desktop only) */}
                 <div className="hidden md:block absolute top-10 left-[8.33%] right-[8.33%] h-0.5 bg-gray-100 z-0">
                     <div
-                        className="absolute top-1/2 w-3 h-3 rounded-full shadow-lg z-10"
+                        className="absolute top-1/2 w-3 h-3 rounded-full shadow-lg z-10 transition-opacity duration-300"
                         style={{
-                            left: `${(active / (PAYMENT_STEPS.length - 1) + dotPct / (PAYMENT_STEPS.length - 1)) * 100}%`,
+                            left: `${Math.min((active / (PAYMENT_STEPS.length - 1) + (active === PAYMENT_STEPS.length - 1 ? 0 : dotPct / (PAYMENT_STEPS.length - 1))) * 100, 100)}%`,
                             background: step.colors.badge,
                             boxShadow: `0 0 8px 3px ${step.colors.glow}`,
                             transform: 'translate(-50%, -50%)',
+                            opacity: active === PAYMENT_STEPS.length - 1 && dotPct > 0.5 ? 0 : 1
                         }}
                     />
                     <div
