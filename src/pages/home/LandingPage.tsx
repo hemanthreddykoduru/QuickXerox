@@ -12,7 +12,176 @@ import {
     Menu,
     X
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+const PAYMENT_STEPS = [
+    { step: '01', label: 'Upload', desc: 'Files uploaded to Supabase with a cover page prepended automatically', emoji: '📄', colors: { ring: '#3b82f6', bg: 'from-blue-500 to-blue-600', badge: '#3b82f6', glow: 'rgba(59,130,246,0.35)' } },
+    { step: '02', label: 'Order Created', desc: 'Server calculates price from shop settings — client amount ignored', emoji: '🧾', colors: { ring: '#8b5cf6', bg: 'from-violet-500 to-violet-600', badge: '#8b5cf6', glow: 'rgba(139,92,246,0.35)' } },
+    { step: '03', label: 'Payment', desc: 'Razorpay processes UPI / card in a secure encrypted checkout', emoji: '💳', colors: { ring: '#10b981', bg: 'from-emerald-500 to-emerald-600', badge: '#10b981', glow: 'rgba(16,185,129,0.35)' } },
+    { step: '04', label: 'Webhook', desc: 'Razorpay pings our server; HMAC-SHA256 signature verified', emoji: '🔐', colors: { ring: '#f97316', bg: 'from-orange-500 to-orange-600', badge: '#f97316', glow: 'rgba(249,115,22,0.35)' } },
+    { step: '05', label: 'OTP Generated', desc: '4-digit OTP written to Firestore — customer sees it instantly', emoji: '🔑', colors: { ring: '#f43f5e', bg: 'from-rose-500 to-rose-600', badge: '#f43f5e', glow: 'rgba(244,63,94,0.35)' } },
+    { step: '06', label: 'Collect', desc: 'Customer shows OTP at the shop — seller verifies and prints released', emoji: '✅', colors: { ring: '#14b8a6', bg: 'from-teal-500 to-teal-600', badge: '#14b8a6', glow: 'rgba(20,184,166,0.35)' } },
+];
+
+const PaymentFlowAnimation = () => {
+    const [active, setActive] = useState(0);
+    const [dotPct, setDotPct] = useState(0);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const STEP_DURATION = 2200;
+
+    useEffect(() => {
+        intervalRef.current = setInterval(() => {
+            setActive(prev => (prev + 1) % PAYMENT_STEPS.length);
+        }, STEP_DURATION);
+        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    }, []);
+
+    useEffect(() => {
+        setDotPct(0);
+        const start = Date.now();
+        const raf = () => {
+            const elapsed = Date.now() - start;
+            const pct = Math.min(elapsed / STEP_DURATION, 1);
+            setDotPct(pct);
+            if (pct < 1) requestAnimationFrame(raf);
+        };
+        requestAnimationFrame(raf);
+    }, [active]);
+
+    const step = PAYMENT_STEPS[active];
+    const progressPct = ((active + 1) / PAYMENT_STEPS.length) * 100;
+
+    return (
+        <div className="mb-20">
+            <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-3">How a Payment Works — Step by Step</p>
+            <p className="text-center text-sm text-gray-400 mb-10">Watch the flow animate automatically ↓</p>
+
+            {/* Progress bar */}
+            <div className="relative h-1.5 bg-gray-100 rounded-full mb-10 overflow-hidden max-w-2xl mx-auto">
+                <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                    style={{ width: `${progressPct}%`, background: `linear-gradient(90deg, ${step.colors.badge}, ${step.colors.badge}cc)` }}
+                />
+            </div>
+
+            {/* Step cards — desktop row, mobile grid */}
+            <div className="relative">
+                {/* Animated connector line (desktop only) */}
+                <div className="hidden md:block absolute top-10 left-[8.33%] right-[8.33%] h-0.5 bg-gray-100 z-0">
+                    {/* traveling dot */}
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-lg transition-none z-10"
+                        style={{
+                            left: `${(active / (PAYMENT_STEPS.length - 1) + dotPct / (PAYMENT_STEPS.length - 1)) * 100}%`,
+                            background: step.colors.badge,
+                            boxShadow: `0 0 8px 3px ${step.colors.glow}`,
+                            transform: 'translate(-50%, -50%)',
+                        }}
+                    />
+                    {/* filled segment */}
+                    <div
+                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                        style={{ width: `${(active / (PAYMENT_STEPS.length - 1)) * 100}%`, background: step.colors.badge }}
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 relative z-10">
+                    {PAYMENT_STEPS.map((s, i) => {
+                        const isActive = i === active;
+                        const isDone = i < active;
+                        return (
+                            <button
+                                key={s.step}
+                                onClick={() => {
+                                    setActive(i);
+                                    if (intervalRef.current) clearInterval(intervalRef.current);
+                                    intervalRef.current = setInterval(() => setActive(prev => (prev + 1) % PAYMENT_STEPS.length), STEP_DURATION);
+                                }}
+                                className="flex flex-col items-center text-center focus:outline-none group cursor-pointer"
+                            >
+                                {/* Icon circle */}
+                                <div
+                                    className="w-20 h-20 rounded-full flex items-center justify-center mb-3 transition-all duration-500 relative"
+                                    style={{
+                                        background: isActive
+                                            ? `linear-gradient(135deg, ${s.colors.badge}, ${s.colors.badge}cc)`
+                                            : isDone ? `${s.colors.badge}22` : '#f3f4f6',
+                                        boxShadow: isActive ? `0 0 0 6px ${s.colors.glow}, 0 8px 24px ${s.colors.glow}` : 'none',
+                                        transform: isActive ? 'scale(1.18)' : 'scale(1)',
+                                    }}
+                                >
+                                    <span className="text-2xl" style={{ filter: isActive ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))' : 'none' }}>{s.emoji}</span>
+                                    {/* Pulsing ring on active */}
+                                    {isActive && (
+                                        <span
+                                            className="absolute inset-0 rounded-full animate-ping opacity-30"
+                                            style={{ background: s.colors.badge }}
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Step badge */}
+                                <span
+                                    className="text-[10px] font-black px-2 py-0.5 rounded-full mb-1.5 transition-all duration-300"
+                                    style={{
+                                        background: isActive ? s.colors.badge : isDone ? `${s.colors.badge}22` : '#e5e7eb',
+                                        color: isActive ? '#fff' : isDone ? s.colors.badge : '#9ca3af',
+                                    }}
+                                >
+                                    {s.step}
+                                </span>
+
+                                <span
+                                    className="text-xs font-bold transition-colors duration-300"
+                                    style={{ color: isActive ? s.colors.badge : isDone ? '#6b7280' : '#9ca3af' }}
+                                >
+                                    {s.label}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Active step detail card */}
+            <div
+                className="mt-10 rounded-3xl p-6 md:p-8 transition-all duration-500 border"
+                style={{
+                    background: `linear-gradient(135deg, ${step.colors.badge}11, ${step.colors.badge}05)`,
+                    borderColor: `${step.colors.badge}33`,
+                    boxShadow: `0 4px 32px ${step.colors.glow}`,
+                }}
+            >
+                <div className="flex items-center gap-4">
+                    <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg"
+                        style={{ background: `linear-gradient(135deg, ${step.colors.badge}, ${step.colors.badge}cc)` }}
+                    >
+                        {step.emoji}
+                    </div>
+                    <div>
+                        <div className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: step.colors.badge }}>Step {step.step}</div>
+                        <h4 className="text-lg md:text-xl font-black text-gray-900">{step.label}</h4>
+                        <p className="text-gray-500 text-sm mt-0.5 leading-relaxed">{step.desc}</p>
+                    </div>
+                    <div className="ml-auto hidden md:flex items-center gap-1">
+                        {PAYMENT_STEPS.map((_, i) => (
+                            <div
+                                key={i}
+                                className="rounded-full transition-all duration-300"
+                                style={{
+                                    width: i === active ? 20 : 6,
+                                    height: 6,
+                                    background: i === active ? step.colors.badge : i < active ? `${step.colors.badge}55` : '#e5e7eb',
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const LandingPage = () => {
     const navigate = useNavigate();
@@ -362,36 +531,8 @@ const LandingPage = () => {
                         </div>
                     </div>
 
-                    {/* ── Payment & Data Flow Pipeline ── */}
-                    <div className="mb-20">
-                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-10">How a Payment Works — Step by Step</p>
-                        <div className="bg-gray-50 rounded-3xl p-6 md:p-10 border border-gray-100">
-                            <div className="flex flex-col md:flex-row items-stretch gap-3">
-                                {[
-                                    { step: '01', label: 'Upload', desc: 'Files uploaded to Supabase with a cover page added automatically', color: 'bg-blue-500', light: 'bg-blue-50 text-blue-700 border-blue-200' },
-                                    { step: '02', label: 'Order Created', desc: 'Server calculates price from shop settings — client amount ignored', color: 'bg-violet-500', light: 'bg-violet-50 text-violet-700 border-violet-200' },
-                                    { step: '03', label: 'Payment', desc: 'Razorpay processes UPI / card securely in encrypted checkout', color: 'bg-emerald-500', light: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                                    { step: '04', label: 'Webhook', desc: 'Razorpay pings our server; HMAC signature verified before any update', color: 'bg-orange-500', light: 'bg-orange-50 text-orange-700 border-orange-200' },
-                                    { step: '05', label: 'OTP Generated', desc: '4-digit OTP written to Firestore; customer shown it instantly', color: 'bg-rose-500', light: 'bg-rose-50 text-rose-700 border-rose-200' },
-                                    { step: '06', label: 'Collect', desc: 'Customer shows OTP at shop — seller verifies & prints are released', color: 'bg-teal-500', light: 'bg-teal-50 text-teal-700 border-teal-200' },
-                                ].map((item, i, arr) => (
-                                    <div key={item.step} className="flex md:flex-col items-center gap-3 md:gap-2 flex-1">
-                                        <div className="flex-1 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                                            <div className={`inline-flex items-center justify-center w-8 h-8 ${item.color} text-white text-xs font-black rounded-lg mb-3`}>{item.step}</div>
-                                            <h4 className="font-bold text-gray-900 text-sm mb-1">{item.label}</h4>
-                                            <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
-                                        </div>
-                                        {i < arr.length - 1 && (
-                                            <div className="flex-shrink-0 md:hidden text-gray-300">▼</div>
-                                        )}
-                                        {i < arr.length - 1 && (
-                                            <div className="hidden md:flex items-center justify-center text-gray-300 text-xl flex-shrink-0 self-center -mt-6">›</div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                    {/* ── Payment & Data Flow Pipeline — Animated ── */}
+                    <PaymentFlowAnimation />
 
                     {/* ── Tech Stack ── */}
                     <div className="mb-16">
