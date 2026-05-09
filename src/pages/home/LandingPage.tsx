@@ -806,7 +806,54 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* About / The Big Idea */}
+            </section>
+ 
+             {/* Savings Calculator Section */}
+             <section className="py-24 bg-white">
+                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <div className="bg-slate-900 rounded-[3rem] p-8 md:p-16 shadow-2xl relative overflow-hidden border border-white/10">
+                         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+                         <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/10 blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+                         
+                         <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+                             <div className="text-left">
+                                 <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight leading-tight">
+                                     Time is Money. <br />
+                                     <span className="text-blue-400 text-2xl md:text-4xl">Stop wasting both.</span>
+                                 </h2>
+                                 <p className="text-slate-400 text-lg font-medium leading-relaxed mb-8">
+                                     QuickXerox eliminates the need to travel twice and wait in line. See exactly how much effort you'll save on your next order.
+                                 </p>
+                                 
+                                 <SavingsCalculator />
+                             </div>
+                             
+                             <div className="space-y-6">
+                                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
+                                     <h4 className="text-blue-400 font-black uppercase tracking-widest text-xs mb-6 text-left">The QuickXerox Advantage</h4>
+                                     <div className="space-y-6 text-left">
+                                         {[
+                                             { label: 'Zero Waiting Time', desc: 'Your prints are ready before you even arrive at the shop.', icon: <Zap size={20} className="text-amber-400" /> },
+                                             { label: 'Zero Travel Risk', desc: 'No more "Shop is closed" or "Power is out" surprises.', icon: <ShieldCheck size={20} className="text-emerald-400" /> },
+                                             { label: 'Zero Confusion', desc: 'Automated pricing and OTP handover ensures total clarity.', icon: <CheckCircle size={20} className="text-blue-400" /> }
+                                         ].map((item, i) => (
+                                             <div key={i} className="flex gap-4">
+                                                 <div className="mt-1">{item.icon}</div>
+                                                 <div>
+                                                     <p className="text-white font-bold text-sm mb-1">{item.label}</p>
+                                                     <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
+                                                 </div>
+                                             </div>
+                                         ))}
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </section>
+ 
+             {/* About / The Big Idea */}
             <section id="about" className="py-24 bg-gray-50 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
