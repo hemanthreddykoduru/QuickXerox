@@ -71,8 +71,8 @@ const SuccessAnimation = () => {
             <div className="absolute w-20 h-20 border-4 border-emerald-200 rounded-full" style={{ animation: 'ring-expand 1s ease-out 0.1s both' }} />
             
             {/* Success Checkmark Circle */}
-            <div className="relative w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg" style={{ animation: 'checkmark-pop 0.5s cubic-bezier(0.65, 0, 0.45, 1) both' }}>
-                <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+            <div className="relative w-16 h-16 md:w-20 md:h-20 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg" style={{ animation: 'checkmark-pop 0.5s cubic-bezier(0.65, 0, 0.45, 1) both' }}>
+                <svg className="w-10 h-10 md:w-12 md:h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6L9 17L4 12" style={{ strokeDasharray: 48, strokeDashoffset: 48, animation: 'checkmark-draw 0.4s ease-in-out 0.3s forwards' }} />
                 </svg>
             </div>
@@ -168,7 +168,7 @@ const PaymentFlowAnimation = () => {
                     />
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 relative z-10">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 relative z-10">
                     {PAYMENT_STEPS.map((s, i) => {
                         const isActive = i === active;
                         const isDone   = i < active;
@@ -191,16 +191,16 @@ const PaymentFlowAnimation = () => {
                             >
                                 {/* Icon circle */}
                                 <div
-                                    className="w-20 h-20 rounded-full flex items-center justify-center mb-3 transition-all duration-500 relative"
+                                    className="w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center mb-2 md:mb-3 transition-all duration-500 relative"
                                     style={{
                                         background: isActive
                                             ? `linear-gradient(135deg, ${s.colors.badge}, ${s.colors.badge}cc)`
                                             : isDone ? `${s.colors.badge}22` : '#f3f4f6',
-                                        boxShadow: isActive ? `0 0 0 6px ${s.colors.glow}, 0 8px 24px ${s.colors.glow}` : 'none',
-                                        transform: isActive ? 'scale(1.18)' : 'scale(1)',
+                                        boxShadow: isActive ? `0 0 0 4px ${s.colors.glow}, 0 6px 20px ${s.colors.glow}` : 'none',
+                                        transform: isActive ? 'scale(1.15)' : 'scale(1)',
                                     }}
                                 >
-                                    <span className="text-2xl" style={{ filter: isActive ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))' : 'none' }}>
+                                    <span className="text-xl md:text-2xl" style={{ filter: isActive ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))' : 'none' }}>
                                         {s.emoji}
                                     </span>
                                     {/* Pulsing ring */}
@@ -215,7 +215,7 @@ const PaymentFlowAnimation = () => {
                                 </div>
 
                                 <span
-                                    className="text-[10px] font-black px-2 py-0.5 rounded-full mb-1.5 transition-all duration-300"
+                                    className="text-[8px] md:text-[10px] font-black px-1.5 md:px-2 py-0.5 rounded-full mb-1 transition-all duration-300"
                                     style={{
                                         background: isActive ? s.colors.badge : isDone ? `${s.colors.badge}22` : '#e5e7eb',
                                         color: isActive ? '#fff' : isDone ? s.colors.badge : '#9ca3af',
@@ -224,7 +224,7 @@ const PaymentFlowAnimation = () => {
                                     {s.step}
                                 </span>
                                 <span
-                                    className="text-xs font-bold transition-colors duration-300"
+                                    className="text-[10px] md:text-xs font-bold transition-colors duration-300 leading-tight"
                                     style={{ color: isActive ? s.colors.badge : isDone ? '#6b7280' : '#9ca3af' }}
                                 >
                                     {s.label}
@@ -237,7 +237,7 @@ const PaymentFlowAnimation = () => {
 
             {/* Active step detail card — special celebration card for Collect */}
             <div
-                className="mt-10 rounded-3xl p-6 md:p-8 transition-all duration-500 border relative overflow-hidden"
+                className="mt-6 md:mt-10 rounded-2xl md:rounded-3xl p-5 md:p-8 transition-all duration-500 border relative overflow-hidden"
                 style={{
                     background: IS_COLLECT
                         ? 'linear-gradient(135deg, #0d9488, #14b8a6, #0ea5e9)'
@@ -666,8 +666,8 @@ const LandingPage = () => {
                     <PaymentFlowAnimation />
 
                     <div className="mb-16">
-                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-8">Powered By</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-6 md:mb-8">Powered By</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                             {[
                                 { name: 'React + Vite', desc: 'Frontend', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg', bg: 'bg-cyan-50 border-cyan-100 hover:border-cyan-300' },
                                 { name: 'Firebase', desc: 'Auth + Database', logo: 'https://www.vectorlogo.zone/logos/firebase/firebase-icon.svg', bg: 'bg-orange-50 border-orange-100 hover:border-orange-300' },
@@ -676,12 +676,12 @@ const LandingPage = () => {
                                 { name: 'Vercel', desc: 'Backend API', logo: 'https://cdn.simpleicons.org/vercel/000000', bg: 'bg-gray-50 border-gray-200 hover:border-gray-400' },
                                 { name: 'Mailtrap', desc: 'Email Delivery', logo: 'https://cdn.simpleicons.org/mailtrap/22AD5C', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
                             ].map(tech => (
-                                <div key={tech.name} className={`${tech.bg} rounded-2xl p-5 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center flex flex-col items-center justify-center`}>
-                                    <div className="h-10 w-10 flex items-center justify-center mb-3">
+                                <div key={tech.name} className={`${tech.bg} rounded-2xl p-4 md:p-5 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center flex flex-col items-center justify-center`}>
+                                    <div className="h-8 w-8 md:h-10 md:w-10 flex items-center justify-center mb-2 md:mb-3">
                                         <img src={tech.logo} alt={tech.name} className="max-h-full max-w-full object-contain" />
                                     </div>
-                                    <div className="font-bold text-gray-900 text-[10px] leading-tight">{tech.name}</div>
-                                    <div className="text-gray-400 text-[9px] mt-0.5">{tech.desc}</div>
+                                    <div className="font-bold text-gray-900 text-[9px] md:text-[10px] leading-tight">{tech.name}</div>
+                                    <div className="text-gray-400 text-[8px] md:text-[9px] mt-0.5">{tech.desc}</div>
                                 </div>
                             ))}
                         </div>
