@@ -17,6 +17,7 @@ import { useState, useEffect } from 'react';
 const LandingPage = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isVideoReady, setIsVideoReady] = useState(false);
 
     useEffect(() => {
         // Function to initialize player
@@ -24,12 +25,29 @@ const LandingPage = () => {
             if (!(window as any).YT || !(window as any).YT.Player) return;
             
             new (window as any).YT.Player('youtube-hero-bg', {
+                playerVars: {
+                    autoplay: 1,
+                    mute: 1,
+                    controls: 0,
+                    showinfo: 0,
+                    rel: 0,
+                    iv_load_policy: 3,
+                    modestbranding: 1,
+                    disablekb: 1,
+                    enablejsapi: 1,
+                    loop: 1,
+                    playlist: 'zx5gPgmTUoQ'
+                },
                 events: {
                     onReady: (event: any) => {
                         event.target.mute();
                         event.target.playVideo();
                     },
                     onStateChange: (event: any) => {
+                        // State 1 = Playing
+                        if (event.data === (window as any).YT.PlayerState.PLAYING) {
+                            setIsVideoReady(true);
+                        }
                         // State 0 = ended → seek to 0 and play again instantly
                         if (event.data === (window as any).YT.PlayerState.ENDED) {
                             event.target.seekTo(0);
@@ -123,14 +141,15 @@ const LandingPage = () => {
             </nav>
 
             {/* Hero Section */}
-            <section className="pt-24 pb-16 lg:pt-40 lg:pb-32 overflow-hidden relative">
+            <section className="pt-24 pb-16 lg:pt-40 lg:pb-32 overflow-hidden relative bg-black">
                 {/* YouTube Video Background */}
-                <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <iframe
                         id="youtube-hero-bg"
                         src="https://www.youtube.com/embed/zx5gPgmTUoQ?autoplay=1&mute=1&controls=0&loop=1&playlist=zx5gPgmTUoQ&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&disablekb=1&enablejsapi=1"
                         allow="autoplay; encrypted-media"
                         title="Hero Background"
+                        className={`transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
                         style={{
                             position: 'absolute',
                             top: '50%',
@@ -139,11 +158,10 @@ const LandingPage = () => {
                             height: 'max(56.25vw, 100%)',
                             transform: 'translate(-50%, -50%)',
                             border: 'none',
-                            pointerEvents: 'none',
                         }}
                     />
                     {/* Dark overlay for premium feel */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
