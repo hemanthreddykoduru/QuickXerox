@@ -85,6 +85,7 @@ const LandingPage = () => {
 
                         <div className="hidden md:flex items-center space-x-8">
                             <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">How it Works</a>
+                            <a href="#architecture" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">Architecture</a>
                             <a href="#features" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">Features</a>
                             <a href="#about" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">About</a>
                             <div className="flex items-center gap-4 ml-4">
@@ -117,6 +118,7 @@ const LandingPage = () => {
                     <div className="md:hidden bg-white border-b border-gray-100 py-4 px-4 shadow-lg absolute w-full">
                         <div className="flex flex-col space-y-4">
                             <a href="#how-it-works" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>How it Works</a>
+                            <a href="#architecture" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Architecture</a>
                             <a href="#features" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>Features</a>
                             <a href="#about" className="text-gray-600 font-medium py-2" onClick={() => setIsMenuOpen(false)}>About</a>
                             <div className="pt-4 border-t border-gray-100 flex flex-col gap-3">
@@ -273,6 +275,168 @@ const LandingPage = () => {
                             <p className="text-gray-600">Show the OTP at the shop and collect your prints instantly.</p>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            {/* ── Platform Architecture Section ──────────────────────────── */}
+            <section id="architecture" className="py-24 bg-white overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                    {/* Header */}
+                    <div className="text-center mb-16">
+                        <span className="inline-block px-4 py-1.5 bg-blue-50 text-blue-700 text-xs font-black uppercase tracking-widest rounded-full mb-4 border border-blue-100">Platform Architecture</span>
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                            Built for Speed,<br className="hidden md:block" /> Security & Scale
+                        </h2>
+                        <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+                            Every request is encrypted, every payment verified server-side, and every file stored privately — here's how it all connects.
+                        </p>
+                    </div>
+
+                    {/* ── 3 User Roles ── */}
+                    <div className="mb-20">
+                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-8">Three Roles. One Platform.</p>
+                        <div className="grid md:grid-cols-3 gap-6">
+                            {/* Customer */}
+                            <div className="group relative bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-8 text-white overflow-hidden hover:shadow-2xl hover:shadow-blue-200 transition-all duration-300 hover:-translate-y-1">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-12 translate-x-12"></div>
+                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                                <div className="relative">
+                                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
+                                        <Upload className="h-7 w-7 text-white" />
+                                    </div>
+                                    <h3 className="text-2xl font-black mb-3">Customer</h3>
+                                    <p className="text-blue-100 text-sm leading-relaxed mb-5">Upload documents, pick a shop, pay online, and collect prints with a secure OTP.</p>
+                                    <ul className="space-y-2">
+                                        {['Upload PDF / DOCX / Images', 'Browse nearby print shops', 'Pay via UPI or Card', 'Get OTP & collect prints'].map(item => (
+                                            <li key={item} className="flex items-center gap-2 text-sm text-blue-100">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-300 flex-shrink-0"></span>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Seller */}
+                            <div className="group relative bg-gradient-to-br from-violet-600 to-purple-700 rounded-3xl p-8 text-white overflow-hidden hover:shadow-2xl hover:shadow-purple-200 transition-all duration-300 hover:-translate-y-1">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-12 translate-x-12"></div>
+                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                                <div className="relative">
+                                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
+                                        <Printer className="h-7 w-7 text-white" />
+                                    </div>
+                                    <h3 className="text-2xl font-black mb-3">Shop Owner</h3>
+                                    <p className="text-purple-100 text-sm leading-relaxed mb-5">Receive pre-paid orders, verify customer OTP, and manage your shop settings in real time.</p>
+                                    <ul className="space-y-2">
+                                        {['View incoming orders live', 'Download customer files', 'Verify OTP to release prints', 'Set pricing & business hours'].map(item => (
+                                            <li key={item} className="flex items-center gap-2 text-sm text-purple-100">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-purple-300 flex-shrink-0"></span>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            {/* Admin */}
+                            <div className="group relative bg-gradient-to-br from-slate-700 to-slate-900 rounded-3xl p-8 text-white overflow-hidden hover:shadow-2xl hover:shadow-slate-300 transition-all duration-300 hover:-translate-y-1">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-12 translate-x-12"></div>
+                                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
+                                <div className="relative">
+                                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
+                                        <ShieldCheck className="h-7 w-7 text-white" />
+                                    </div>
+                                    <h3 className="text-2xl font-black mb-3">Admin</h3>
+                                    <p className="text-slate-300 text-sm leading-relaxed mb-5">Full platform control — manage sellers, audit all activity, create coupons, and configure system settings.</p>
+                                    <ul className="space-y-2">
+                                        {['Invite & manage sellers', 'View all orders & revenue', 'Create discount coupons', 'Audit logs & system config'].map(item => (
+                                            <li key={item} className="flex items-center gap-2 text-sm text-slate-300">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0"></span>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Payment & Data Flow Pipeline ── */}
+                    <div className="mb-20">
+                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-10">How a Payment Works — Step by Step</p>
+                        <div className="bg-gray-50 rounded-3xl p-6 md:p-10 border border-gray-100">
+                            <div className="flex flex-col md:flex-row items-stretch gap-3">
+                                {[
+                                    { step: '01', label: 'Upload', desc: 'Files uploaded to Supabase with a cover page added automatically', color: 'bg-blue-500', light: 'bg-blue-50 text-blue-700 border-blue-200' },
+                                    { step: '02', label: 'Order Created', desc: 'Server calculates price from shop settings — client amount ignored', color: 'bg-violet-500', light: 'bg-violet-50 text-violet-700 border-violet-200' },
+                                    { step: '03', label: 'Payment', desc: 'Razorpay processes UPI / card securely in encrypted checkout', color: 'bg-emerald-500', light: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                                    { step: '04', label: 'Webhook', desc: 'Razorpay pings our server; HMAC signature verified before any update', color: 'bg-orange-500', light: 'bg-orange-50 text-orange-700 border-orange-200' },
+                                    { step: '05', label: 'OTP Generated', desc: '4-digit OTP written to Firestore; customer shown it instantly', color: 'bg-rose-500', light: 'bg-rose-50 text-rose-700 border-rose-200' },
+                                    { step: '06', label: 'Collect', desc: 'Customer shows OTP at shop — seller verifies & prints are released', color: 'bg-teal-500', light: 'bg-teal-50 text-teal-700 border-teal-200' },
+                                ].map((item, i, arr) => (
+                                    <div key={item.step} className="flex md:flex-col items-center gap-3 md:gap-2 flex-1">
+                                        <div className="flex-1 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className={`inline-flex items-center justify-center w-8 h-8 ${item.color} text-white text-xs font-black rounded-lg mb-3`}>{item.step}</div>
+                                            <h4 className="font-bold text-gray-900 text-sm mb-1">{item.label}</h4>
+                                            <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
+                                        </div>
+                                        {i < arr.length - 1 && (
+                                            <div className="flex-shrink-0 md:hidden text-gray-300">▼</div>
+                                        )}
+                                        {i < arr.length - 1 && (
+                                            <div className="hidden md:flex items-center justify-center text-gray-300 text-xl flex-shrink-0 self-center -mt-6">›</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Tech Stack ── */}
+                    <div className="mb-16">
+                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-8">Powered By</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            {[
+                                { name: 'React + Vite', desc: 'Frontend', emoji: '⚛️', bg: 'bg-cyan-50 border-cyan-100 hover:border-cyan-300' },
+                                { name: 'Firebase', desc: 'Auth + Database', emoji: '🔥', bg: 'bg-orange-50 border-orange-100 hover:border-orange-300' },
+                                { name: 'Supabase', desc: 'File Storage', emoji: '🗄️', bg: 'bg-emerald-50 border-emerald-100 hover:border-emerald-300' },
+                                { name: 'Razorpay', desc: 'Payments', emoji: '💳', bg: 'bg-blue-50 border-blue-100 hover:border-blue-300' },
+                                { name: 'Vercel', desc: 'Backend API', emoji: '▲', bg: 'bg-gray-50 border-gray-200 hover:border-gray-400' },
+                                { name: 'Mailtrap', desc: 'Email Delivery', emoji: '📧', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
+                            ].map(tech => (
+                                <div key={tech.name} className={`${tech.bg} rounded-2xl p-4 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center`}>
+                                    <div className="text-2xl mb-2">{tech.emoji}</div>
+                                    <div className="font-bold text-gray-900 text-xs">{tech.name}</div>
+                                    <div className="text-gray-400 text-[10px] mt-0.5">{tech.desc}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ── Security Highlights ── */}
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 md:p-12 text-white">
+                        <div className="text-center mb-10">
+                            <ShieldCheck className="h-10 w-10 text-blue-400 mx-auto mb-4" />
+                            <h3 className="text-2xl md:text-3xl font-black mb-2">Security First, Always</h3>
+                            <p className="text-slate-400 text-sm max-w-lg mx-auto">Every layer of QuickXerox is designed to protect your data and your money.</p>
+                        </div>
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                            {[
+                                { icon: '🔐', title: 'HMAC Webhook Verification', desc: 'Every Razorpay event is cryptographically signed before any order update.' },
+                                { icon: '🧮', title: 'Server-Side Pricing', desc: 'Prices are calculated on our server from shop settings — never from client input.' },
+                                { icon: '🔒', title: 'Private File Storage', desc: 'Your files are stored privately on Supabase. Only accessible via time-limited signed URLs.' },
+                                { icon: '🛡️', title: 'Role-Based Access', desc: 'Firestore rules ensure customers, sellers, and admins can only access their own data.' },
+                            ].map(item => (
+                                <div key={item.title} className="bg-white/5 rounded-2xl p-5 border border-white/10 hover:bg-white/10 transition-colors">
+                                    <div className="text-2xl mb-3">{item.icon}</div>
+                                    <h4 className="font-bold text-white text-sm mb-2">{item.title}</h4>
+                                    <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
