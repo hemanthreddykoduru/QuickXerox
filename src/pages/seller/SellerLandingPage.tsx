@@ -17,12 +17,12 @@ import {
 } from 'lucide-react';
 
 const SELLER_STEPS = [
-    { step: '01', label: 'Registration', desc: 'Sign up and list your shop details and printing prices instantly', emoji: '🏪', colors: { ring: '#3b82f6', bg: 'from-blue-500 to-blue-600', badge: '#3b82f6', glow: 'rgba(59,130,246,0.35)' } },
-    { step: '02', label: 'Receive Orders', desc: 'Get notified instantly when a student places an order near you', emoji: '🔔', colors: { ring: '#8b5cf6', bg: 'from-violet-500 to-violet-600', badge: '#8b5cf6', glow: 'rgba(139,92,246,0.35)' } },
-    { step: '03', label: 'Secure Access', desc: 'Download high-quality files only after payment is confirmed', emoji: '📂', colors: { ring: '#10b981', bg: 'from-emerald-500 to-emerald-600', badge: '#10b981', glow: 'rgba(16,185,129,0.35)' } },
-    { step: '04', label: 'Print & Pack', desc: 'Process the order through your dashboard and keep it ready', emoji: '🖨️', colors: { ring: '#f97316', bg: 'from-orange-500 to-orange-600', badge: '#f97316', glow: 'rgba(249,115,22,0.35)' } },
-    { step: '05', label: 'Verification', desc: 'Verify the customer via OTP to ensure secure handover', emoji: '🔑', colors: { ring: '#f43f5e', bg: 'from-rose-500 to-rose-600', badge: '#f43f5e', glow: 'rgba(244,63,94,0.35)' } },
-    { step: '06', label: 'Payout', desc: 'Receive automated weekly settlements directly to your bank', emoji: '💰', colors: { ring: '#14b8a6', bg: 'from-teal-500 to-teal-600', badge: '#14b8a6', glow: 'rgba(20,184,166,0.35)' } },
+    { step: '01', label: 'Order Alert', desc: 'Get notified instantly on your dashboard when a new order is placed nearby', emoji: '🔔', colors: { ring: '#3b82f6', bg: 'from-blue-500 to-blue-600', badge: '#3b82f6', glow: 'rgba(59,130,246,0.35)' } },
+    { step: '02', label: 'Prepaid Security', desc: 'Every order is prepaid via Razorpay — zero risk of no-shows or payment failure', emoji: '🛡️', colors: { ring: '#8b5cf6', bg: 'from-violet-500 to-violet-600', badge: '#8b5cf6', glow: 'rgba(139,92,246,0.35)' } },
+    { step: '03', label: 'Secure Download', desc: 'Access high-quality documents instantly through your secure partner portal', emoji: '📂', colors: { ring: '#10b981', bg: 'from-emerald-500 to-emerald-600', badge: '#10b981', glow: 'rgba(16,185,129,0.35)' } },
+    { step: '04', label: 'Print & Process', desc: 'Print the documents and update the order status to "Ready for Pickup"', emoji: '🖨️', colors: { ring: '#f97316', bg: 'from-orange-500 to-orange-600', badge: '#f97316', glow: 'rgba(249,115,22,0.35)' } },
+    { step: '05', label: 'OTP Verification', desc: 'Scan or enter the customer\'s OTP to securely verify and release the print', emoji: '🔑', colors: { ring: '#f43f5e', bg: 'from-rose-500 to-rose-600', badge: '#f43f5e', glow: 'rgba(244,63,94,0.35)' } },
+    { step: '06', label: 'Auto Payout', desc: 'Earnings are automatically tracked and settled to your bank account weekly', emoji: '💰', colors: { ring: '#14b8a6', bg: 'from-teal-500 to-teal-600', badge: '#14b8a6', glow: 'rgba(20,184,166,0.35)' } },
 ];
 
 const CONFETTI_COLORS = ['#f43f5e', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
