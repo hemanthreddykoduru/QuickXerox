@@ -23,15 +23,77 @@ const PAYMENT_STEPS = [
     { step: '06', label: 'Collect', desc: 'Customer shows OTP at the shop — seller verifies and prints released', emoji: '✅', colors: { ring: '#14b8a6', bg: 'from-teal-500 to-teal-600', badge: '#14b8a6', glow: 'rgba(20,184,166,0.35)' } },
 ];
 
+/* ─── Celebration Confetti keyframes ─────────────────────────── */
+const CONFETTI_KEYFRAMES = `
+@keyframes confetti-fall {
+    0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(0.4); opacity: 0; }
+}
+@keyframes celebrate-pop {
+    0%   { transform: scale(0.5); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes star-burst {
+    0%   { transform: scale(0) rotate(0deg); opacity:1; }
+    80%  { opacity: 1; }
+    100% { transform: scale(1.6) rotate(360deg); opacity: 0; }
+}
+`;
+
+const CONFETTI_COLORS = ['#f43f5e','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
+
+const Confetti = () => {
+    const pieces = Array.from({ length: 28 }, (_, i) => {
+        const angle = (i / 28) * 360;
+        const dist  = 60 + Math.random() * 90;
+        const tx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+        const ty    = Math.round(Math.sin((angle * Math.PI) / 180) * dist - 30);
+        const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+        const size  = 6 + Math.round(Math.random() * 6);
+        const delay = (Math.random() * 0.3).toFixed(2);
+        const dur   = (0.7 + Math.random() * 0.5).toFixed(2);
+        const isCircle = i % 3 === 0;
+        return { tx, ty, color, size, delay, dur, isCircle, rot: Math.round(Math.random() * 720 - 360) };
+    });
+
+    return (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" style={{ zIndex: 20 }}>
+            {pieces.map((p, i) => (
+                <div
+                    key={i}
+                    style={{
+                        position: 'absolute',
+                        width: p.size,
+                        height: p.isCircle ? p.size : p.size * 1.6,
+                        background: p.color,
+                        borderRadius: p.isCircle ? '50%' : '2px',
+                        '--tx': `${p.tx}px`,
+                        '--ty': `${p.ty}px`,
+                        '--r':  `${p.rot}deg`,
+                        animation: `confetti-fall ${p.dur}s ease-out ${p.delay}s both`,
+                    } as React.CSSProperties}
+                />
+            ))}
+        </div>
+    );
+};
+
 const PaymentFlowAnimation = () => {
     const [active, setActive] = useState(0);
     const [dotPct, setDotPct] = useState(0);
+    const [celebKey, setCelebKey] = useState(0);   // bump to re-trigger confetti
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const STEP_DURATION = 2200;
+    const IS_COLLECT = active === PAYMENT_STEPS.length - 1;
 
     useEffect(() => {
         intervalRef.current = setInterval(() => {
-            setActive(prev => (prev + 1) % PAYMENT_STEPS.length);
+            setActive(prev => {
+                const next = (prev + 1) % PAYMENT_STEPS.length;
+                if (next === PAYMENT_STEPS.length - 1) setCelebKey(k => k + 1);
+                return next;
+            });
         }, STEP_DURATION);
         return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
     }, []);
@@ -53,6 +115,9 @@ const PaymentFlowAnimation = () => {
 
     return (
         <div className="mb-20">
+            {/* Inject keyframes once */}
+            <style>{CONFETTI_KEYFRAMES}</style>
+
             <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-3">How a Payment Works — Step by Step</p>
             <p className="text-center text-sm text-gray-400 mb-10">Watch the flow animate automatically ↓</p>
 
@@ -64,13 +129,12 @@ const PaymentFlowAnimation = () => {
                 />
             </div>
 
-            {/* Step cards — desktop row, mobile grid */}
+            {/* Step circles row */}
             <div className="relative">
                 {/* Animated connector line (desktop only) */}
                 <div className="hidden md:block absolute top-10 left-[8.33%] right-[8.33%] h-0.5 bg-gray-100 z-0">
-                    {/* traveling dot */}
                     <div
-                        className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full shadow-lg transition-none z-10"
+                        className="absolute top-1/2 w-3 h-3 rounded-full shadow-lg z-10"
                         style={{
                             left: `${(active / (PAYMENT_STEPS.length - 1) + dotPct / (PAYMENT_STEPS.length - 1)) * 100}%`,
                             background: step.colors.badge,
@@ -78,7 +142,6 @@ const PaymentFlowAnimation = () => {
                             transform: 'translate(-50%, -50%)',
                         }}
                     />
-                    {/* filled segment */}
                     <div
                         className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
                         style={{ width: `${(active / (PAYMENT_STEPS.length - 1)) * 100}%`, background: step.colors.badge }}
@@ -88,16 +151,23 @@ const PaymentFlowAnimation = () => {
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 relative z-10">
                     {PAYMENT_STEPS.map((s, i) => {
                         const isActive = i === active;
-                        const isDone = i < active;
+                        const isDone   = i < active;
+                        const isCollect = i === PAYMENT_STEPS.length - 1;
+
                         return (
                             <button
                                 key={s.step}
                                 onClick={() => {
+                                    if (isCollect && !isActive) setCelebKey(k => k + 1);
                                     setActive(i);
                                     if (intervalRef.current) clearInterval(intervalRef.current);
-                                    intervalRef.current = setInterval(() => setActive(prev => (prev + 1) % PAYMENT_STEPS.length), STEP_DURATION);
+                                    intervalRef.current = setInterval(() => setActive(prev => {
+                                        const next = (prev + 1) % PAYMENT_STEPS.length;
+                                        if (next === PAYMENT_STEPS.length - 1) setCelebKey(k => k + 1);
+                                        return next;
+                                    }), STEP_DURATION);
                                 }}
-                                className="flex flex-col items-center text-center focus:outline-none group cursor-pointer"
+                                className="flex flex-col items-center text-center focus:outline-none cursor-pointer"
                             >
                                 {/* Icon circle */}
                                 <div
@@ -110,17 +180,20 @@ const PaymentFlowAnimation = () => {
                                         transform: isActive ? 'scale(1.18)' : 'scale(1)',
                                     }}
                                 >
-                                    <span className="text-2xl" style={{ filter: isActive ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))' : 'none' }}>{s.emoji}</span>
-                                    {/* Pulsing ring on active */}
+                                    <span className="text-2xl" style={{ filter: isActive ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.2))' : 'none' }}>
+                                        {s.emoji}
+                                    </span>
+                                    {/* Pulsing ring */}
                                     {isActive && (
                                         <span
                                             className="absolute inset-0 rounded-full animate-ping opacity-30"
                                             style={{ background: s.colors.badge }}
                                         />
                                     )}
+                                    {/* Confetti burst on Collect */}
+                                    {isCollect && isActive && <Confetti key={celebKey} />}
                                 </div>
 
-                                {/* Step badge */}
                                 <span
                                     className="text-[10px] font-black px-2 py-0.5 rounded-full mb-1.5 transition-all duration-300"
                                     style={{
@@ -130,7 +203,6 @@ const PaymentFlowAnimation = () => {
                                 >
                                     {s.step}
                                 </span>
-
                                 <span
                                     className="text-xs font-bold transition-colors duration-300"
                                     style={{ color: isActive ? s.colors.badge : isDone ? '#6b7280' : '#9ca3af' }}
@@ -143,26 +215,63 @@ const PaymentFlowAnimation = () => {
                 </div>
             </div>
 
-            {/* Active step detail card */}
+            {/* Active step detail card — special celebration card for Collect */}
             <div
-                className="mt-10 rounded-3xl p-6 md:p-8 transition-all duration-500 border"
+                className="mt-10 rounded-3xl p-6 md:p-8 transition-all duration-500 border relative overflow-hidden"
                 style={{
-                    background: `linear-gradient(135deg, ${step.colors.badge}11, ${step.colors.badge}05)`,
+                    background: IS_COLLECT
+                        ? 'linear-gradient(135deg, #0d9488, #14b8a6, #0ea5e9)'
+                        : `linear-gradient(135deg, ${step.colors.badge}11, ${step.colors.badge}05)`,
                     borderColor: `${step.colors.badge}33`,
-                    boxShadow: `0 4px 32px ${step.colors.glow}`,
+                    boxShadow: IS_COLLECT
+                        ? '0 8px 48px rgba(20,184,166,0.45), 0 0 0 2px rgba(20,184,166,0.3)'
+                        : `0 4px 32px ${step.colors.glow}`,
                 }}
             >
-                <div className="flex items-center gap-4">
+                {/* Celebration sparkle overlay on Collect */}
+                {IS_COLLECT && (
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                        {['✨','🎉','⭐','🌟','💫','🎊'].map((em, i) => (
+                            <span
+                                key={i}
+                                className="absolute text-xl select-none"
+                                style={{
+                                    left: `${10 + i * 15}%`,
+                                    top: `${15 + (i % 2) * 50}%`,
+                                    animation: `star-burst 1.2s ease-out ${i * 0.15}s both`,
+                                }}
+                            >
+                                {em}
+                            </span>
+                        ))}
+                    </div>
+                )}
+
+                <div className="flex items-center gap-4 relative z-10">
                     <div
                         className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 shadow-lg"
-                        style={{ background: `linear-gradient(135deg, ${step.colors.badge}, ${step.colors.badge}cc)` }}
+                        style={{
+                            background: IS_COLLECT
+                                ? 'rgba(255,255,255,0.25)'
+                                : `linear-gradient(135deg, ${step.colors.badge}, ${step.colors.badge}cc)`,
+                            animation: IS_COLLECT ? 'celebrate-pop 0.5s ease-out both' : 'none',
+                        }}
                     >
                         {step.emoji}
                     </div>
                     <div>
-                        <div className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: step.colors.badge }}>Step {step.step}</div>
-                        <h4 className="text-lg md:text-xl font-black text-gray-900">{step.label}</h4>
-                        <p className="text-gray-500 text-sm mt-0.5 leading-relaxed">{step.desc}</p>
+                        <div
+                            className="text-xs font-black uppercase tracking-widest mb-1"
+                            style={{ color: IS_COLLECT ? 'rgba(255,255,255,0.8)' : step.colors.badge }}
+                        >
+                            {IS_COLLECT ? '🎉 Order Complete!' : `Step ${step.step}`}
+                        </div>
+                        <h4 className={`text-lg md:text-xl font-black ${IS_COLLECT ? 'text-white' : 'text-gray-900'}`}>
+                            {step.label}
+                        </h4>
+                        <p className={`text-sm mt-0.5 leading-relaxed ${IS_COLLECT ? 'text-teal-100' : 'text-gray-500'}`}>
+                            {step.desc}
+                        </p>
                     </div>
                     <div className="ml-auto hidden md:flex items-center gap-1">
                         {PAYMENT_STEPS.map((_, i) => (
@@ -172,7 +281,9 @@ const PaymentFlowAnimation = () => {
                                 style={{
                                     width: i === active ? 20 : 6,
                                     height: 6,
-                                    background: i === active ? step.colors.badge : i < active ? `${step.colors.badge}55` : '#e5e7eb',
+                                    background: IS_COLLECT
+                                        ? i === active ? '#fff' : 'rgba(255,255,255,0.3)'
+                                        : i === active ? step.colors.badge : i < active ? `${step.colors.badge}55` : '#e5e7eb',
                                 }}
                             />
                         ))}
