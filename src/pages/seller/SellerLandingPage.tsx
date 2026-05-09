@@ -126,8 +126,7 @@ const PaymentFlowAnimation = () => {
     return (
         <div className="mb-20">
             <style>{SUCCESS_ANIMATION_KEYFRAMES}</style>
-            <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-3">How the System Works — Step by Step</p>
-            <p className="text-center text-sm text-gray-400 mb-10">Watch the flow animate automatically ↓</p>
+            <p className="text-center text-sm text-gray-400 mb-10">Watch the system flow animate automatically ↓</p>
 
             <div className="relative h-1.5 bg-gray-100 rounded-full mb-10 overflow-hidden max-w-2xl mx-auto">
                 <div
@@ -408,7 +407,7 @@ const SellerLandingPage = () => {
             <section id="how-it-works" className="py-24 bg-white overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">Platform Architecture</h2>
+                        <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">How the System Works — Step by Step</h2>
                         <p className="text-lg text-gray-600 max-w-2xl mx-auto font-medium">A robust, secure pipeline designed for high-volume fulfillment.</p>
                     </div>
 
