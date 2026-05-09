@@ -439,6 +439,29 @@ const SellerLandingPage = () => {
                     </div>
 
                     <PaymentFlowAnimation />
+
+                    {/* Powered By Section */}
+                    <div className="mt-20">
+                        <p className="text-center text-xs font-black uppercase tracking-widest text-gray-400 mb-8 md:mb-10">Powered By Industry Leaders</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                            {[
+                                { name: 'React + Vite', desc: 'Frontend', logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg', bg: 'bg-cyan-50 border-cyan-100 hover:border-cyan-300' },
+                                { name: 'Firebase', desc: 'Auth + Database', logo: 'https://www.vectorlogo.zone/logos/firebase/firebase-icon.svg', bg: 'bg-orange-50 border-orange-100 hover:border-orange-300' },
+                                { name: 'Supabase', desc: 'File Storage', logo: 'https://www.vectorlogo.zone/logos/supabase/supabase-icon.svg', bg: 'bg-emerald-50 border-emerald-100 hover:border-emerald-300' },
+                                { name: 'Razorpay', desc: 'Payments', logo: 'https://cdn.simpleicons.org/razorpay/3395FF', bg: 'bg-blue-50 border-blue-100 hover:border-blue-300' },
+                                { name: 'Vercel', desc: 'Backend API', logo: 'https://cdn.simpleicons.org/vercel/000000', bg: 'bg-gray-50 border-gray-200 hover:border-gray-400' },
+                                { name: 'Mailtrap', desc: 'Email Delivery', logo: 'https://cdn.simpleicons.org/mailtrap/22AD5C', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
+                            ].map(tech => (
+                                <div key={tech.name} className={`${tech.bg} rounded-2xl p-4 md:p-5 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center flex flex-col items-center justify-center`}>
+                                    <div className="h-8 w-8 md:h-10 md:w-10 flex items-center justify-center mb-2 md:mb-3">
+                                        <img src={tech.logo} alt={tech.name} className="max-h-full max-w-full object-contain" />
+                                    </div>
+                                    <div className="font-bold text-gray-900 text-[9px] md:text-[10px] leading-tight">{tech.name}</div>
+                                    <div className="text-gray-400 text-[8px] md:text-[9px] mt-0.5">{tech.desc}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </section>
 
