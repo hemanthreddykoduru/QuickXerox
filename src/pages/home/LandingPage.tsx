@@ -673,7 +673,7 @@ const LandingPage = () => {
                                 { name: 'Supabase', desc: 'File Storage', logo: 'https://www.vectorlogo.zone/logos/supabase/supabase-icon.svg', bg: 'bg-emerald-50 border-emerald-100 hover:border-emerald-300' },
                                 { name: 'Razorpay', desc: 'Payments', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/razorpay.svg', bg: 'bg-blue-50 border-blue-100 hover:border-blue-300' },
                                 { name: 'Vercel', desc: 'Backend API', logo: 'https://www.vectorlogo.zone/logos/vercel/vercel-icon.svg', bg: 'bg-gray-50 border-gray-200 hover:border-gray-400' },
-                                { name: 'Mailtrap', desc: 'Email Delivery', logo: 'https://www.vectorlogo.zone/logos/mailtrapio/mailtrapio-icon.svg', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
+                                { name: 'Mailtrap', desc: 'Email Delivery', logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/mailtrap.svg', bg: 'bg-yellow-50 border-yellow-100 hover:border-yellow-300' },
                             ].map(tech => (
                                 <div key={tech.name} className={`${tech.bg} rounded-2xl p-5 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm text-center flex flex-col items-center justify-center`}>
                                     <div className="h-10 w-10 flex items-center justify-center mb-3">
