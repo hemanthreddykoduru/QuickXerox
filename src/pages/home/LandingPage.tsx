@@ -314,6 +314,54 @@ const PaymentFlowAnimation = () => {
     );
 };
 
+const SavingsCalculator = () => {
+    const [distance, setDistance] = useState(2);
+    const [ordersPerMonth, setOrdersPerMonth] = useState(4);
+    
+    const timeSaved = distance * 15 * 2 * ordersPerMonth; // 15 mins per km, 2 trips, per month
+    const tripsSaved = 2 * ordersPerMonth;
+
+    return (
+        <div className="space-y-10">
+            <div className="space-y-6">
+                <div>
+                    <div className="flex justify-between mb-3">
+                        <label className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Avg. Distance to Shop (km)</label>
+                        <span className="text-white font-black">{distance} km</span>
+                    </div>
+                    <input 
+                        type="range" min="0.5" max="10" step="0.5" value={distance}
+                        onChange={(e) => setDistance(parseFloat(e.target.value))}
+                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                </div>
+                <div>
+                    <div className="flex justify-between mb-3">
+                        <label className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Monthly Print Orders</label>
+                        <span className="text-white font-black">{ordersPerMonth}</span>
+                    </div>
+                    <input 
+                        type="range" min="1" max="30" step="1" value={ordersPerMonth}
+                        onChange={(e) => setOrdersPerMonth(parseInt(e.target.value))}
+                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-5">
+                    <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest mb-1">Time Saved / mo</p>
+                    <p className="text-2xl font-black text-white">{timeSaved >= 60 ? `${(timeSaved/60).toFixed(1)} hrs` : `${timeSaved} mins`}</p>
+                </div>
+                <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-5">
+                    <p className="text-indigo-400 text-[10px] font-black uppercase tracking-widest mb-1">Trips Eliminated</p>
+                    <p className="text-2xl font-black text-white">{tripsSaved} trips</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const LandingPage = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
