@@ -28,7 +28,7 @@
         "uuid": "^9.0.1",
         "undici": "^6.24.1",
         "@tootallnate/once": "^3.0.1",
-        "follow-redirects": "^1.15.11",
+        "follow-redirects": "^1.16.0",
         "picomatch": "^4.0.1",
         "flatted": "^3.3.2",
         "addressparser": "^1.0.1",
