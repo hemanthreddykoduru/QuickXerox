@@ -547,7 +547,7 @@ QuickXerox/
 │   ├── main.tsx                # Entry point
 │   └── index.css               # Global styles
 │
-├── server/                     # Railway webhook server
+├── vercel-api/                 # Vercel Serverless Functions (Backend)
 │   ├── index.js                # Express server
 │   ├── package.json
 │   └── serviceAccountKey.json  # Firebase admin credentials (not in git)
@@ -575,7 +575,7 @@ QuickXerox/
 - Firebase account
 - Supabase account
 - Razorpay account (test mode)
-- Railway account (for webhook server)
+- Vercel account (for serverless backend)
 - GitHub account
 
 ### Step 1: Clone Repository
@@ -675,15 +675,15 @@ const RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY";
 
 4. **Configure Webhook:**
    - Settings → Webhooks → Add New Webhook
-   - URL: `https://YOUR_RAILWAY_APP.up.railway.app/api/webhooks/razorpay`
+   - URL: `https://YOUR_VERCEL_APP.vercel.app/api/razorpay-webhook`
    - Secret: Create a strong secret
    - Events: Select all payment events
    - Status: Active
 
-### Step 5: Railway Server Setup
+### Step 5: Vercel Backend Setup
 
-1. **Create Railway Account:**
-   - Go to https://railway.app/
+1. **Create Vercel Account:**
+   - Go to https://vercel.com/
    - Sign up with GitHub
 
 2. **Deploy Server:**
@@ -748,14 +748,14 @@ firebase deploy --only hosting
 
 **Result:** Live at `https://YOUR_PROJECT.web.app`
 
-### Backend Deployment (Railway)
+### Backend Deployment (Vercel)
 
-Railway auto-deploys on every push to `main` branch!
+Vercel auto-deploys on every push to `main` branch!
 
 **Manual Deploy:**
 1. Push changes to GitHub
-2. Railway automatically detects and deploys
-3. Monitor in Railway dashboard
+2. Vercel automatically detects and deploys (via vercel.json)
+3. Monitor in Vercel dashboard
 
 ---
 
@@ -996,7 +996,7 @@ RAZORPAY_KEY_ID="..."
 | Firebase Hosting | Frontend hosting | **$0** |
 | Firebase Firestore | Database (reads/writes) | **$0** (within limits) |
 | Firebase Authentication | User auth | **$0** |
-| Railway | Webhook server | **$0** + $5 credit |
+| Vercel | Serverless backend | **$0** (Hobby) |
 | Supabase | File storage | **$0** (within limits) |
 | Razorpay | Payment gateway | Transaction fees only |
 | GitHub | Version control | **$0** |
@@ -1015,9 +1015,10 @@ RAZORPAY_KEY_ID="..."
 - 10 GB storage
 - 360 MB/day bandwidth
 
-**Railway:**
-- $5 credit/month
-- 500 hours execution time
+**Vercel:**
+- 100 GB Bandwidth/month
+- 6,000 Build Minutes/month
+- Unlimited Serverless Function Requests (Hobby)
 
 **Supabase:**
 - 500 MB storage
@@ -1108,7 +1109,7 @@ This project is open source and available under the MIT License.
 
 - Firebase for authentication and database
 - Razorpay for payment gateway
-- Railway for free hosting
+- Vercel for free hosting and serverless functions
 - Supabase for file storage
 - React and Vite communities
 - Tailwind CSS for styling system
