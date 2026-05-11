@@ -142,3 +142,28 @@ export const recordCouponUsage = async (
     throw error;
   }
 };
+
+/**
+ * Cancel Order
+ */
+export const cancelOrder = async (orderId: string) => {
+  try {
+    const response = await fetch(`${VERCEL_API_URL}/cancel-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to cancel order');
+    }
+
+    return await response.json(); // Returns { success: true }
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    throw error;
+  }
+};

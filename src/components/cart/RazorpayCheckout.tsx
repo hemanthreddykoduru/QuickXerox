@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { createPayment, verifyPayment } from '../../services/paymentService';
+import { createPayment, verifyPayment, cancelOrder } from '../../services/paymentService';
 import { deobs } from '../../utils/security';
 import { toast } from 'react-hot-toast';
 import { db, auth } from '../../firebase';
@@ -167,17 +167,13 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
               const orderId = orderData.orderId;
               const cancelToast = toast.loading('Cancelling order...');
               try {
-                const orderRef = doc(db, 'orders', orderId);
-                await updateDoc(orderRef, {
-                  status: 'cancelled',
-                  paymentId: 'Cancelled by user',
-                  updatedAt: new Date().toISOString()
-                });
-                console.log(`Order ${orderId} marked as cancelled`);
+                // Use backend API instead of direct Firestore update to avoid permission issues
+                await cancelOrder(orderId);
+                console.log(`Order ${orderId} marked as cancelled via API`);
                 toast.success('Order cancelled', { id: cancelToast });
-              } catch (dbError) {
-                console.error('Error updating cancelled order in DB:', dbError);
-                toast.error('Failed to update cancellation status', { id: cancelToast });
+              } catch (dbError: any) {
+                console.error('Error updating cancelled order:', dbError);
+                toast.error(dbError.message || 'Failed to update cancellation status', { id: cancelToast });
               }
               onError('Payment cancelled by user');
             }
