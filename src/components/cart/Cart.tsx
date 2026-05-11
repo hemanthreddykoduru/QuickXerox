@@ -218,12 +218,15 @@ const Cart: React.FC<CartProps> = ({
           paymentId: response.razorpay_payment_id || 'N/A'
         };
 
+        console.log("Generating invoice for order:", orderId);
         const pdfBlob = await generateInvoice(orderForInvoice, userProfile.email, true) as Blob;
         if (!pdfBlob) throw new Error("PDF generation failed");
+        console.log("PDF generated successfully, size:", pdfBlob.size);
 
         const reader = new FileReader();
         reader.readAsDataURL(pdfBlob);
         reader.onloadend = async () => {
+          console.log("FileReader onloadend triggered");
           const base64data = reader.result?.toString().split(',')[1];
           const fileName = `Invoice_${orderId}_${Date.now()}.pdf`;
 
@@ -247,12 +250,19 @@ const Cart: React.FC<CartProps> = ({
             const orderRef = doc(db, 'orders', dbOrderId);
             await updateDoc(orderRef, { invoiceUrl: downloadURL });
             console.log("Invoice URL updated in Firestore:", downloadURL);
+            toast.success("Invoice generated successfully!");
           } catch (error: any) {
             console.error("Auto-invoice upload failed:", error);
+            toast.error("Failed to upload invoice");
           }
+        };
+        reader.onerror = (err) => {
+          console.error("FileReader error:", err);
+          toast.error("Failed to read invoice data");
         };
       } catch (error) {
         console.error("Auto-invoice setup failed:", error);
+        toast.error("Invoice generation failed");
       }
     };
 
