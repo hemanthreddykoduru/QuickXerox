@@ -670,7 +670,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 3. **Add to Frontend:**
 ```javascript
 // In your payment component
-const RAZORPAY_KEY_ID = "rzp_test_YOUR_KEY";
+const RAZORPAY_KEY_ID = "rzp_live_YOUR_KEY";
 ```
 
 4. **Configure Webhook:**

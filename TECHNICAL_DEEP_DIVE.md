@@ -1019,7 +1019,7 @@ const handleVerifyOTP = async (orderId: string) => {
 
 ```typescript
 // src/config/razorpay.ts
-export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_...';
+export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_...';
 ```
 
 **Step 2: Create Payment Component**
