@@ -174,11 +174,14 @@ const Cart: React.FC<CartProps> = ({
     }
 
     const processPostPayment = async () => {
+      // Use the actual Razorpay Order ID for database updates as it is the document ID
+      const dbOrderId = response.razorpay_order_id || orderId;
+
       // Record coupon usage if applied
       if (appliedCoupon) {
         try {
           await recordCouponUsage(appliedCoupon.id, orderId, appliedCoupon.discount, auth.currentUser?.uid);
-          await updateDoc(doc(db, 'orders', orderId), {
+          await updateDoc(doc(db, 'orders', dbOrderId), {
             couponCode: appliedCoupon.code,
             discountAmount: appliedCoupon.discount,
             originalTotal: totalAmount
@@ -193,7 +196,7 @@ const Cart: React.FC<CartProps> = ({
         if (!userProfile?.email || !selectedShop) return;
 
         const orderForInvoice: any = {
-          id: orderId,
+          id: orderId, // Display ID for the PDF
           customerName: userProfile.name,
           customerPhone: userProfile.mobile,
           sellerPhone: "N/A",
@@ -202,7 +205,7 @@ const Cart: React.FC<CartProps> = ({
             fileName: item.file.name,
             copies: item.copies,
             isColor: item.isColor,
-            pages: 1
+            pages: item.pageCount // Use actual page count
           })),
           total: finalTotalAmount,
           originalTotal: totalAmount,
@@ -241,8 +244,9 @@ const Cart: React.FC<CartProps> = ({
             }
 
             const downloadURL = uploadResult.url;
-            const orderRef = doc(db, 'orders', orderId);
+            const orderRef = doc(db, 'orders', dbOrderId);
             await updateDoc(orderRef, { invoiceUrl: downloadURL });
+            console.log("Invoice URL updated in Firestore:", downloadURL);
           } catch (error: any) {
             console.error("Auto-invoice upload failed:", error);
           }
