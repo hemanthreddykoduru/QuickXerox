@@ -90,6 +90,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           shopId,
           items: safeParsePrintJobs(printJobs),
           currency,
+          receipt, // Pass the ORD- format receipt
           couponCode,
           userId: auth.currentUser?.uid,
           customerName: userName,
@@ -164,6 +165,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             ondismiss: async function () {
               console.log('Razorpay modal dismissed by user');
               const orderId = orderData.orderId;
+              const cancelToast = toast.loading('Cancelling order...');
               try {
                 const orderRef = doc(db, 'orders', orderId);
                 await updateDoc(orderRef, {
@@ -172,8 +174,10 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
                   updatedAt: new Date().toISOString()
                 });
                 console.log(`Order ${orderId} marked as cancelled`);
+                toast.success('Order cancelled', { id: cancelToast });
               } catch (dbError) {
                 console.error('Error updating cancelled order in DB:', dbError);
+                toast.error('Failed to update cancellation status', { id: cancelToast });
               }
               onError('Payment cancelled by user');
             }

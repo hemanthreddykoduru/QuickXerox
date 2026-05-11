@@ -8,6 +8,7 @@ export const createPayment = async (paymentDetails: {
   shopId: string;
   items: any[];
   currency: string;
+  receipt?: string;
   couponCode?: string;
   userId?: string;
   customerName?: string;
