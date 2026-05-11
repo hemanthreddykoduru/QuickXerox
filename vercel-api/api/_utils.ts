@@ -136,7 +136,7 @@ export const calculateOrderAmount = async (shopId: string, items: any[]) => {
     }
 
     const shopData = shopDoc.data();
-    const perPageCostAdjustment = shopData?.settings?.preferences?.perPageCostAdjustment ?? 0;
+    const perPageCostAdjustment = shopData?.settings?.preferences?.perPageCostAdjustment ?? 2.50;
     const basePrice = perPageCostAdjustment + 1;
 
     let totalPages = 0;

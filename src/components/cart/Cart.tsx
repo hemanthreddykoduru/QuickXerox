@@ -143,7 +143,7 @@ const Cart: React.FC<CartProps> = ({
               fileUrl: '',
               copies: item.copies,
               isColor: item.isColor,
-              pages: 1
+              pages: item.pageCount
             };
           } catch (error: any) {
             console.error(`Failed to upload file ${item.file.name}:`, error);
@@ -550,7 +550,7 @@ const Cart: React.FC<CartProps> = ({
                 fileName: item.file.name,
                 copies: item.copies,
                 isColor: item.isColor,
-                pages: 1
+                pages: item.pageCount
               })))}
               shopId={selectedShop.id.toString()}
               generatedOrderId={orderId}
