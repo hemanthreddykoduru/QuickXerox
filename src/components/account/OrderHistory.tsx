@@ -223,7 +223,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                         className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
                       >
                         <Eye className="h-3.5 w-3.5" />
-                        Invoice
+                        View Invoice
                       </a>
                     )}
                     <p className="font-bold text-gray-900 text-sm">₹{order.total.toFixed(2)}</p>

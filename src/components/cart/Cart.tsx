@@ -71,6 +71,7 @@ const Cart: React.FC<CartProps> = ({
   const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
   const [fileToPreview, setFileToPreview] = useState<File | null>(null);
   const [showOTPDisplay, setShowOTPDisplay] = useState(false);
+  const [isUploadingInvoice, setIsUploadingInvoice] = useState(false);
   const [generatedOTP, setGeneratedOTP] = useState<string>('');
   const [orderId, setOrderId] = useState<string>('');
   const [itemsWithUrls, setItemsWithUrls] = useState<any[]>([]);
@@ -194,6 +195,7 @@ const Cart: React.FC<CartProps> = ({
       // Auto-email invoice
       try {
         if (!userProfile?.email || !selectedShop) return;
+        setIsUploadingInvoice(true);
 
         const orderForInvoice: any = {
           id: orderId, // Display ID for the PDF
@@ -218,15 +220,12 @@ const Cart: React.FC<CartProps> = ({
           paymentId: response.razorpay_payment_id || 'N/A'
         };
 
-        console.log("Generating invoice for order:", orderId);
         const pdfBlob = await generateInvoice(orderForInvoice, userProfile.email, true) as Blob;
         if (!pdfBlob) throw new Error("PDF generation failed");
-        console.log("PDF generated successfully, size:", pdfBlob.size);
 
         const reader = new FileReader();
         reader.readAsDataURL(pdfBlob);
         reader.onloadend = async () => {
-          console.log("FileReader onloadend triggered");
           const base64data = reader.result?.toString().split(',')[1];
           const fileName = `Invoice_${orderId}_${Date.now()}.pdf`;
 
@@ -250,19 +249,15 @@ const Cart: React.FC<CartProps> = ({
             const orderRef = doc(db, 'orders', dbOrderId);
             await updateDoc(orderRef, { invoiceUrl: downloadURL });
             console.log("Invoice URL updated in Firestore:", downloadURL);
-            toast.success("Invoice generated successfully!");
           } catch (error: any) {
             console.error("Auto-invoice upload failed:", error);
-            toast.error("Failed to upload invoice");
+          } finally {
+            setIsUploadingInvoice(false);
           }
-        };
-        reader.onerror = (err) => {
-          console.error("FileReader error:", err);
-          toast.error("Failed to read invoice data");
         };
       } catch (error) {
         console.error("Auto-invoice setup failed:", error);
-        toast.error("Invoice generation failed");
+        setIsUploadingInvoice(false);
       }
     };
 
@@ -272,7 +267,7 @@ const Cart: React.FC<CartProps> = ({
   const handlePaymentError = (error: any) => {
     setIsProcessing(false);
     const errorMessage = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Failed to initiate payment';
-    
+
     // Don't show toast if it's just a user cancellation
     if (errorMessage !== 'Payment cancelled by user') {
       toast.error(`Payment Error: ${errorMessage}`);
@@ -415,7 +410,7 @@ const Cart: React.FC<CartProps> = ({
                             className={`relative group p-2.5 sm:p-3 border rounded-xl cursor-pointer transition-all duration-300 ${selectedShop?.id === shop.id
                               ? 'border-blue-500 bg-blue-50/40 shadow-sm ring-1 ring-blue-500/10'
                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
-                            }`}
+                              }`}
                             onClick={() => onShopSelect(shop.id.toString())}
                           >
                             {selectedShop?.id === shop.id && (
@@ -467,7 +462,7 @@ const Cart: React.FC<CartProps> = ({
                           <span className="text-gray-500">Subtotal:</span>
                           <span className="text-gray-900 font-semibold">₹{totalAmount.toFixed(2)}</span>
                         </div>
-                        
+
                         {/* Coupon Section */}
                         {appliedCoupon ? (
                           <div className="flex justify-between items-center bg-green-50 p-1.5 sm:p-2 rounded-lg border border-green-100">
@@ -486,7 +481,7 @@ const Cart: React.FC<CartProps> = ({
                           <div className="flex gap-2">
                             <div className="relative flex-1">
                               <Tag className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
-                              <input 
+                              <input
                                 type="text"
                                 placeholder="Coupon Code"
                                 value={couponCodeInput}
@@ -494,7 +489,7 @@ const Cart: React.FC<CartProps> = ({
                                 className="w-full pl-8 sm:pl-9 pr-3 py-1.5 sm:py-2 text-[10px] sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 uppercase outline-none"
                               />
                             </div>
-                            <button 
+                            <button
                               onClick={handleApplyCoupon}
                               disabled={isApplyingCoupon || !couponCodeInput.trim()}
                               className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-900 text-white text-[10px] sm:text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
@@ -587,7 +582,7 @@ const Cart: React.FC<CartProps> = ({
 
           {showOTPDisplay && (
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-              <MotionDiv 
+              <MotionDiv
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto font-sans border border-slate-100"
@@ -626,11 +621,11 @@ const Cart: React.FC<CartProps> = ({
                     <Shield className="h-4 w-4 text-slate-400" />
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Verification Code</h4>
                   </div>
-                  
+
                   <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-sm">
                     <div className="flex justify-center space-x-3">
                       {generatedOTP.split('').map((digit, index) => (
-                        <MotionDiv 
+                        <MotionDiv
                           key={index}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -661,24 +656,35 @@ const Cart: React.FC<CartProps> = ({
                   </div>
 
                   <div className="flex flex-col-reverse sm:flex-row gap-3">
-                    <button 
-                      onClick={() => { setShowOTPDisplay(false); onClose(); }} 
-                      className="flex-1 px-6 py-3 bg-white text-slate-500 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-sm"
+                    <button
+                      onClick={() => { setShowOTPDisplay(false); onClose(); }}
+                      disabled={isUploadingInvoice}
+                      className="flex-1 px-6 py-3 bg-white text-slate-500 font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-sm disabled:opacity-50"
                     >
                       Close
                     </button>
-                    <MotionButton 
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => { 
-                        setShowOTPDisplay(false); 
-                        onClose(); 
+                    <MotionButton
+                      whileHover={isUploadingInvoice ? {} : { scale: 1.02 }}
+                      whileTap={isUploadingInvoice ? {} : { scale: 0.98 }}
+                      disabled={isUploadingInvoice}
+                      onClick={() => {
+                        setShowOTPDisplay(false);
+                        onClose();
                         navigate('/account');
-                      }} 
-                      className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all text-sm flex items-center justify-center"
+                      }}
+                      className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-all text-sm flex items-center justify-center disabled:bg-indigo-400"
                     >
-                      Track Order
-                      <ChevronRight className="ml-2 h-4 w-4" />
+                      {isUploadingInvoice ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Finalizing...
+                        </>
+                      ) : (
+                        <>
+                          Track Order
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
                     </MotionButton>
                   </div>
                 </div>
