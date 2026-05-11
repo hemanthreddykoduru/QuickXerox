@@ -165,15 +165,12 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             ondismiss: async function () {
               console.log('Razorpay modal dismissed by user');
               const orderId = orderData.orderId;
-              const cancelToast = toast.loading('Cancelling order...');
               try {
-                // Use backend API instead of direct Firestore update to avoid permission issues
+                // Silent cancellation via API
                 await cancelOrder(orderId);
                 console.log(`Order ${orderId} marked as cancelled via API`);
-                toast.success('Order cancelled', { id: cancelToast });
               } catch (dbError: any) {
                 console.error('Error updating cancelled order:', dbError);
-                toast.error(dbError.message || 'Failed to update cancellation status', { id: cancelToast });
               }
               onError('Payment cancelled by user');
             }

@@ -262,7 +262,11 @@ const Cart: React.FC<CartProps> = ({
   const handlePaymentError = (error: any) => {
     setIsProcessing(false);
     const errorMessage = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Failed to initiate payment';
-    toast.error(`Payment Error: ${errorMessage}`);
+    
+    // Don't show toast if it's just a user cancellation
+    if (errorMessage !== 'Payment cancelled by user') {
+      toast.error(`Payment Error: ${errorMessage}`);
+    }
   };
 
   return ReactDOM.createPortal(
