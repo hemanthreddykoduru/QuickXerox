@@ -103,6 +103,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
               ready:      { label: 'Ready',      bg: 'bg-amber-50',  text: 'text-amber-700',  dot: 'bg-amber-500' },
               completed:  { label: 'Completed',  bg: 'bg-green-50',  text: 'text-green-700',  dot: 'bg-green-500' },
               rejected:   { label: 'Cancelled',  bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
+              cancelled:  { label: 'Cancelled',  bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
               failed:     { label: 'Failed',     bg: 'bg-red-50',    text: 'text-red-700',    dot: 'bg-red-500' },
             };
             const s = statusConfig[currentStatus] ?? { label: order.status, bg: 'bg-gray-50', text: 'text-gray-700', dot: 'bg-gray-400' };
@@ -143,7 +144,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                 </div>
 
                 {/* ── Progress Bar ─────────────────────────────────────── */}
-                {currentStatus !== 'rejected' && currentStatus !== 'failed' ? (
+                {currentStatus !== 'rejected' && currentStatus !== 'failed' && currentStatus !== 'cancelled' ? (
                   <div className="px-4 sm:px-8 py-4 sm:py-5">
                     <div className="relative">
                       <div className="absolute top-3.5 sm:top-5 left-[0.75rem] right-[0.75rem] sm:left-[1.25rem] sm:right-[1.25rem] h-0.5 sm:h-1 bg-slate-100 -translate-y-1/2 rounded">

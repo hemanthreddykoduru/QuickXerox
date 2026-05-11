@@ -44,7 +44,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
         // This ensures the order exists even if the webhook fails or is delayed
         const orderId = razorpayOrder.id;
         const orderData = {
-            id: orderId,
+            id: receipt || orderId,
+            displayId: receipt || orderId,
             customerId: userId || 'guest',
             customerName: customerName || 'Guest',
             customerEmail: customerEmail || '',
@@ -63,7 +64,8 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
             createdAt: new Date().toISOString()
         };
 
-        await adminDb.collection('orders').doc(orderId).set(orderData);
+        // Use razorpayOrder.id as document ID for webhook compatibility
+        await adminDb.collection('orders').doc(razorpayOrder.id).set(orderData);
 
         return res.status(200).json({
             orderId: razorpayOrder.id,

@@ -162,13 +162,16 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           },
           modal: {
             ondismiss: async function () {
+              console.log('Razorpay modal dismissed by user');
               const orderId = orderData.orderId;
               try {
                 const orderRef = doc(db, 'orders', orderId);
                 await updateDoc(orderRef, {
                   status: 'cancelled',
                   paymentId: 'Cancelled by user',
+                  updatedAt: new Date().toISOString()
                 });
+                console.log(`Order ${orderId} marked as cancelled`);
               } catch (dbError) {
                 console.error('Error updating cancelled order in DB:', dbError);
               }
@@ -184,7 +187,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
         const rzp1 = new window.Razorpay(options);
         rzp1.on('payment.failed', async function (response: any) {
-          console.error(response.error);
+          console.error('Razorpay Payment Failed:', response.error);
 
           const orderId = orderData.orderId;
           try {
@@ -193,13 +196,15 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
               status: 'failed',
               paymentId: response.error?.metadata?.payment_id || 'Failed Payment',
               paymentError: response.error?.description || 'Payment Failed',
+              updatedAt: new Date().toISOString()
             });
+            console.log(`Order ${orderId} marked as failed`);
           } catch (dbError) {
             console.error('Error updating failed order in DB:', dbError);
           }
 
-          onError(response.error);
           toast.error(response.error.description || 'Payment failed');
+          onError(response.error);
         });
 
         rzp1.open();
