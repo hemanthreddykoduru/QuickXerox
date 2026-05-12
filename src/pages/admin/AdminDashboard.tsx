@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => (localStorage.getItem('theme') as 'light' | 'dark') || 'light');
   const [showSystemSettings, setShowSystemSettings] = useState(false);
+  const [backupFormat, setBackupFormat] = useState('Excel');
 
   type SystemSettings = {
     branding: {
@@ -688,8 +689,8 @@ const AdminDashboard = () => {
                 {['Excel', 'JSON', 'CSV'].map((fmt) => (
                   <button
                     key={fmt}
-                    onClick={() => (window as any)._backupFormat = fmt}
-                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${(window as any)._backupFormat === fmt || (!(window as any)._backupFormat && fmt === 'Excel') ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    onClick={() => setBackupFormat(fmt)}
+                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${backupFormat === fmt ? 'bg-white text-indigo-600 shadow-sm border border-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
                   >
                     {fmt}
                   </button>
@@ -698,7 +699,7 @@ const AdminDashboard = () => {
 
               <button
                 onClick={async () => {
-                  const format = (window as any)._backupFormat || 'Excel';
+                  const format = backupFormat;
                   const toastId = toast.loading(`Preparing ${format} backup...`);
                   
                   try {
@@ -732,8 +733,13 @@ const AdminDashboard = () => {
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Logs");
                       XLSX.writeFile(wb, `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
                     } else {
-                      const usersSnap = await getDocs(collection(db, 'users'));
-                      let csv = "ID,Name,Email\n" + usersSnap.docs.map(d => `${d.id},${d.data().name},${d.data().email}`).join('\n');
+                      const [usersSnap, shopsSnap, ordersSnap] = await Promise.all([
+                        getDocs(collection(db, 'users')), getDocs(collection(db, 'shopOwners')), getDocs(collection(db, 'orders'))
+                      ]);
+                      let csv = "--- MASTER DATA CSV ---\n";
+                      csv += "Customers\nID,Name,Email\n" + usersSnap.docs.map(d => `${d.id},${d.data().name},${d.data().email}`).join('\n');
+                      csv += "\n\nSellers\nID,Shop,Owner\n" + shopsSnap.docs.map(d => `${d.id},${d.data().shopName},${d.data().name}`).join('\n');
+                      
                       const blob = new Blob([csv], { type: "text/csv" });
                       const url = window.URL.createObjectURL(blob);
                       const a = document.createElement("a");
