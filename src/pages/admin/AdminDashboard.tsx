@@ -670,6 +670,112 @@ const AdminDashboard = () => {
             </button>
           </div>
 
+          {/* Data Backup Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <ShoppingBag className="h-4 w-4 text-gray-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Data Backup</h3>
+                <p className="text-xs text-gray-400">Export all platform data for backup.</p>
+              </div>
+            </div>
+            <div className="space-y-2 mt-auto">
+              <button
+                onClick={async () => {
+                  try {
+                    const toastId = toast.loading("Preparing full backup...");
+                    const collections = ['users', 'shopOwners', 'orders', 'coupons', 'auditLogs'];
+                    const fullData: any = {};
+
+                    for (const col of collections) {
+                      const snap = await getDocs(collection(db, col));
+                      fullData[col] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    }
+
+                    const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: "application/json" });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `QuickXerox_Full_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    
+                    toast.success("Full JSON Backup Downloaded! 📦", { id: toastId });
+                    
+                    // Log the backup action
+                    await addDoc(collection(db, 'auditLogs'), {
+                      action: 'FULL_BACKUP',
+                      adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
+                      details: 'Generated full platform JSON backup',
+                      timestamp: serverTimestamp(),
+                    });
+                  } catch (err) {
+                    toast.error("Failed to generate backup");
+                    console.error(err);
+                  }
+                }}
+                className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
+              >
+                Download JSON Backup
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const toastId = toast.loading("Generating Master CSV...");
+                    
+                    // Fetch primary collections
+                    const usersSnap = await getDocs(collection(db, 'users'));
+                    const shopsSnap = await getDocs(collection(db, 'shopOwners'));
+                    const ordersSnap = await getDocs(collection(db, 'orders'));
+
+                    let csv = "--- PLATFORM MASTER BACKUP ---\n";
+                    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+                    // Users Section
+                    csv += "SECTION: CUSTOMERS\n";
+                    csv += "ID,Name,Email,Mobile,City,State,Pincode\n";
+                    usersSnap.forEach(doc => {
+                      const d = doc.data();
+                      csv += `${doc.id},${d.name || ""},${d.email || ""},${d.mobile || ""},${d.city || ""},${d.state || ""},${d.pincode || ""}\n`;
+                    });
+
+                    // Shops Section
+                    csv += "\nSECTION: SELLERS & SHOPS\n";
+                    csv += "ID,Shop Name,Owner Name,Email,Mobile,Status,City\n";
+                    shopsSnap.forEach(doc => {
+                      const d = doc.data();
+                      csv += `${doc.id},${d.shopName || ""},${d.name || ""},${d.email || ""},${d.mobile || ""},${d.status || ""},${d.city || ""}\n`;
+                    });
+
+                    // Orders Section
+                    csv += "\nSECTION: ORDERS\n";
+                    csv += "Order ID,Display ID,Customer Name,Total,Status,Payment ID,Timestamp\n";
+                    ordersSnap.forEach(doc => {
+                      const d = doc.data();
+                      csv += `${doc.id},${d.id || ""},${d.customerName || ""},${d.total || 0},${d.status || ""},${d.paymentId || ""},${d.timestamp || ""}\n`;
+                    });
+
+                    const blob = new Blob([csv], { type: "text/csv" });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `QuickXerox_Master_CSV_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    
+                    toast.success("Master CSV Downloaded! 📥", { id: toastId });
+                  } catch (err) {
+                    toast.error("Failed to generate CSV");
+                    console.error(err);
+                  }
+                }}
+                className="w-full bg-white text-indigo-600 border border-indigo-100 px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors text-sm font-medium"
+              >
+                Download Master CSV
+              </button>
+            </div>
+          </div>
+
           {/* Coupon Management Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
             <div className="flex items-center gap-3 mb-4">
