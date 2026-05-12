@@ -687,28 +687,44 @@ const AdminDashboard = () => {
                 onClick={async () => {
                   try {
                     const toastId = toast.loading("Preparing full backup...");
-                    const collections = ['users', 'shopOwners', 'orders', 'coupons', 'auditLogs'];
+                    const toastId = toast.loading("Preparing A to Z backup...");
+                    const collections = [
+                      'users', 
+                      'shopOwners', 
+                      'orders', 
+                      'coupons', 
+                      'couponUsage', 
+                      'auditLogs', 
+                      'sellerInvitations', 
+                      'payoutRequests',
+                      'systemSettings',
+                      'admins'
+                    ];
                     const fullData: any = {};
 
                     for (const col of collections) {
-                      const snap = await getDocs(collection(db, col));
-                      fullData[col] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                      try {
+                        const snap = await getDocs(collection(db, col));
+                        fullData[col] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                      } catch (e) {
+                        console.warn(`Could not backup collection ${col}:`, e);
+                      }
                     }
 
                     const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: "application/json" });
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `QuickXerox_Full_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                    a.download = `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.json`;
                     a.click();
                     
-                    toast.success("Full JSON Backup Downloaded! 📦", { id: toastId });
+                    toast.success("A to Z JSON Backup Downloaded! 📦", { id: toastId });
                     
                     // Log the backup action
                     await addDoc(collection(db, 'auditLogs'), {
-                      action: 'FULL_BACKUP_JSON',
+                      action: 'FULL_BACKUP_ATOZ',
                       adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
-                      details: 'Generated full platform JSON backup',
+                      details: 'Generated complete platform A to Z JSON backup',
                       timestamp: serverTimestamp(),
                     });
                   } catch (err) {
@@ -718,17 +734,21 @@ const AdminDashboard = () => {
                 }}
                 className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
               >
-                Download JSON Backup
+                Download A to Z JSON Backup
               </button>
               <button
                 onClick={async () => {
                   try {
                     const toastId = toast.loading("Generating Master Excel...");
                     
-                    // Fetch primary collections
-                    const usersSnap = await getDocs(collection(db, 'users'));
-                    const shopsSnap = await getDocs(collection(db, 'shopOwners'));
-                    const ordersSnap = await getDocs(collection(db, 'orders'));
+                    // Fetch all primary collections
+                    const [usersSnap, shopsSnap, ordersSnap, payoutSnap, logsSnap] = await Promise.all([
+                      getDocs(collection(db, 'users')),
+                      getDocs(collection(db, 'shopOwners')),
+                      getDocs(collection(db, 'orders')),
+                      getDocs(collection(db, 'payoutRequests')),
+                      getDocs(collection(db, 'auditLogs'))
+                    ]);
 
                     const customersData = usersSnap.docs.map(doc => {
                       const d = doc.data();
@@ -737,9 +757,9 @@ const AdminDashboard = () => {
                         Name: d.name || "N/A",
                         Email: d.email || "N/A",
                         Mobile: d.mobile || "N/A",
-                        City: d.city || "N/A",
-                        State: d.state || "N/A",
-                        Pincode: d.pincode || "N/A"
+                        Location: `${d.city || ""}, ${d.state || ""} ${d.pincode || ""}`.trim() || "N/A",
+                        Role: d.role || "Customer",
+                        Status: d.isActive === false ? "Inactive" : "Active"
                       };
                     });
 
@@ -752,48 +772,64 @@ const AdminDashboard = () => {
                         Email: d.email || "N/A",
                         Mobile: d.mobile || "N/A",
                         Status: d.status || "N/A",
-                        City: d.city || "N/A"
+                        UPI: d.upiId || "N/A",
+                        Rating: d.rating || 0
                       };
                     });
 
                     const ordersData = ordersSnap.docs.map(doc => {
                       const d = doc.data();
+                      const ts = d.timestamp?.toDate ? d.timestamp.toDate() : d.createdAt?.toDate ? d.createdAt.toDate() : null;
                       return {
                         OrderID: doc.id,
                         DisplayID: d.id || "N/A",
-                        CustomerName: d.customerName || "N/A",
+                        Customer: d.customerName || "N/A",
+                        Shop: d.shopName || "N/A",
                         Total: d.total || 0,
                         Status: d.status || "N/A",
-                        PaymentID: d.paymentId || "N/A",
-                        Timestamp: d.timestamp || "N/A"
+                        PaymentStatus: d.isPaid ? "Paid" : "Unpaid",
+                        PaymentID: d.paymentId || d.razorpay_payment_id || "N/A",
+                        RazorpayOrderID: d.razorpay_order_id || "N/A",
+                        Date: ts ? ts.toLocaleString() : "N/A"
+                      };
+                    });
+
+                    const payoutsData = payoutSnap.docs.map(doc => {
+                      const d = doc.data();
+                      return {
+                        ID: doc.id,
+                        ShopID: d.shopId || "N/A",
+                        ShopName: d.shopName || "N/A",
+                        Amount: d.amount || 0,
+                        Status: d.status || "Pending",
+                        RequestedAt: d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : "N/A"
+                      };
+                    });
+
+                    const logsData = logsSnap.docs.map(doc => {
+                      const d = doc.data();
+                      return {
+                        Time: d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString() : "N/A",
+                        Admin: d.adminEmail || "N/A",
+                        Action: d.action || "N/A",
+                        Details: d.details || "N/A"
                       };
                     });
 
                     // Create Workbook
                     const wb = XLSX.utils.book_new();
                     
-                    // Add Sheets
-                    const wsCustomers = XLSX.utils.json_to_sheet(customersData);
-                    XLSX.utils.book_append_sheet(wb, wsCustomers, "Customers");
-                    
-                    const wsShops = XLSX.utils.json_to_sheet(shopsData);
-                    XLSX.utils.book_append_sheet(wb, wsShops, "Sellers & Shops");
-                    
-                    const wsOrders = XLSX.utils.json_to_sheet(ordersData);
-                    XLSX.utils.book_append_sheet(wb, wsOrders, "Orders");
+                    // Add Sheets with proper names
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customersData), "Customers");
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shopsData), "Sellers & Shops");
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersData), "Orders & Payments");
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutsData), "Payout Requests");
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Audit Logs");
 
                     // Export
-                    XLSX.writeFile(wb, `QuickXerox_Master_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    XLSX.writeFile(wb, `QuickXerox_AtoZ_Master_Excel_${new Date().toISOString().split('T')[0]}.xlsx`);
                     
-                    toast.success("Master Excel Downloaded! 📊", { id: toastId });
-
-                    // Log the backup action
-                    await addDoc(collection(db, 'auditLogs'), {
-                      action: 'FULL_BACKUP_EXCEL',
-                      adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
-                      details: 'Generated full platform Excel (.xlsx) backup',
-                      timestamp: serverTimestamp(),
-                    });
+                    toast.success("A to Z Excel Downloaded! 📊", { id: toastId });
                   } catch (err) {
                     toast.error("Failed to generate Excel");
                     console.error(err);
@@ -801,7 +837,7 @@ const AdminDashboard = () => {
                 }}
                 className="w-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-4 py-2 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium"
               >
-                Download Master Excel (.xlsx)
+                Download A to Z Master Excel (.xlsx)
               </button>
               <button
                 onClick={async () => {
