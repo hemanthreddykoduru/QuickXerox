@@ -671,229 +671,89 @@ const AdminDashboard = () => {
             </button>
           </div>
 
-          {/* Data Backup Card */}
+          {/* Platform Backup Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-9 w-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                <ShoppingBag className="h-4 w-4 text-gray-600" />
+              <div className="h-9 w-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                <ShoppingBag className="h-4 w-4 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Data Backup</h3>
-                <p className="text-xs text-gray-400">Export all platform data for backup.</p>
+                <h3 className="text-sm font-semibold text-gray-900">Platform Backup</h3>
+                <p className="text-xs text-gray-400">Download complete A to Z system data.</p>
               </div>
             </div>
-            <div className="space-y-2 mt-auto">
+            
+            <div className="mt-auto space-y-4">
+              <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100">
+                {['Excel', 'JSON', 'CSV'].map((fmt) => (
+                  <button
+                    key={fmt}
+                    onClick={() => (window as any)._backupFormat = fmt}
+                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${(window as any)._backupFormat === fmt || (!(window as any)._backupFormat && fmt === 'Excel') ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {fmt}
+                  </button>
+                ))}
+              </div>
+
               <button
                 onClick={async () => {
+                  const format = (window as any)._backupFormat || 'Excel';
+                  const toastId = toast.loading(`Preparing ${format} backup...`);
+                  
                   try {
-                    const toastId = toast.loading("Preparing A to Z backup...");
-                    const collections = [
-                      'users', 
-                      'shopOwners', 
-                      'orders', 
-                      'coupons', 
-                      'couponUsage', 
-                      'auditLogs', 
-                      'sellerInvitations', 
-                      'payoutRequests',
-                      'systemSettings',
-                      'admins'
-                    ];
-                    const fullData: any = {};
-
-                    for (const col of collections) {
-                      try {
-                        const snap = await getDocs(collection(db, col));
-                        fullData[col] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                      } catch (e) {
-                        console.warn(`Could not backup collection ${col}:`, e);
+                    if (format === 'JSON') {
+                      const collections = ['users', 'shopOwners', 'orders', 'coupons', 'couponUsage', 'auditLogs', 'sellerInvitations', 'payoutRequests', 'systemSettings', 'admins'];
+                      const fullData: any = {};
+                      for (const col of collections) {
+                        try {
+                          const snap = await getDocs(collection(db, col));
+                          fullData[col] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        } catch (e) { console.warn(e); }
                       }
+                      const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: "application/json" });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                      a.click();
+                    } else if (format === 'Excel') {
+                      const [usersSnap, shopsSnap, ordersSnap, payoutSnap, logsSnap] = await Promise.all([
+                        getDocs(collection(db, 'users')), getDocs(collection(db, 'shopOwners')), getDocs(collection(db, 'orders')), getDocs(collection(db, 'payoutRequests')), getDocs(collection(db, 'auditLogs'))
+                      ]);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usersSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Customers");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shopsSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Sellers");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersSnap.docs.map(doc => {
+                        const d = doc.data();
+                        return { OrderID: doc.id, DisplayID: d.id, Customer: d.customerName, Total: d.total, Status: d.status, PaymentID: d.paymentId || d.razorpay_payment_id };
+                      })), "Orders");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Payouts");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Logs");
+                      XLSX.writeFile(wb, `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    } else {
+                      const usersSnap = await getDocs(collection(db, 'users'));
+                      let csv = "ID,Name,Email\n" + usersSnap.docs.map(d => `${d.id},${d.data().name},${d.data().email}`).join('\n');
+                      const blob = new Blob([csv], { type: "text/csv" });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `QuickXerox_Backup_${new Date().toISOString().split('T')[0]}.csv`;
+                      a.click();
                     }
-
-                    const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: "application/json" });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
-                    
-                    toast.success("A to Z JSON Backup Downloaded! 📦", { id: toastId });
-                    
-                    // Log the backup action
-                    await addDoc(collection(db, 'auditLogs'), {
-                      action: 'FULL_BACKUP_ATOZ',
-                      adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
-                      details: 'Generated complete platform A to Z JSON backup',
-                      timestamp: serverTimestamp(),
-                    });
-                  } catch (err) {
-                    toast.error("Failed to generate backup");
-                    console.error(err);
+                    toast.success(`${format} Backup Downloaded!`, { id: toastId });
+                  } catch (e) {
+                    toast.error("Backup failed");
+                    console.error(e);
                   }
                 }}
-                className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
+                className="w-full bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-all text-sm font-bold shadow-md hover:shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                Download A to Z JSON Backup
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const toastId = toast.loading("Generating Master Excel...");
-                    
-                    // Fetch all primary collections
-                    const [usersSnap, shopsSnap, ordersSnap, payoutSnap, logsSnap] = await Promise.all([
-                      getDocs(collection(db, 'users')),
-                      getDocs(collection(db, 'shopOwners')),
-                      getDocs(collection(db, 'orders')),
-                      getDocs(collection(db, 'payoutRequests')),
-                      getDocs(collection(db, 'auditLogs'))
-                    ]);
-
-                    const customersData = usersSnap.docs.map(doc => {
-                      const d = doc.data();
-                      return {
-                        ID: doc.id,
-                        Name: d.name || "N/A",
-                        Email: d.email || "N/A",
-                        Mobile: d.mobile || "N/A",
-                        Location: `${d.city || ""}, ${d.state || ""} ${d.pincode || ""}`.trim() || "N/A",
-                        Role: d.role || "Customer",
-                        Status: d.isActive === false ? "Inactive" : "Active"
-                      };
-                    });
-
-                    const shopsData = shopsSnap.docs.map(doc => {
-                      const d = doc.data();
-                      return {
-                        ID: doc.id,
-                        ShopName: d.shopName || "N/A",
-                        OwnerName: d.name || "N/A",
-                        Email: d.email || "N/A",
-                        Mobile: d.mobile || "N/A",
-                        Status: d.status || "N/A",
-                        UPI: d.upiId || "N/A",
-                        Rating: d.rating || 0
-                      };
-                    });
-
-                    const ordersData = ordersSnap.docs.map(doc => {
-                      const d = doc.data();
-                      const ts = d.timestamp?.toDate ? d.timestamp.toDate() : d.createdAt?.toDate ? d.createdAt.toDate() : null;
-                      return {
-                        OrderID: doc.id,
-                        DisplayID: d.id || "N/A",
-                        Customer: d.customerName || "N/A",
-                        Shop: d.shopName || "N/A",
-                        Total: d.total || 0,
-                        Status: d.status || "N/A",
-                        PaymentStatus: d.isPaid ? "Paid" : "Unpaid",
-                        PaymentID: d.paymentId || d.razorpay_payment_id || "N/A",
-                        RazorpayOrderID: d.razorpay_order_id || "N/A",
-                        Date: ts ? ts.toLocaleString() : "N/A"
-                      };
-                    });
-
-                    const payoutsData = payoutSnap.docs.map(doc => {
-                      const d = doc.data();
-                      return {
-                        ID: doc.id,
-                        ShopID: d.shopId || "N/A",
-                        ShopName: d.shopName || "N/A",
-                        Amount: d.amount || 0,
-                        Status: d.status || "Pending",
-                        RequestedAt: d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : "N/A"
-                      };
-                    });
-
-                    const logsData = logsSnap.docs.map(doc => {
-                      const d = doc.data();
-                      return {
-                        Time: d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString() : "N/A",
-                        Admin: d.adminEmail || "N/A",
-                        Action: d.action || "N/A",
-                        Details: d.details || "N/A"
-                      };
-                    });
-
-                    // Create Workbook
-                    const wb = XLSX.utils.book_new();
-                    
-                    // Add Sheets with proper names
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customersData), "Customers");
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shopsData), "Sellers & Shops");
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersData), "Orders & Payments");
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutsData), "Payout Requests");
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Audit Logs");
-
-                    // Export
-                    XLSX.writeFile(wb, `QuickXerox_AtoZ_Master_Excel_${new Date().toISOString().split('T')[0]}.xlsx`);
-                    
-                    toast.success("A to Z Excel Downloaded! 📊", { id: toastId });
-                  } catch (err) {
-                    toast.error("Failed to generate Excel");
-                    console.error(err);
-                  }
-                }}
-                className="w-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-4 py-2 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium"
-              >
-                Download A to Z Master Excel (.xlsx)
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const toastId = toast.loading("Generating Master CSV...");
-                    
-                    // Fetch primary collections
-                    const usersSnap = await getDocs(collection(db, 'users'));
-                    const shopsSnap = await getDocs(collection(db, 'shopOwners'));
-                    const ordersSnap = await getDocs(collection(db, 'orders'));
-
-                    let csv = "--- PLATFORM MASTER BACKUP ---\n";
-                    csv += `Generated: ${new Date().toLocaleString()}\n\n`;
-
-                    // Users Section
-                    csv += "SECTION: CUSTOMERS\n";
-                    csv += "ID,Name,Email,Mobile,City,State,Pincode\n";
-                    usersSnap.forEach(doc => {
-                      const d = doc.data();
-                      csv += `${doc.id},${d.name || ""},${d.email || ""},${d.mobile || ""},${d.city || ""},${d.state || ""},${d.pincode || ""}\n`;
-                    });
-
-                    // Shops Section
-                    csv += "\nSECTION: SELLERS & SHOPS\n";
-                    csv += "ID,Shop Name,Owner Name,Email,Mobile,Status,City\n";
-                    shopsSnap.forEach(doc => {
-                      const d = doc.data();
-                      csv += `${doc.id},${d.shopName || ""},${d.name || ""},${d.email || ""},${d.mobile || ""},${d.status || ""},${d.city || ""}\n`;
-                    });
-
-                    // Orders Section
-                    csv += "\nSECTION: ORDERS\n";
-                    csv += "Order ID,Display ID,Customer Name,Total,Status,Payment ID,Timestamp\n";
-                    ordersSnap.forEach(doc => {
-                      const d = doc.data();
-                      csv += `${doc.id},${d.id || ""},${d.customerName || ""},${d.total || 0},${d.status || ""},${d.paymentId || ""},${d.timestamp || ""}\n`;
-                    });
-
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `QuickXerox_Master_CSV_${new Date().toISOString().split('T')[0]}.csv`;
-                    a.click();
-                    
-                    toast.success("Master CSV Downloaded! 📥", { id: toastId });
-                  } catch (err) {
-                    toast.error("Failed to generate CSV");
-                    console.error(err);
-                  }
-                }}
-                className="w-full bg-white text-gray-600 border border-gray-200 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors text-sm"
-              >
-                Download Master CSV
+                <BarChart className="h-4 w-4" />
+                Download Data Backup
               </button>
             </div>
-          </div>
+        </div>
 
           {/* Coupon Management Card */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col">
