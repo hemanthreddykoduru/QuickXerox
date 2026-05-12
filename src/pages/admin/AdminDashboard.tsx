@@ -6,6 +6,7 @@ import { doc, getDoc, collection, query, orderBy, limit, getDocs, setDoc, addDoc
 import { auth, db } from '../../firebase';
 import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard';
 import Skeleton from '../../components/common/Skeleton';
+import * as XLSX from 'xlsx';
 
 interface RecentSeller {
   id: string;
@@ -705,7 +706,7 @@ const AdminDashboard = () => {
                     
                     // Log the backup action
                     await addDoc(collection(db, 'auditLogs'), {
-                      action: 'FULL_BACKUP',
+                      action: 'FULL_BACKUP_JSON',
                       adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
                       details: 'Generated full platform JSON backup',
                       timestamp: serverTimestamp(),
@@ -718,6 +719,89 @@ const AdminDashboard = () => {
                 className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
               >
                 Download JSON Backup
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const toastId = toast.loading("Generating Master Excel...");
+                    
+                    // Fetch primary collections
+                    const usersSnap = await getDocs(collection(db, 'users'));
+                    const shopsSnap = await getDocs(collection(db, 'shopOwners'));
+                    const ordersSnap = await getDocs(collection(db, 'orders'));
+
+                    const customersData = usersSnap.docs.map(doc => {
+                      const d = doc.data();
+                      return {
+                        ID: doc.id,
+                        Name: d.name || "N/A",
+                        Email: d.email || "N/A",
+                        Mobile: d.mobile || "N/A",
+                        City: d.city || "N/A",
+                        State: d.state || "N/A",
+                        Pincode: d.pincode || "N/A"
+                      };
+                    });
+
+                    const shopsData = shopsSnap.docs.map(doc => {
+                      const d = doc.data();
+                      return {
+                        ID: doc.id,
+                        ShopName: d.shopName || "N/A",
+                        OwnerName: d.name || "N/A",
+                        Email: d.email || "N/A",
+                        Mobile: d.mobile || "N/A",
+                        Status: d.status || "N/A",
+                        City: d.city || "N/A"
+                      };
+                    });
+
+                    const ordersData = ordersSnap.docs.map(doc => {
+                      const d = doc.data();
+                      return {
+                        OrderID: doc.id,
+                        DisplayID: d.id || "N/A",
+                        CustomerName: d.customerName || "N/A",
+                        Total: d.total || 0,
+                        Status: d.status || "N/A",
+                        PaymentID: d.paymentId || "N/A",
+                        Timestamp: d.timestamp || "N/A"
+                      };
+                    });
+
+                    // Create Workbook
+                    const wb = XLSX.utils.book_new();
+                    
+                    // Add Sheets
+                    const wsCustomers = XLSX.utils.json_to_sheet(customersData);
+                    XLSX.utils.book_append_sheet(wb, wsCustomers, "Customers");
+                    
+                    const wsShops = XLSX.utils.json_to_sheet(shopsData);
+                    XLSX.utils.book_append_sheet(wb, wsShops, "Sellers & Shops");
+                    
+                    const wsOrders = XLSX.utils.json_to_sheet(ordersData);
+                    XLSX.utils.book_append_sheet(wb, wsOrders, "Orders");
+
+                    // Export
+                    XLSX.writeFile(wb, `QuickXerox_Master_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    
+                    toast.success("Master Excel Downloaded! 📊", { id: toastId });
+
+                    // Log the backup action
+                    await addDoc(collection(db, 'auditLogs'), {
+                      action: 'FULL_BACKUP_EXCEL',
+                      adminEmail: adminProfile?.email || auth.currentUser?.email || 'Unknown',
+                      details: 'Generated full platform Excel (.xlsx) backup',
+                      timestamp: serverTimestamp(),
+                    });
+                  } catch (err) {
+                    toast.error("Failed to generate Excel");
+                    console.error(err);
+                  }
+                }}
+                className="w-full bg-indigo-50 text-indigo-700 border border-indigo-100 px-4 py-2 rounded-md hover:bg-indigo-100 transition-colors text-sm font-medium"
+              >
+                Download Master Excel (.xlsx)
               </button>
               <button
                 onClick={async () => {
@@ -769,7 +853,7 @@ const AdminDashboard = () => {
                     console.error(err);
                   }
                 }}
-                className="w-full bg-white text-indigo-600 border border-indigo-100 px-4 py-2 rounded-md hover:bg-indigo-50 transition-colors text-sm font-medium"
+                className="w-full bg-white text-gray-600 border border-gray-200 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors text-sm"
               >
                 Download Master CSV
               </button>

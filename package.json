@@ -38,7 +38,8 @@
     "react-router-dom": "^6.18.0",
     "recharts": "^2.15.3",
     "twilio": "^5.7.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20.8.2",
