@@ -737,14 +737,20 @@ const AdminDashboard = () => {
                         safeFetch('auditLogs')
                       ]);
 
-                      const ordersData = ordersRaw.map((d: any) => ({
-                        OrderID: d.ID,
-                        DisplayID: d.id || "N/A",
-                        Customer: d.customerName || "N/A",
-                        Total: d.total || 0,
-                        Status: d.status || "N/A",
-                        PaymentID: d.paymentId || d.razorpay_payment_id || "N/A"
-                      }));
+                      const ordersData = ordersRaw.map((d: any) => {
+                        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : d.createdAt?.toDate ? d.createdAt.toDate() : null;
+                        return {
+                          OrderID: d.ID,
+                          DisplayID: d.id || "N/A",
+                          Customer: d.customerName || "N/A",
+                          Shop: d.shopName || "N/A",
+                          Total: d.total || 0,
+                          Status: d.status || "N/A",
+                          PaymentStatus: d.isPaid ? "Paid" : "Unpaid",
+                          PaymentID: d.paymentId || d.razorpay_payment_id || "N/A",
+                          Date: ts ? ts.toLocaleString() : "N/A"
+                        };
+                      });
 
                       const wb = XLSX.utils.book_new();
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customersData), "Customers");
@@ -754,18 +760,56 @@ const AdminDashboard = () => {
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Logs");
                       XLSX.writeFile(wb, `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
                     } else {
-                      const [usersSnap, shopsSnap, ordersSnap] = await Promise.all([
-                        getDocs(collection(db, 'users')), getDocs(collection(db, 'shopOwners')), getDocs(collection(db, 'orders'))
+                      const safeFetch = async (col: string) => {
+                        try {
+                          const snap = await getDocs(collection(db, col));
+                          return snap.docs.map(doc => ({ ID: doc.id, ...doc.data() }));
+                        } catch (e) {
+                          console.warn(`Failed to fetch ${col}:`, e);
+                          return [];
+                        }
+                      };
+
+                      const [customers, shops, orders, payouts] = await Promise.all([
+                        safeFetch('users'),
+                        safeFetch('shopOwners'),
+                        safeFetch('orders'),
+                        safeFetch('payoutRequests')
                       ]);
-                      let csv = "--- MASTER DATA CSV ---\n";
-                      csv += "Customers\nID,Name,Email\n" + usersSnap.docs.map(d => `${d.id},${d.data().name},${d.data().email}`).join('\n');
-                      csv += "\n\nSellers\nID,Shop,Owner\n" + shopsSnap.docs.map(d => `${d.id},${d.data().shopName},${d.data().name}`).join('\n');
+
+                      let csv = "--- MASTER DATA BACKUP ---\n";
+                      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+                      csv += "SECTION: CUSTOMERS\n";
+                      csv += "ID,Name,Email,Mobile,Location\n";
+                      customers.forEach((d: any) => {
+                        csv += `"${d.ID}","${d.name || "N/A"}","${d.email || "N/A"}","${d.mobile || "N/A"}","${d.city || ""} ${d.state || ""}"\n`;
+                      });
+
+                      csv += "\nSECTION: SELLERS & SHOPS\n";
+                      csv += "ID,Shop Name,Owner,Email,Mobile,Status\n";
+                      shops.forEach((d: any) => {
+                        csv += `"${d.ID}","${d.shopName || d.businessName || "N/A"}","${d.name || "N/A"}","${d.email || "N/A"}","${d.mobile || "N/A"}","${d.status || "N/A"}"\n`;
+                      });
+
+                      csv += "\nSECTION: ORDERS & PAYMENTS\n";
+                      csv += "Order ID,Display ID,Customer,Total,Status,Payment ID\n";
+                      orders.forEach((d: any) => {
+                        csv += `"${d.ID}","${d.id || "N/A"}","${d.customerName || "N/A"}","${d.total || 0}","${d.status || "N/A"}","${d.paymentId || d.razorpay_payment_id || "N/A"}"\n`;
+                      });
+
+                      csv += "\nSECTION: PAYOUT REQUESTS\n";
+                      csv += "ID,Shop,Amount,Status,Date\n";
+                      payouts.forEach((d: any) => {
+                        const ts = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : "N/A";
+                        csv += `"${d.ID}","${d.shopName || "N/A"}","${d.amount || 0}","${d.status || "Pending"}","${ts}"\n`;
+                      });
                       
-                      const blob = new Blob([csv], { type: "text/csv" });
+                      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
                       const url = window.URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;
-                      a.download = `QuickXerox_Backup_${new Date().toISOString().split('T')[0]}.csv`;
+                      a.download = `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.csv`;
                       a.click();
                     }
                     toast.success(`${format} Backup Downloaded!`, { id: toastId });
