@@ -686,7 +686,6 @@ const AdminDashboard = () => {
               <button
                 onClick={async () => {
                   try {
-                    const toastId = toast.loading("Preparing full backup...");
                     const toastId = toast.loading("Preparing A to Z backup...");
                     const collections = [
                       'users', 
