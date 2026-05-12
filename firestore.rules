@@ -110,6 +110,11 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // ── Payout Requests ───────────────────────────────────────────────────────
+    match /payoutRequests/{requestId} {
+      allow read, write: if isAdmin() || isSeller(); // Sellers can see/create their own, admins manage all
+    }
+
     // ── Deny everything else ───────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

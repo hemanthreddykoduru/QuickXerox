@@ -719,18 +719,39 @@ const AdminDashboard = () => {
                       a.download = `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.json`;
                       a.click();
                     } else if (format === 'Excel') {
-                      const [usersSnap, shopsSnap, ordersSnap, payoutSnap, logsSnap] = await Promise.all([
-                        getDocs(collection(db, 'users')), getDocs(collection(db, 'shopOwners')), getDocs(collection(db, 'orders')), getDocs(collection(db, 'payoutRequests')), getDocs(collection(db, 'auditLogs'))
+                      const safeFetch = async (col: string) => {
+                        try {
+                          const snap = await getDocs(collection(db, col));
+                          return snap.docs.map(doc => ({ ID: doc.id, ...doc.data() }));
+                        } catch (e) {
+                          console.warn(`Failed to fetch ${col}:`, e);
+                          return [];
+                        }
+                      };
+
+                      const [customersData, shopsData, ordersRaw, payoutsData, logsData] = await Promise.all([
+                        safeFetch('users'),
+                        safeFetch('shopOwners'),
+                        safeFetch('orders'),
+                        safeFetch('payoutRequests'),
+                        safeFetch('auditLogs')
                       ]);
+
+                      const ordersData = ordersRaw.map((d: any) => ({
+                        OrderID: d.ID,
+                        DisplayID: d.id || "N/A",
+                        Customer: d.customerName || "N/A",
+                        Total: d.total || 0,
+                        Status: d.status || "N/A",
+                        PaymentID: d.paymentId || d.razorpay_payment_id || "N/A"
+                      }));
+
                       const wb = XLSX.utils.book_new();
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usersSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Customers");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shopsSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Sellers");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersSnap.docs.map(doc => {
-                        const d = doc.data();
-                        return { OrderID: doc.id, DisplayID: d.id, Customer: d.customerName, Total: d.total, Status: d.status, PaymentID: d.paymentId || d.razorpay_payment_id };
-                      })), "Orders");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Payouts");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsSnap.docs.map(doc => ({ ID: doc.id, ...doc.data() }))), "Logs");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customersData), "Customers");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shopsData), "Sellers");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersData), "Orders");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutsData), "Payouts");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Logs");
                       XLSX.writeFile(wb, `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
                     } else {
                       const [usersSnap, shopsSnap, ordersSnap] = await Promise.all([
