@@ -704,7 +704,7 @@ const AdminDashboard = () => {
                   
                   try {
                     if (format === 'JSON') {
-                      const collections = ['users', 'shopOwners', 'orders', 'coupons', 'couponUsage', 'auditLogs', 'sellerInvitations', 'payoutRequests', 'systemSettings', 'admins'];
+                      const collections = ['users', 'shopOwners', 'orders', 'coupons', 'couponUsage', 'auditLogs', 'sellerInvitations', 'payoutRequests', 'systemSettings', 'admins', 'profiles'];
                       const fullData: any = {};
                       for (const col of collections) {
                         try {
@@ -716,7 +716,7 @@ const AdminDashboard = () => {
                       const url = window.URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;
-                      a.download = `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                      a.download = `QuickXerox_Full_Backup_${new Date().toISOString().split('T')[0]}.json`;
                       a.click();
                     } else if (format === 'Excel') {
                       const safeFetch = async (col: string) => {
@@ -729,12 +729,18 @@ const AdminDashboard = () => {
                         }
                       };
 
-                      const [customersData, shopsData, ordersRaw, payoutsData, logsData] = await Promise.all([
+                      const [customersData, shopsData, ordersRaw, payoutsData, logsData, couponsData, usageData, invitesData, settingsData, profilesData, adminsData] = await Promise.all([
                         safeFetch('users'),
                         safeFetch('shopOwners'),
                         safeFetch('orders'),
                         safeFetch('payoutRequests'),
-                        safeFetch('auditLogs')
+                        safeFetch('auditLogs'),
+                        safeFetch('coupons'),
+                        safeFetch('couponUsage'),
+                        safeFetch('sellerInvitations'),
+                        safeFetch('systemSettings'),
+                        safeFetch('profiles'),
+                        safeFetch('admins')
                       ]);
 
                       const ordersData = ordersRaw.map((d: any) => {
@@ -758,7 +764,14 @@ const AdminDashboard = () => {
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersData), "Orders");
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutsData), "Payouts");
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Logs");
-                      XLSX.writeFile(wb, `QuickXerox_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(couponsData), "Coupons");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usageData), "Coupon Usage");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(invitesData), "Invitations");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(settingsData), "Settings");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(profilesData), "Profiles");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(adminsData), "Admins");
+                      
+                      XLSX.writeFile(wb, `QuickXerox_FULL_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
                     } else {
                       const safeFetch = async (col: string) => {
                         try {
