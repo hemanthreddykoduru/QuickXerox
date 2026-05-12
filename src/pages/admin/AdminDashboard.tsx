@@ -729,7 +729,7 @@ const AdminDashboard = () => {
                         }
                       };
 
-                      const [customersData, shopsData, ordersRaw, payoutsData, logsData, couponsData, usageData, invitesData, settingsData, profilesData, adminsData] = await Promise.all([
+                      const [customersData, shopsRaw, ordersRaw, payoutsData, logsData, couponsData, usageData, invitesData, settingsData, profilesData, adminsData] = await Promise.all([
                         safeFetch('users'),
                         safeFetch('shopOwners'),
                         safeFetch('orders'),
@@ -742,6 +742,20 @@ const AdminDashboard = () => {
                         safeFetch('profiles'),
                         safeFetch('admins')
                       ]);
+
+                      const shopsData = shopsRaw.map((d: any) => ({
+                        ID: d.ID,
+                        ShopName: d.shopName || d.businessName || "N/A",
+                        Owner: d.name || "N/A",
+                        Email: d.email || "N/A",
+                        Mobile: d.mobile || "N/A",
+                        Status: d.status || "N/A",
+                        Bank_Account: d.bankDetails?.accountNumber || "N/A",
+                        Bank_Name: d.bankDetails?.bankName || "N/A",
+                        Bank_IFSC: d.bankDetails?.ifscCode || "N/A",
+                        Bank_Holder: d.bankDetails?.accountHolderName || "N/A",
+                        Bank_Verified: d.bankDetails?.isVerified ? "Yes" : "No"
+                      }));
 
                       const ordersData = ordersRaw.map((d: any) => {
                         const ts = d.timestamp?.toDate ? d.timestamp.toDate() : d.createdAt?.toDate ? d.createdAt.toDate() : null;
@@ -800,9 +814,9 @@ const AdminDashboard = () => {
                       });
 
                       csv += "\nSECTION: SELLERS & SHOPS\n";
-                      csv += "ID,Shop Name,Owner,Email,Mobile,Status\n";
+                      csv += "ID,Shop Name,Owner,Email,Mobile,Status,Bank_Account,Bank_Name,Bank_IFSC\n";
                       shops.forEach((d: any) => {
-                        csv += `"${d.ID}","${d.shopName || d.businessName || "N/A"}","${d.name || "N/A"}","${d.email || "N/A"}","${d.mobile || "N/A"}","${d.status || "N/A"}"\n`;
+                        csv += `"${d.ID}","${d.shopName || d.businessName || "N/A"}","${d.name || "N/A"}","${d.email || "N/A"}","${d.mobile || "N/A"}","${d.status || "N/A"}","${d.bankDetails?.accountNumber || "N/A"}","${d.bankDetails?.bankName || "N/A"}","${d.bankDetails?.ifscCode || "N/A"}"\n`;
                       });
 
                       csv += "\nSECTION: ORDERS & PAYMENTS\n";
