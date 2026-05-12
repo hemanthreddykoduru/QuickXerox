@@ -772,18 +772,56 @@ const AdminDashboard = () => {
                         };
                       });
 
+                      const formattedPayouts = payoutsData.map((d: any) => ({
+                        ID: d.ID,
+                        Shop: d.shopName || "N/A",
+                        Amount: d.amount || 0,
+                        Status: d.status || "Pending",
+                        Method: d.payoutMethod || "UPI",
+                        UPI_ID: d.upiId || "N/A",
+                        Date: d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : "N/A"
+                      }));
+
                       const wb = XLSX.utils.book_new();
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customersData), "Customers");
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shopsData), "Sellers");
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ordersData), "Orders");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payoutsData), "Payouts");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Logs");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(couponsData), "Coupons");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usageData), "Coupon Usage");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(invitesData), "Invitations");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(formattedPayouts), "Payouts");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData.map((d: any) => ({
+                        Time: d.timestamp?.toDate ? d.timestamp.toDate().toLocaleString() : "N/A",
+                        Admin: d.adminEmail || "N/A",
+                        Action: d.action || "N/A",
+                        Details: d.details || "N/A"
+                      }))), "Logs");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(couponsData.map((d: any) => ({
+                        ID: d.ID,
+                        Code: d.code || "N/A",
+                        Type: d.type || "Fixed",
+                        Value: d.value || 0,
+                        Status: d.isActive ? "Active" : "Inactive"
+                      }))), "Coupons");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(usageData.map((d: any) => ({
+                        ID: d.ID,
+                        Coupon: d.couponCode || "N/A",
+                        User: d.userId || "N/A",
+                        Order: d.orderId || "N/A",
+                        Time: d.usedAt?.toDate ? d.usedAt.toDate().toLocaleString() : "N/A"
+                      }))), "Coupon Usage");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(invitesData.map((d: any) => ({
+                        ID: d.ID,
+                        Email: d.email || "N/A",
+                        Shop: d.shopName || "N/A",
+                        Status: d.status || "Pending",
+                        SentBy: d.sentBy || "N/A"
+                      }))), "Invitations");
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(settingsData), "Settings");
                       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(profilesData), "Profiles");
-                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(adminsData), "Admins");
+                      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(adminsData.map((d: any) => ({
+                        ID: d.ID,
+                        Email: d.email || "N/A",
+                        Role: d.role || "Admin",
+                        Status: d.status || "Active"
+                      }))), "Admins");
                       
                       XLSX.writeFile(wb, `QuickXerox_FULL_AtoZ_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
                     } else {
