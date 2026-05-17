@@ -51,10 +51,10 @@ const SellerDashboard: React.FC = () => {
           fetchedOrders.push({ ...doc.data(), id: doc.id } as Order);
         });
 
-        // Exclude failed/cancelled orders and sort by timestamp descending
+        // Exclude failed/cancelled/rejected orders and sort by timestamp descending
         setOrders(
           fetchedOrders
-            .filter(order => order.status !== 'failed')
+            .filter(order => order.status !== 'failed' && order.status !== 'cancelled' && order.status !== 'rejected')
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
         );
         setLoading(false);

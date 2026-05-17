@@ -17,7 +17,9 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; d
   pending:    { label: 'Pending',    bg: 'bg-yellow-50',  text: 'text-yellow-800', dot: 'bg-yellow-500', icon: <Clock className="h-3.5 w-3.5" /> },
   processing: { label: 'Ready',     bg: 'bg-blue-50',    text: 'text-blue-800',   dot: 'bg-blue-500',   icon: <AlertCircle className="h-3.5 w-3.5" /> },
   completed:  { label: 'Completed', bg: 'bg-green-50',   text: 'text-green-800',  dot: 'bg-green-500',  icon: <CheckCircle className="h-3.5 w-3.5" /> },
-  rejected:   { label: 'Rejected',  bg: 'bg-red-50',     text: 'text-red-800',    dot: 'bg-red-500',    icon: <XCircle className="h-3.5 w-3.5" /> },
+  rejected:   { label: 'Cancelled',  bg: 'bg-red-50',     text: 'text-red-800',    dot: 'bg-red-500',    icon: <XCircle className="h-3.5 w-3.5" /> },
+  cancelled:  { label: 'Cancelled',  bg: 'bg-red-50',     text: 'text-red-800',    dot: 'bg-red-500',    icon: <XCircle className="h-3.5 w-3.5" /> },
+  failed:     { label: 'Failed',     bg: 'bg-red-50',     text: 'text-red-800',    dot: 'bg-red-500',    icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
 const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading }) => {
