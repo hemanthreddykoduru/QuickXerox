@@ -115,6 +115,29 @@ service cloud.firestore {
       allow read, write: if isAdmin() || isSeller(); // Sellers can see/create their own, admins manage all
     }
 
+    // ── Sponsors ───────────────────────────────────────────────────────────────
+    match /sponsors/{sponsorId} {
+      allow read: if isOwner(sponsorId) || isAdmin();
+      allow create: if isOwner(sponsorId);
+      allow update: if isOwner(sponsorId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Campaigns ──────────────────────────────────────────────────────────────
+    match /campaigns/{campaignId} {
+      allow read: if isSignedIn() && (resource.data.sponsorId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.sponsorId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.sponsorId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ── Ad Impressions ─────────────────────────────────────────────────────────
+    match /adImpressions/{impressionId} {
+      allow read: if isSignedIn() && (resource.data.sponsorId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
     // ── Deny everything else ───────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
