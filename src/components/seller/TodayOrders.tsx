@@ -107,7 +107,7 @@ const TodayOrders: React.FC<TodayOrdersProps> = ({ orders, onStatusChange, isLoa
                       <User className="h-4 w-4 text-indigo-600" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm truncate">#{order.id}</p>
+                      <p className="font-semibold text-gray-900 text-sm truncate">#{order.displayId || order.id}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{order.customerName}</p>
                       <p className="text-[10px] text-gray-400 mt-0.5">
                         {new Date(order.timestamp).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })}

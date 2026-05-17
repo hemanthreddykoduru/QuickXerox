@@ -128,7 +128,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading
                   <User className="h-4 w-4 text-indigo-600" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">Order #{order.id}</p>
+                  <p className="font-semibold text-gray-900 text-sm truncate">Order #{order.displayId || order.id}</p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {order.customerName}
                     {order.customerPhone ? ` · ${order.customerPhone}` : ''}

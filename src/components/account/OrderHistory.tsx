@@ -121,7 +121,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                        Order #{order.id}
+                        Order #{order.displayId || order.id}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         {new Date(order.timestamp).toLocaleString('en-IN', {
