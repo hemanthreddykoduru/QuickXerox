@@ -31,7 +31,7 @@ export interface PrintShop {
   perPageCostAdjustment: number;
 }
 
-export type OrderStatus = 'pending' | 'processing' | 'completed' | 'rejected' | 'failed';
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'rejected' | 'failed' | 'created';
 
 export interface OrderItem {
   id: string;

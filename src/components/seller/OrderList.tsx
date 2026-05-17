@@ -13,6 +13,7 @@ interface OrderListProps {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string; icon: React.ReactNode }> = {
+  created:    { label: 'Pending',    bg: 'bg-yellow-50',  text: 'text-yellow-800', dot: 'bg-yellow-500', icon: <Clock className="h-3.5 w-3.5" /> },
   pending:    { label: 'Pending',    bg: 'bg-yellow-50',  text: 'text-yellow-800', dot: 'bg-yellow-500', icon: <Clock className="h-3.5 w-3.5" /> },
   processing: { label: 'Ready',     bg: 'bg-blue-50',    text: 'text-blue-800',   dot: 'bg-blue-500',   icon: <AlertCircle className="h-3.5 w-3.5" /> },
   completed:  { label: 'Completed', bg: 'bg-green-50',   text: 'text-green-800',  dot: 'bg-green-500',  icon: <CheckCircle className="h-3.5 w-3.5" /> },
@@ -214,7 +215,7 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading
               </div>
 
               <div className="flex items-center gap-2">
-                {order.status === 'pending' && (
+                {(order.status === 'pending' || order.status === 'created') && (
                   <button
                     onClick={() => onStatusChange(order.id, 'processing')}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-sm"
