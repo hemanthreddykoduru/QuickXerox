@@ -62,6 +62,36 @@ const SponsorLoginPage = () => {
           toast.success('🎉 Welcome back to the Sponsor Portal!');
           navigate('/sponsor/dashboard');
         } else {
+          // Self-healing fallback:
+          // Check if this UID is associated with another role (customer, seller, admin).
+          // If not, they are a sponsor whose Firestore creation got blocked by permissions earlier.
+          const [customerDoc, sellerDoc, adminDoc] = await Promise.all([
+            getDoc(doc(db, 'users', user.uid)),
+            getDoc(doc(db, 'shopOwners', user.uid)),
+            getDoc(doc(db, 'admins', user.uid))
+          ]);
+
+          if (!customerDoc.exists() && !sellerDoc.exists() && !adminDoc.exists()) {
+            const sponsorProfile = {
+              name: user.displayName || email.split('@')[0],
+              companyName: 'My Company',
+              email: email,
+              role: 'sponsor',
+              status: 'active',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            };
+
+            await setDoc(doc(db, 'sponsors', user.uid), sponsorProfile);
+
+            localStorage.setItem('isSponsorAuthenticated', 'true');
+            localStorage.setItem('sponsorId', user.uid);
+
+            toast.success('🎉 Profile restored! Welcome to the Sponsor Portal!');
+            navigate('/sponsor/dashboard');
+            return;
+          }
+
           await auth.signOut();
           throw new Error('Not authorized as a sponsor');
         }
