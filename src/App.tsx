@@ -7,7 +7,7 @@ import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 // ─── Secure PrivateRoute ───────────────────────────────────────────────────
 // Verifies auth state via Firebase (not forgeable localStorage flags).
 // Shows a full-screen loader while the auth check is in progress.
-type RouteType = 'customer' | 'seller' | 'admin';
+type RouteType = 'customer' | 'seller' | 'admin' | 'sponsor';
 
 const PrivateRoute = ({
   children,
@@ -32,6 +32,9 @@ const PrivateRoute = ({
           setStatus(snap.exists() ? 'allowed' : 'denied');
         } else if (type === 'seller') {
           const snap = await getDoc(doc(db, 'shopOwners', user.uid));
+          setStatus(snap.exists() ? 'allowed' : 'denied');
+        } else if (type === 'sponsor') {
+          const snap = await getDoc(doc(db, 'sponsors', user.uid));
           setStatus(snap.exists() ? 'allowed' : 'denied');
         } else {
           // Customer: any authenticated user is allowed
@@ -62,6 +65,7 @@ const PrivateRoute = ({
     const redirectTo =
       type === 'admin' ? '/admin/login' :
       type === 'seller' ? '/seller/login' :
+      type === 'sponsor' ? '/sponsor/login' :
       '/login';
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
@@ -95,6 +99,8 @@ import MaintenancePage from './pages/legal/MaintenancePage';
 import LandingPage from './pages/home/LandingPage';
 import SellerLandingPage from './pages/seller/SellerLandingPage';
 import ScrollToTop from './components/common/ScrollToTop';
+import SponsorLoginPage from './pages/sponsor/SponsorLoginPage';
+import SponsorDashboard from './pages/sponsor/SponsorDashboard';
 
 function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -151,6 +157,7 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/seller/login" element={<SellerLoginPage />} />
+          <Route path="/sponsor/login" element={<SponsorLoginPage />} />
 
           <Route path="/seller/landingpage" element={<SellerLandingPage />} />
           <Route path="/ip-blocked" element={<IpBlocked />} />
@@ -180,6 +187,14 @@ function App() {
             element={
               <PrivateRoute type="seller">
                 <SellerDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/sponsor/dashboard"
+            element={
+              <PrivateRoute type="sponsor">
+                <SponsorDashboard />
               </PrivateRoute>
             }
           />
