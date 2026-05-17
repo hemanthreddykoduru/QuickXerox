@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Megaphone, TrendingUp, Users, LogOut, Plus } from 'lucide-react';
 import { auth } from '../../firebase';
 import { signOut } from 'firebase/auth';
