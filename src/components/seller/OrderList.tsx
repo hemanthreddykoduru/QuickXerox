@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye, Shield, FileTe
 import { Order, OrderStatus } from '../../types';
 import { toast } from 'react-hot-toast';
 import { getSignedUrl } from '../../services/storageService';
+import { fetchActiveCampaignForShop, injectAdIntoPDF } from '../../services/pdfAdService';
 import Skeleton from '../common/Skeleton';
 
 interface OrderListProps {
@@ -34,7 +35,31 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading
           throw new Error(signedUrlError.message || 'Failed to generate signed URL');
         }
       }
+
       if (downloadUrl) {
+        // --- Dynamic PDF Ad Injection ---
+        try {
+          const activeCampaign = await fetchActiveCampaignForShop();
+          if (activeCampaign) {
+            toast.loading('Loading document for sponsor ad placement...');
+            const pdfResponse = await fetch(downloadUrl);
+            const originalBytes = await pdfResponse.arrayBuffer();
+
+            toast.loading('Applying sponsor ad banners & coupon QR codes...');
+            const { pdfBytes } = await injectAdIntoPDF(originalBytes, activeCampaign);
+
+            const stampedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            downloadUrl = URL.createObjectURL(stampedBlob);
+            toast.dismiss();
+            toast.success(`Successfully stamped with "${activeCampaign.brandName}" ad!`);
+          }
+        } catch (adInjectionError) {
+          console.warn('PDF Ad Engine: Ad placement bypassed due to asset loader (CORS/Network):', adInjectionError);
+          toast.dismiss();
+          // Fallback seamlessly to the original URL so print job never fails!
+        }
+        // ---------------------------------
+
         const link = document.createElement('a');
         link.href = downloadUrl;
         link.target = '_blank';
