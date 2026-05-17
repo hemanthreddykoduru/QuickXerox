@@ -63,15 +63,25 @@ const SponsorLoginPage = () => {
           navigate('/sponsor/dashboard');
         } else {
           // Self-healing fallback:
-          // Check if this UID is associated with another role (customer, seller, admin).
-          // If not, they are a sponsor whose Firestore creation got blocked by permissions earlier.
-          const [customerDoc, sellerDoc, adminDoc] = await Promise.all([
-            getDoc(doc(db, 'users', user.uid)),
-            getDoc(doc(db, 'shopOwners', user.uid)),
-            getDoc(doc(db, 'admins', user.uid))
+          // Check if this UID is associated with another role (customer, seller, admin) in other collections.
+          // We wrap these queries in try-catch so that permission errors (e.g. non-admins querying the admins collection)
+          // resolve safely as 'false' instead of throwing an error and crashing the login.
+          const safeCheckExists = async (collection: string, uid: string) => {
+            try {
+              const docSnap = await getDoc(doc(db, collection, uid));
+              return docSnap.exists();
+            } catch (err) {
+              return false; // If permission is denied or it fails, treat it as not existing
+            }
+          };
+
+          const [customerExists, sellerExists, adminExists] = await Promise.all([
+            safeCheckExists('users', user.uid),
+            safeCheckExists('shopOwners', user.uid),
+            safeCheckExists('admins', user.uid)
           ]);
 
-          if (!customerDoc.exists() && !sellerDoc.exists() && !adminDoc.exists()) {
+          if (!customerExists && !sellerExists && !adminExists) {
             const sponsorProfile = {
               name: user.displayName || email.split('@')[0],
               companyName: 'My Company',
