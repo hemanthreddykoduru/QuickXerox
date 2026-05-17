@@ -9,7 +9,7 @@ import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { 
   collection, query, where, onSnapshot, addDoc, doc, 
-  updateDoc, getDoc, serverTimestamp 
+  updateDoc, getDoc, serverTimestamp, getDocs
 } from 'firebase/firestore';
 import { uploadSponsorBanner, getSignedUrl } from '../../services/storageService';
 import { toast } from 'react-hot-toast';
@@ -41,7 +41,7 @@ const PLACEMENT_DETAILS = {
   coupon: { label: 'Separator Coupon Page', price: 2.00, desc: 'Standalone full ad page with direct coupons.' }
 };
 
-const AVAILABLE_LOCATIONS = [
+const DEFAULT_LOCATIONS = [
   'GITAM University, Vizag',
   'GITAM University, Hyderabad',
   'Rishikonda Student Hub',
@@ -62,6 +62,31 @@ const SponsorDashboard = () => {
   const [companyName, setCompanyName] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [availableLocations, setAvailableLocations] = useState<string[]>(DEFAULT_LOCATIONS);
+
+  useEffect(() => {
+    const fetchDynamicShops = async () => {
+      try {
+        const shopsSnap = await getDocs(collection(db, 'shopOwners'));
+        const list: string[] = [];
+        shopsSnap.forEach((doc) => {
+          const data = doc.data();
+          const shopName = data.settings?.shop?.name || data.shopName || data.name;
+          const shopAddress = data.settings?.shop?.address || data.address;
+          if (shopName) {
+            const label = shopAddress ? `${shopName} - ${shopAddress}` : shopName;
+            list.push(label);
+          }
+        });
+        if (list.length > 0) {
+          setAvailableLocations(list);
+        }
+      } catch (err) {
+        console.error('Error loading shop locations for sponsor targeting:', err);
+      }
+    };
+    fetchDynamicShops();
+  }, []);
 
   // Campaign creation modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -743,7 +768,7 @@ const SponsorDashboard = () => {
             <div className="mb-6">
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Target Campus & Locations</label>
               <div className="flex flex-wrap gap-2">
-                {AVAILABLE_LOCATIONS.map((loc) => {
+                {availableLocations.map((loc) => {
                   const isSelected = selectedLocations.includes(loc);
                   return (
                     <button
