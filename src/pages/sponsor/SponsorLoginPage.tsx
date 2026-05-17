@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Megaphone, Github, Building2, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { auth, db, provider, githubProvider } from '../../firebase';
