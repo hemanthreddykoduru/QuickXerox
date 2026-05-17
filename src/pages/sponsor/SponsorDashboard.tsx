@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Megaphone, TrendingUp, Users, LogOut, Plus, Image, Globe, Tag, 
+  Megaphone, Users, LogOut, Plus, Image, Globe, Tag, 
   MapPin, DollarSign, Loader2, Pause, Play, CheckCircle2, 
-  AlertCircle, X, ChevronRight, BarChart3, Clock, HelpCircle, Eye
+  X, Clock, Eye
 } from 'lucide-react';
 import { auth, db } from '../../firebase';
 import { signOut } from 'firebase/auth';
@@ -459,7 +459,9 @@ const SponsorDashboard = () => {
                 <h3 className="text-3xl font-black text-slate-900">₹{totalBudget.toLocaleString()}</h3>
               </div>
             </div>
-            <div className="text-xs text-slate-400 font-medium">Funded campaign wallets</div>
+            <div className="text-xs text-slate-400 font-semibold">
+              Spent <span className="text-purple-600 font-extrabold">₹{totalSpent.toLocaleString()}</span> so far
+            </div>
           </div>
 
           <div className="bg-white/90 backdrop-blur p-4 rounded-3xl border-2 border-dashed border-purple-300 flex flex-col justify-center items-center text-center shadow-lg shadow-purple-600/5 relative overflow-hidden group hover:border-purple-500 transition-all hover:scale-[1.01]">
