@@ -105,3 +105,47 @@ export const deleteFile = async (filePath: string): Promise<void> => {
         throw error;
     }
 };
+
+/**
+ * Uploads a sponsor ad banner to Supabase Storage.
+ * Path: print-files/banners/{sponsorId}/{fileName}
+ * @returns Promise<string> The filePath in the bucket.
+ */
+export const uploadSponsorBanner = async (
+    file: File,
+    sponsorId: string
+): Promise<string> => {
+    try {
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB for ad banners
+        if (file.size > MAX_SIZE) {
+            throw new Error(`File ${file.name} is too large. Max limit is 5MB.`);
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error(`File type ${file.type} not allowed. Only JPEG, JPG, and PNG are allowed.`);
+        }
+
+        const fileExt = file.name.split('.').pop() || 'png';
+        const sanitizedExt = fileExt.replace(/[^a-zA-Z0-9]/g, '');
+        const fileName = `${Date.now()}_banner.${sanitizedExt}`;
+        const filePath = `banners/${sponsorId}/${fileName}`;
+
+        const { data, error } = await supabase.storage
+            .from('print-files')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (error) {
+            console.error('Supabase Banner Upload Error:', error);
+            throw error;
+        }
+
+        return data.path;
+    } catch (error) {
+        console.error('Error uploading sponsor banner:', error);
+        throw error;
+    }
+};
