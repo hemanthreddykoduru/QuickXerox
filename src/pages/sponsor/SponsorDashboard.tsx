@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { 
   Megaphone, Users, LogOut, Plus, Image, Globe, Tag, 
   MapPin, DollarSign, Loader2, Pause, Play, CheckCircle2, 
-  X, Clock, Eye
+  X, Clock, Eye, Save, Building, Phone, Mail, User, Trash2, Compass
 } from 'lucide-react';
 import { auth, db } from '../../firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { 
   collection, query, where, onSnapshot, addDoc, doc, 
-  updateDoc, getDoc, serverTimestamp, getDocs
+  updateDoc, getDoc, serverTimestamp, getDocs, deleteDoc
 } from 'firebase/firestore';
 import { uploadSponsorBanner, getSignedUrl } from '../../services/storageService';
 import { toast } from 'react-hot-toast';
@@ -58,11 +58,23 @@ declare global {
 
 const SponsorDashboard = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'profile'>('campaigns');
   const [sponsorName, setSponsorName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [availableLocations, setAvailableLocations] = useState<string[]>(DEFAULT_LOCATIONS);
+
+  // New Profile Details States
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profileWebsite, setProfileWebsite] = useState('');
+  const [profileGstin, setProfileGstin] = useState('');
+  const [profileAddress, setProfileAddress] = useState('');
+  const [profileCity, setProfileCity] = useState('');
+  const [profileState, setProfileState] = useState('');
+  const [profilePincode, setProfilePincode] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   useEffect(() => {
     const fetchDynamicShops = async () => {
@@ -111,13 +123,23 @@ const SponsorDashboard = () => {
     const fetchSponsorProfile = async () => {
       const user = auth.currentUser;
       if (!user) return;
+      setProfileEmail(user.email || '');
       try {
         const docRef = doc(db, 'sponsors', user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setSponsorName(docSnap.data().name || '');
-          setCompanyName(docSnap.data().companyName || '');
-          setBrandName(docSnap.data().companyName || '');
+          const data = docSnap.data();
+          setSponsorName(data.name || '');
+          setCompanyName(data.companyName || '');
+          setBrandName(data.companyName || '');
+          
+          setProfilePhone(data.phone || '');
+          setProfileWebsite(data.websiteUrl || '');
+          setProfileGstin(data.gstin || '');
+          setProfileAddress(data.address || '');
+          setProfileCity(data.city || '');
+          setProfileState(data.state || '');
+          setProfilePincode(data.pincode || '');
         }
       } catch (err) {
         console.error('Error fetching sponsor details:', err);
@@ -126,6 +148,47 @@ const SponsorDashboard = () => {
 
     fetchSponsorProfile();
   }, []);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) {
+      toast.error('Session expired. Please log in again.');
+      return;
+    }
+
+    if (!sponsorName.trim()) {
+      toast.error('Contact Person Name is required.');
+      return;
+    }
+    if (!companyName.trim()) {
+      toast.error('Company Name is required.');
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const docRef = doc(db, 'sponsors', user.uid);
+      await updateDoc(docRef, {
+        name: sponsorName.trim(),
+        companyName: companyName.trim(),
+        phone: profilePhone.trim(),
+        websiteUrl: profileWebsite.trim(),
+        gstin: profileGstin.trim().toUpperCase(),
+        address: profileAddress.trim(),
+        city: profileCity.trim(),
+        state: profileState.trim(),
+        pincode: profilePincode.trim(),
+        updatedAt: serverTimestamp()
+      });
+      toast.success('🎉 Sponsor profile updated successfully!');
+    } catch (err: any) {
+      console.error('Error updating sponsor profile:', err);
+      toast.error(err.message || 'Failed to update profile.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -386,6 +449,20 @@ const SponsorDashboard = () => {
     }
   };
 
+  const handleDeleteCampaign = async (campId: string) => {
+    if (!window.confirm('Are you sure you want to permanently delete this campaign? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await deleteDoc(doc(db, 'campaigns', campId));
+      toast.success('Campaign deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting campaign:', err);
+      toast.error('Failed to delete campaign.');
+    }
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setCampName('');
@@ -443,7 +520,35 @@ const SponsorDashboard = () => {
           </button>
         </header>
 
-        {/* Analytics Grid */}
+        {/* Navigation Tabs */}
+        <div className="flex border-b border-slate-200/80 gap-6">
+          <button
+            onClick={() => setActiveTab('campaigns')}
+            className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'campaigns'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Megaphone className="w-4 h-4" />
+            Ad Campaigns & Stats
+          </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`pb-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'profile'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            Sponsor Profile
+          </button>
+        </div>
+
+        {activeTab === 'campaigns' ? (
+          <>
+            {/* Analytics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group">
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform duration-300"></div>
@@ -625,26 +730,36 @@ const SponsorDashboard = () => {
                         </div>
                       </div>
 
-                      {(camp.status === 'active' || camp.status === 'paused') && (
+                      <div className="flex items-center gap-2">
+                        {(camp.status === 'active' || camp.status === 'paused') && (
+                          <button
+                            onClick={() => handleToggleCampaignStatus(camp.id, camp.status)}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all border ${
+                              camp.status === 'active'
+                                ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100'
+                                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
+                            }`}
+                          >
+                            {camp.status === 'active' ? (
+                              <>
+                                <Pause className="w-3.5 h-3.5" /> Pause ad
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3.5 h-3.5" /> Resume ad
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
                         <button
-                          onClick={() => handleToggleCampaignStatus(camp.id, camp.status)}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all border ${
-                            camp.status === 'active'
-                              ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100'
-                              : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
-                          }`}
+                          onClick={() => handleDeleteCampaign(camp.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-extrabold text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 hover:text-red-700 transition-all shadow-sm"
+                          title="Delete Campaign"
                         >
-                          {camp.status === 'active' ? (
-                            <>
-                              <Pause className="w-3.5 h-3.5" /> Pause ad
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-3.5 h-3.5" /> Resume ad
-                            </>
-                          )}
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>
-                      )}
+                      </div>
                     </div>
 
                   </div>
@@ -653,32 +768,220 @@ const SponsorDashboard = () => {
             </div>
           )}
         </div>
+          </>
+        ) : (
+          <form onSubmit={handleSaveProfile} className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            
+            {/* Left Card: Business Details */}
+            <div className="lg:col-span-2 space-y-6 bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <Building className="w-5 h-5 text-purple-600" />
+                  Business Information
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">Sponsor company profile and corporate display identity.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Company / Brand Name *</label>
+                  <div className="relative">
+                    <Building className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                      placeholder="E.g., PepsiCo India"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Contact Person Name *</label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      value={sponsorName}
+                      onChange={(e) => setSponsorName(e.target.value)}
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                      placeholder="Contact Name"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Primary Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="tel"
+                      value={profilePhone}
+                      onChange={(e) => setProfilePhone(e.target.value)}
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                      placeholder="+91 XXXXX XXXXX"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Registered Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="email"
+                      disabled
+                      value={profileEmail}
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-slate-100 font-medium text-slate-400 cursor-not-allowed"
+                      placeholder="sponsor@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Business Website</label>
+                  <div className="relative">
+                    <Globe className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="url"
+                      value={profileWebsite}
+                      onChange={(e) => setProfileWebsite(e.target.value)}
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                      placeholder="https://pepsico.in"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">GSTIN / Corporate Tax ID</label>
+                  <div className="relative">
+                    <Tag className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      maxLength={15}
+                      value={profileGstin}
+                      onChange={(e) => setProfileGstin(e.target.value)}
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-bold text-slate-800 tracking-widest"
+                      placeholder="36AAAAA1111A1Z1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Card: Billing & Invoicing Address */}
+            <div className="flex flex-col justify-between bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-purple-600" />
+                    Billing Address
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">Official corporate location for invoices.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Street Address</label>
+                    <textarea
+                      rows={2}
+                      value={profileAddress}
+                      onChange={(e) => setProfileAddress(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                      placeholder="Plot No. 101, Cyber Towers"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">City</label>
+                      <input
+                        type="text"
+                        value={profileCity}
+                        onChange={(e) => setProfileCity(e.target.value)}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                        placeholder="Vizag"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Pincode</label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={profilePincode}
+                        onChange={(e) => setProfilePincode(e.target.value)}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                        placeholder="530045"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">State / Union Territory</label>
+                    <input
+                      type="text"
+                      value={profileState}
+                      onChange={(e) => setProfileState(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
+                      placeholder="Andhra Pradesh"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-6 py-3.5 rounded-xl shadow-lg shadow-purple-600/10 hover:shadow-purple-600/20 active:scale-[0.98] transition-all text-sm"
+                >
+                  {isSavingProfile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving Profile...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Sponsor Profile
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          </form>
+        )}
 
       </div>
 
       {/* Slide Overlay Modal: Campaign Creation */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900 bg-opacity-70 flex items-center justify-center p-4 z-50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl relative border border-slate-100 my-8">
+          <div className="bg-white rounded-3xl p-6 lg:p-8 max-w-5xl w-full shadow-2xl relative border border-slate-100 my-8">
             <button 
               onClick={closeModal} 
               className="absolute top-6 right-6 p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-
+            
             <h3 className="text-2xl font-black text-slate-900 mb-1 tracking-tight">Create Print Campaign</h3>
             <p className="text-sm text-slate-500 mb-6">Fund an ad wallet to sponsor student printing and target local campuses.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               
               {/* Left Column: Form Details */}
               <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">1. Campaign Details</h4>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Campaign Name</label>
                   <input
                     type="text" required value={campName} onChange={(e) => setCampName(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
                     placeholder="E.g., Summer Discount 20%"
                   />
                 </div>
@@ -687,7 +990,7 @@ const SponsorDashboard = () => {
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Brand/Company Name</label>
                   <input
                     type="text" required value={brandName} onChange={(e) => setBrandName(e.target.value)}
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
                     placeholder="Brand display name"
                   />
                 </div>
@@ -698,7 +1001,7 @@ const SponsorDashboard = () => {
                     <Globe className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
                     <input
                       type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)}
-                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50"
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
                       placeholder="https://example.com/offer"
                     />
                   </div>
@@ -710,15 +1013,16 @@ const SponsorDashboard = () => {
                     <Tag className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
                     <input
                       type="text" value={ctaText} onChange={(e) => setCtaText(e.target.value)}
-                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50"
+                      className="w-full pl-10 px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-sm bg-slate-50 font-medium text-slate-800"
                       placeholder="E.g., Scan & Get 20% Off"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Right Column: Upload Creative Banner */}
+              {/* Middle Column: Upload Creative Banner */}
               <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">2. Ad Creative</h4>
                 <div>
                   <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Ad Creative Banner</label>
                   <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50/50 hover:border-purple-500 transition-colors relative h-[180px] flex flex-col justify-center items-center overflow-hidden">
@@ -762,6 +1066,147 @@ const SponsorDashboard = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Right Column: Live Document Preview */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center">
+                  <span>3. Live Print Preview</span>
+                  <span className="text-[10px] bg-purple-100 text-purple-700 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                    Live
+                  </span>
+                </h4>
+                
+                {/* Paper Mockup sheet */}
+                <div className="border border-slate-200/80 rounded-2xl bg-slate-50 p-4 flex flex-col justify-center items-center shadow-inner h-[280px]">
+                  <div className="relative aspect-[1/1.414] h-full bg-white shadow-md border border-slate-200 p-3 flex flex-col justify-between overflow-hidden rounded-md select-none w-auto max-w-full">
+                    
+                    {/* Cover Placement */}
+                    {placementType === 'cover' && (
+                      <div className="absolute inset-0 p-3 flex flex-col justify-start z-10 space-y-6">
+                        
+                        {/* Top Ad Bounding Box exactly like actual cover template */}
+                        <div className="w-full border border-purple-200 rounded p-1 flex gap-2 items-center bg-white shadow-sm">
+                          {/* Left: Ad Banner */}
+                          <div className="flex-grow min-w-0">
+                            {bannerPreview ? (
+                              <img src={bannerPreview} alt="Cover Banner" className="w-full h-10 object-cover rounded-[2px]" />
+                            ) : (
+                              <div className="h-10 flex flex-col justify-center items-center border border-dashed border-purple-200 rounded bg-slate-50">
+                                <span className="text-[5px] font-black text-purple-600 uppercase leading-none">{brandName || 'Brand'} Ad</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Right: QR Code and CTA */}
+                          <div className="flex flex-col items-center justify-center flex-shrink-0 space-y-0.5 min-w-[32px]">
+                            <span className="text-[4px] font-black text-purple-700 tracking-tighter uppercase leading-none text-center truncate max-w-[32px]">
+                              {ctaText || 'Scan QR'}
+                            </span>
+                            <div className="w-6 h-6 bg-white rounded-[2px] border border-slate-200 p-0.5 flex items-center justify-center overflow-hidden">
+                              <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=100&data=${encodeURIComponent(websiteUrl || 'https://quickxerox.com')}`}
+                                alt="QR Code" 
+                                className="w-full h-full object-contain animate-in fade-in" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Title & Order info matching screenshot */}
+                        <div className="w-full text-center space-y-2 flex-grow flex flex-col justify-center pb-8">
+                          <div>
+                            <h5 className="text-[11px] font-black text-blue-600 tracking-tight leading-none">QuickXerox Print Order</h5>
+                          </div>
+                          <div className="space-y-1 mt-2">
+                            <p className="text-[6px] font-extrabold text-slate-400 italic leading-none">Order ID: ORD-[Generated ID]</p>
+                            <p className="text-[6px] font-extrabold text-slate-400 italic leading-none">Customer Name: [Student Name]</p>
+                          </div>
+                          <div className="w-full border-t border-slate-100 mt-2"></div>
+                        </div>
+
+                      </div>
+                    )}
+
+                    {/* Watermark Placement */}
+                    {placementType === 'watermark' && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07] z-0 transform -rotate-12">
+                        {bannerPreview ? (
+                          <img src={bannerPreview} alt="Watermark" className="w-36 h-36 object-contain" />
+                        ) : (
+                          <span className="text-xl font-black text-slate-800 uppercase tracking-widest">{brandName || 'BRAND'}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Dummy note layout */}
+                    {placementType !== 'cover' && (
+                      <div className="space-y-1.5 z-10 w-full">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-1">
+                          <div className="h-1 w-10 bg-slate-200 rounded"></div>
+                          <div className="h-1 w-4 bg-slate-200 rounded"></div>
+                        </div>
+                        <div className="space-y-0.5">
+                          <div className="h-1.5 w-full bg-slate-100 rounded"></div>
+                          <div className="h-1.5 w-full bg-slate-100 rounded"></div>
+                          <div className="h-1.5 w-5/6 bg-slate-100 rounded"></div>
+                          <div className="h-1.5 w-full bg-slate-100 rounded"></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Coupon Placement */}
+                    {placementType === 'coupon' && (
+                      <div className="border border-dashed border-purple-300 rounded-lg p-2 bg-purple-50/30 flex flex-col justify-center items-center text-center space-y-1.5 relative z-10 my-2">
+                        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white text-[5px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider scale-90">
+                          ★ SPECIAL COUPON ★
+                        </div>
+                        {bannerPreview ? (
+                          <img src={bannerPreview} alt="Coupon" className="w-full h-12 object-cover rounded border border-purple-100 animate-in fade-in" />
+                        ) : (
+                          <div className="h-12 w-full flex flex-col justify-center items-center border border-dashed border-purple-200 bg-white rounded">
+                            <span className="text-[6px] font-black text-purple-600 uppercase">{brandName || 'Brand'} Coupon</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-1.5 w-full justify-between px-0.5">
+                          <span className="text-[6px] font-black text-slate-700 truncate text-left flex-grow leading-none">
+                            {ctaText || 'Scan QR to Redeem'}
+                          </span>
+                          <div className="w-5 h-5 bg-white rounded border border-slate-200 p-0.5 flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=100&data=${encodeURIComponent(websiteUrl || 'https://quickxerox.com')}`}
+                              alt="QR Code" 
+                              className="w-full h-full object-contain" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Footer ad Placement */}
+                    {placementType === 'footer' && (
+                      <div className="border-t border-dashed border-purple-200 pt-1.5 mt-auto z-10 w-full flex items-center gap-1.5">
+                        <div className="flex-grow bg-purple-50 border border-purple-200 rounded p-1 relative shadow-sm h-8 flex items-center justify-center">
+                          {bannerPreview ? (
+                            <img src={bannerPreview} alt="Footer Ad" className="w-full h-full object-cover rounded" />
+                          ) : (
+                            <span className="text-[5px] font-black text-purple-600 uppercase tracking-wider">{brandName || 'Brand'} Footer Ad</span>
+                          )}
+                        </div>
+                        <div className="w-6 h-6 bg-white rounded border border-slate-200 p-0.5 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100&data=${encodeURIComponent(websiteUrl || 'https://quickxerox.com')}`}
+                            alt="QR Code" 
+                            className="w-full h-full object-contain" 
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+
+              </div>
             </div>
 
             {/* Target Campus Locations */}
@@ -787,7 +1232,7 @@ const SponsorDashboard = () => {
             </div>
 
             {/* Budget Section */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Select Ad Budget (INR)</label>
                 <div className="flex gap-2">
@@ -816,6 +1261,36 @@ const SponsorDashboard = () => {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Live Campaign Reach Estimator */}
+            <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-5 mb-6">
+              <h4 className="text-xs font-black text-purple-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-purple-600 animate-spin" style={{ animationDuration: '6s' }} /> Live Campaign Reach Estimator
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                <div className="bg-white p-3 rounded-xl border border-purple-100/50 shadow-sm">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase block mb-0.5">Sponsored Prints</span>
+                  <span className="text-base font-black text-purple-700">
+                    {Math.floor(budget / PLACEMENT_DETAILS[placementType].price).toLocaleString()} sheets
+                  </span>
+                </div>
+                <div className="bg-white p-3 rounded-xl border border-purple-100/50 shadow-sm">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase block mb-0.5">Est. Campus Impressions</span>
+                  <span className="text-base font-black text-purple-700">
+                    {Math.floor((budget / PLACEMENT_DETAILS[placementType].price) * 4.5).toLocaleString()} views
+                  </span>
+                </div>
+                <div className="bg-white p-3 rounded-xl border border-purple-100/50 shadow-sm flex flex-col justify-center items-center">
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase block mb-0.5">Target Engagement</span>
+                  <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {budget >= 5000 ? '🚀 Maximum' : budget >= 1000 ? '🔥 High' : '⚡ Good'}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[9px] text-purple-500 font-bold mt-2 text-center">
+                * Estimations are calculated dynamically based on target density, and placement pricing (₹{PLACEMENT_DETAILS[placementType].price.toFixed(2)}/print).
+              </p>
             </div>
 
             {/* Modal Actions */}

@@ -1,5 +1,5 @@
-import React from 'react';
-import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye, Shield, FileText, User } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Download, Eye, Shield, FileText, User, Loader2 } from 'lucide-react';
 import { Order, OrderStatus } from '../../types';
 import { toast } from 'react-hot-toast';
 import { getSignedUrl } from '../../services/storageService';
@@ -23,60 +23,98 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; d
 };
 
 const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading }) => {
+  // Track which specific file key is loading
+  const [loadingFileKey, setLoadingFileKey] = useState<string | null>(null);
+  // Cache stamped blob URLs so ad is only injected once per file per session
+  const stampedUrlCache = useRef<Map<string, string>>(new Map());
+  // Track which file keys have already had their impression/budget counted
+  const impressionTracked = useRef<Set<string>>(new Set());
+  // Pre-cached campaign — fetched once at mount, reused on every View/Download click
+  const campaignCache = useRef<any>(null);
+  const campaignFetched = useRef(false);
 
-  const handleDownload = async (fileName: string, fileUrl?: string, filePath?: string) => {
+  // Pre-fetch the active campaign as soon as orders load — so View is instant
+  useEffect(() => {
+    if (campaignFetched.current || !orders || orders.length === 0) return;
+    campaignFetched.current = true;
+    fetchActiveCampaignForShop().then((campaign) => {
+      campaignCache.current = campaign;
+      console.log('PDF Ad Engine: Pre-cached campaign:', campaign?.name ?? 'none');
+    }).catch(() => {});
+  }, [orders]);
+
+  const handleDownload = async (fileKey: string, fileName: string, fileUrl?: string, filePath?: string, isDownload: boolean = true) => {
     try {
-      let downloadUrl = fileUrl;
-      if (filePath) {
+      setLoadingFileKey(fileKey);
+      // Check session cache first — instant if already processed
+      const cachedUrl = stampedUrlCache.current.get(fileKey);
+      if (cachedUrl) {
+        if (isDownload) {
+          const link = document.createElement('a');
+          link.href = cachedUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          window.open(cachedUrl, '_blank');
+        }
+        return;
+      }
+
+      // Resolve signed URL if needed
+      const downloadUrl = filePath ? await getSignedUrl(filePath) : fileUrl;
+      if (!downloadUrl) throw new Error('File URL not found');
+
+      // Use pre-cached campaign (instant) or fetch fresh as fallback
+      const activeCampaign = campaignCache.current ?? await fetchActiveCampaignForShop();
+      if (!campaignCache.current) campaignCache.current = activeCampaign;
+
+      let finalUrl = downloadUrl;
+
+      if (activeCampaign) {
         try {
-          toast.loading(`Securing access for ${fileName}...`);
-          downloadUrl = await getSignedUrl(filePath);
-          toast.dismiss();
-        } catch (signedUrlError: any) {
-          console.error('Signed URL generation failed:', signedUrlError);
-          toast.dismiss();
-          throw new Error(signedUrlError.message || 'Failed to generate signed URL');
+          const VERCEL_API_URL = 'https://quickxerox-api.vercel.app/api';
+          const proxiedUrl = `${VERCEL_API_URL}/proxy-pdf?url=${encodeURIComponent(downloadUrl)}`;
+          if (isDownload) toast.loading('Applying sponsor ad & coupon...');
+
+          const pdfResponse = await fetch(proxiedUrl);
+          if (!pdfResponse.ok) throw new Error(`Failed to fetch PDF: ${pdfResponse.statusText}`);
+          const originalBytes = await pdfResponse.arrayBuffer();
+
+          const alreadyCounted = impressionTracked.current.has(fileKey);
+          const { pdfBytes } = await injectAdIntoPDF(originalBytes, activeCampaign, alreadyCounted);
+
+          const stampedBlob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+          finalUrl = URL.createObjectURL(stampedBlob);
+
+          stampedUrlCache.current.set(fileKey, finalUrl);
+          if (!alreadyCounted) impressionTracked.current.add(fileKey);
+
+          if (isDownload) { toast.dismiss(); toast.success('Downloading!'); }
+        } catch (adError) {
+          console.error('PDF Ad Engine: injection failed, falling back:', adError);
+          if (isDownload) toast.dismiss();
         }
       }
 
-      if (downloadUrl) {
-        // --- Dynamic PDF Ad Injection ---
-        try {
-          const activeCampaign = await fetchActiveCampaignForShop();
-          if (activeCampaign) {
-            toast.loading('Loading document for sponsor ad placement...');
-            const pdfResponse = await fetch(downloadUrl);
-            const originalBytes = await pdfResponse.arrayBuffer();
-
-            toast.loading('Applying sponsor ad banners & coupon QR codes...');
-            const { pdfBytes } = await injectAdIntoPDF(originalBytes, activeCampaign);
-
-            const stampedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-            downloadUrl = URL.createObjectURL(stampedBlob);
-            toast.dismiss();
-            toast.success(`Successfully stamped with "${activeCampaign.brandName}" ad!`);
-          }
-        } catch (adInjectionError) {
-          console.warn('PDF Ad Engine: Ad placement bypassed due to asset loader (CORS/Network):', adInjectionError);
-          toast.dismiss();
-          // Fallback seamlessly to the original URL so print job never fails!
-        }
-        // ---------------------------------
-
+      if (isDownload) {
         const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.target = '_blank';
+        link.href = finalUrl;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       } else {
-        throw new Error('File URL not found');
+        window.open(finalUrl, '_blank');
       }
+
     } catch (error: any) {
       console.error('Download Error:', error);
       toast.dismiss();
       toast.error(error.message || 'Unable to access file.');
+    } finally {
+      setLoadingFileKey(null);
     }
   };
 
@@ -164,14 +202,14 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
-                      onClick={() => handleDownload(item.fileName, item.fileUrl, item.filePath)}
+                      onClick={() => handleDownload(`${order.id}_${item.id}`, item.fileName, item.fileUrl, item.filePath, false)}
                       className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       View
                     </button>
                     <button
-                      onClick={() => handleDownload(item.fileName, item.fileUrl, item.filePath)}
+                      onClick={() => handleDownload(`${order.id}_${item.id}`, item.fileName, item.fileUrl, item.filePath, true)}
                       className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                     >
                       <Download className="h-3.5 w-3.5" />
@@ -240,6 +278,22 @@ const OrderList: React.FC<OrderListProps> = ({ orders, onStatusChange, isLoading
           </div>
         );
       })}
+
+      {/* --- Premium Glassmorphism Full-Screen Loading Overlay --- */}
+      {loadingFileKey && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center gap-3">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl border border-gray-100 flex flex-col items-center gap-4 text-center max-w-xs animate-in fade-in zoom-in duration-200">
+            <div className="relative flex items-center justify-center">
+              <Loader2 className="h-10 w-10 text-indigo-600 animate-spin" />
+              <Shield className="h-4 w-4 text-indigo-600 absolute" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Opening document...</p>
+              <p className="text-xs text-gray-500 mt-1">Stamping sponsor ad banner & coupon QR codes securely</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

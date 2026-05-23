@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPayment, verifyPayment, cancelOrder } from '../../services/paymentService';
 import { deobs } from '../../utils/security';
 import { toast } from 'react-hot-toast';
@@ -40,6 +40,8 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   onSuccess,
   onError,
 }) => {
+  const paymentInitiatedRef = useRef(false);
+
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       const script = document.createElement('script');
@@ -63,6 +65,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   };
 
   useEffect(() => {
+    if (paymentInitiatedRef.current) return;
+    paymentInitiatedRef.current = true;
+
     const handlePayment = async () => {
       try {
         const res = await loadRazorpayScript();
@@ -112,24 +117,19 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           handler: async function (response: any) {
             try {
               toast.loading('Verifying payment...');
-              const isVerified = await verifyPayment(
+              const verificationResult = await verifyPayment(
                 response.razorpay_payment_id,
                 response.razorpay_order_id,
                 response.razorpay_signature
               );
 
-              if (isVerified) {
-                // Fulfillment is now handled by server-side webhook
-                // We just need to wait for the document to update or proceed
+              if (verificationResult && (verificationResult as any).success) {
                 try {
                   const orderId = orderData.orderId;
-                  
-                  // In a real scenario, we might want to poll or use onSnapshot to wait for OTP
-                  // For now, we proceed to onSuccess and let the parent component handle the redirect
-                  // which likely has its own Firestore listener for the order
+                  const otp = (verificationResult as any).otp || '';
                   
                   toast.dismiss();
-                  onSuccess({ ...response, orderId: orderId });
+                  onSuccess({ ...response, orderId: orderId, otp: otp });
                 } catch (dbError: any) {
                   console.error('Error handling post-verification:', dbError);
                   toast.dismiss();
@@ -149,10 +149,9 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
             }
           },
           prefill: {
-            name: localStorage.getItem('userName') || 'Customer',
-            email: localStorage.getItem('userEmail') || 'customer@example.com',
-            contact: localStorage.getItem('userPhone') || '',
-            vpa: 'success@razorpay',
+            name: userName || 'Customer',
+            email: userEmail || 'customer@example.com',
+            contact: userPhone || '',
           },
           notes: {
             printJobs,

@@ -8,7 +8,7 @@ import RazorpayCheckout from './RazorpayCheckout';
 import { toast } from 'react-hot-toast';
 import { uploadFile } from '../../services/storageService';
 import { auth, db } from '../../firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { generateInvoice } from '../../utils/invoiceGenerator';
 import SimplePreviewModal from '../common/SimplePreviewModal';
 import { applyCoupon, recordCouponUsage } from '../../services/paymentService';
@@ -93,6 +93,28 @@ const Cart: React.FC<CartProps> = ({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // Listen for OTP updates in real-time when the success modal is shown
+  useEffect(() => {
+    if (!showOTPDisplay || !orderId) return;
+
+    const q = query(
+      collection(db, 'orders'),
+      where('displayId', '==', orderId)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const orderDoc = snapshot.docs[0];
+        const data = orderDoc.data();
+        if (data && data.otp) {
+          setGeneratedOTP(data.otp);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [showOTPDisplay, orderId]);
 
   // Type-safe motion components workaround for React 19 types mismatch
   const MotionDiv = motion.div as any;
@@ -181,7 +203,7 @@ const Cart: React.FC<CartProps> = ({
       // Record coupon usage if applied
       if (appliedCoupon) {
         try {
-          await recordCouponUsage(appliedCoupon.id, orderId, appliedCoupon.discount, auth.currentUser?.uid);
+          await recordCouponUsage(appliedCoupon.id, dbOrderId, appliedCoupon.discount, auth.currentUser?.uid);
           await updateDoc(doc(db, 'orders', dbOrderId), {
             couponCode: appliedCoupon.code,
             discountAmount: appliedCoupon.discount,
@@ -215,7 +237,7 @@ const Cart: React.FC<CartProps> = ({
           couponCode: appliedCoupon?.code || '',
           status: 'pending',
           timestamp: new Date().toISOString(),
-          shopId: parseInt(selectedShop.id),
+          shopId: selectedShop.id,
           isPaid: true,
           paymentId: response.razorpay_payment_id || 'N/A'
         };
@@ -624,24 +646,38 @@ const Cart: React.FC<CartProps> = ({
 
                   <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-sm">
                     <div className="flex justify-center space-x-3">
-                      {generatedOTP.split('').map((digit, index) => (
-                        <MotionDiv
-                          key={index}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="w-12 h-14 bg-white border border-slate-200 rounded-lg flex items-center justify-center shadow-sm"
-                        >
-                          <span className="text-2xl font-bold text-slate-900">{digit}</span>
-                        </MotionDiv>
-                      ))}
+                      {generatedOTP ? (
+                        generatedOTP.split('').map((digit, index) => (
+                          <MotionDiv
+                            key={index}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="w-12 h-14 bg-white border border-slate-200 rounded-lg flex items-center justify-center shadow-sm"
+                          >
+                            <span className="text-2xl font-bold text-slate-900">{digit}</span>
+                          </MotionDiv>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center space-y-2 py-2">
+                          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-xs text-slate-400 font-medium">Generating OTP...</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <MotionButton
-                    whileHover={{ backgroundColor: '#f8fafc' }}
-                    onClick={() => { navigator.clipboard.writeText(generatedOTP); toast.success('Copied!'); }}
-                    className="mt-4 inline-flex items-center space-x-2 px-4 py-2 text-indigo-600 hover:text-indigo-700 transition-all text-xs font-bold"
+                    whileHover={generatedOTP ? { backgroundColor: '#f8fafc' } : {}}
+                    onClick={() => {
+                      if (!generatedOTP) {
+                        toast.error('Verification code is generating...');
+                        return;
+                      }
+                      navigator.clipboard.writeText(generatedOTP);
+                      toast.success('Copied!');
+                    }}
+                    className={`mt-4 inline-flex items-center space-x-2 px-4 py-2 transition-all text-xs font-bold ${generatedOTP ? 'text-indigo-600 hover:text-indigo-700' : 'text-slate-400 cursor-not-allowed'}`}
                   >
                     <Copy className="h-4 w-4" />
                     <span>Copy Code</span>

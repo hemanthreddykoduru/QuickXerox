@@ -19,7 +19,7 @@ export const generateSampleOrders = (): Order[] => {
       total: 25.00,
       status: 'processing',
       timestamp: new Date().toISOString(),
-      shopId: 1,
+      shopId: '1',
       isPaid: true,
       otpVerified: false,
       otpGeneratedAt: new Date().toISOString()
@@ -41,7 +41,7 @@ export const generateSampleOrders = (): Order[] => {
       total: 50.00,
       status: 'completed',
       timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      shopId: 2,
+      shopId: '2',
       isPaid: true,
       otpVerified: true,
       otpGeneratedAt: new Date(Date.now() - 3600000).toISOString()
@@ -70,7 +70,7 @@ export const generateSampleOrders = (): Order[] => {
       total: 35.00,
       status: 'pending',
       timestamp: new Date(Date.now() - 1800000).toISOString(), // 30 minutes ago
-      shopId: 1,
+      shopId: '1',
       isPaid: false,
       otpVerified: false
     }

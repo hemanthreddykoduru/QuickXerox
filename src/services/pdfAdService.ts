@@ -1,9 +1,5 @@
 import { PDFDocument, rgb } from 'pdf-lib';
-import { db, auth } from '../firebase';
-import { 
-  collection, query, where, getDocs, doc, 
-  updateDoc, getDoc, serverTimestamp, increment 
-} from 'firebase/firestore';
+import { auth } from '../firebase';
 import { getSignedUrl } from './storageService';
 
 /**
@@ -16,7 +12,7 @@ interface ActiveCampaign {
   brandName: string;
   websiteUrl: string;
   ctaText?: string;
-  placementType: 'footer' | 'first_page' | 'watermark' | 'coupon';
+  placementType: 'footer' | 'cover' | 'watermark' | 'coupon';
   budget: number;
   spent: number;
   bannerPath?: string;
@@ -28,55 +24,25 @@ interface ActiveCampaign {
  */
 export const fetchActiveCampaignForShop = async (): Promise<ActiveCampaign | null> => {
   const currentUser = auth.currentUser;
+  console.log('PDF Ad Engine: Checking currentUser...', currentUser ? currentUser.uid : 'No user logged in');
   if (!currentUser) return null;
 
   try {
-    // A. Fetch current seller's settings to build location target string
-    const shopSnap = await getDoc(doc(db, 'shopOwners', currentUser.uid));
-    if (!shopSnap.exists()) return null;
-
-    const shopData = shopSnap.data();
-    const shopName = shopData.settings?.shop?.name || shopData.name;
-    const shopAddress = shopData.settings?.shop?.address || shopData.address;
-    if (!shopName) return null;
-
-    // Target key exactly matches selection in Sponsor modal
-    const targetLocation = shopAddress ? `${shopName} - ${shopAddress}` : shopName;
-    console.log(`PDF Ad Engine: Targeting print node location: "${targetLocation}"`);
-
-    // B. Fetch all active paid campaigns
-    const q = query(
-      collection(db, 'campaigns'),
-      where('status', '==', 'active'),
-      where('isPaid', '==', true)
-    );
-
-    const snapshot = await getDocs(q);
-    let matchedCampaign: ActiveCampaign | null = null;
-
-    snapshot.forEach((snapDoc) => {
-      const data = snapDoc.data();
-      const locations: string[] = data.locations || [];
-
-      // Check if campaign targets this specific shop location
-      if (locations.includes(targetLocation) && (data.budget - data.spent) > 0) {
-        matchedCampaign = {
-          id: snapDoc.id,
-          ...data
-        } as ActiveCampaign;
-      }
-    });
-
-    if (matchedCampaign) {
-      console.log(`PDF Ad Engine: Matched Active Campaign: "${(matchedCampaign as ActiveCampaign).name}"`);
-    } else {
-      console.log('PDF Ad Engine: No active sponsor campaign targeting this location.');
+    const VERCEL_API_URL = 'https://quickxerox-api.vercel.app/api';
+    const requestUrl = `${VERCEL_API_URL}/proxy-pdf?action=campaign&shopId=${currentUser.uid}`;
+    console.log('PDF Ad Engine: Requesting matched campaign from backend...', requestUrl);
+    
+    const response = await fetch(requestUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch matched campaign: ${response.statusText}`);
     }
 
-    return matchedCampaign;
+    const result = await response.json();
+    console.log('PDF Ad Engine: Campaign fetch result from backend:', result);
+    return result.campaign || null;
 
   } catch (error) {
-    console.error('Error matching sponsor campaign for PDF injection:', error);
+    console.error('Error fetching campaign through secure backend proxy:', error);
     return null;
   }
 };
@@ -103,7 +69,8 @@ const resolveCampaignBannerUrl = async (campaign: ActiveCampaign): Promise<strin
  */
 export const injectAdIntoPDF = async (
   pdfBytes: ArrayBuffer,
-  campaign: ActiveCampaign
+  campaign: ActiveCampaign,
+  skipBudgetDeduction: boolean = false
 ): Promise<{ pdfBytes: Uint8Array; pageCount: number; costDeducted: number }> => {
   const pdfDoc = await PDFDocument.load(pdfBytes);
   const pages = pdfDoc.getPages();
@@ -118,7 +85,9 @@ export const injectAdIntoPDF = async (
   let bannerImage: any = null;
   if (bannerUrl) {
     try {
-      const bannerResponse = await fetch(bannerUrl);
+      const VERCEL_API_URL = 'https://quickxerox-api.vercel.app/api';
+      const proxiedBannerUrl = `${VERCEL_API_URL}/proxy-pdf?url=${encodeURIComponent(bannerUrl)}`;
+      const bannerResponse = await fetch(proxiedBannerUrl);
       const imageArrayBuffer = await bannerResponse.arrayBuffer();
 
       if (bannerUrl.includes('.png') || bannerUrl.includes('image/png')) {
@@ -145,7 +114,7 @@ export const injectAdIntoPDF = async (
 
   // B. Apply ad placement geometries to the pages
   let ratePerPage = 0.50;
-  if (campaign.placementType === 'first_page') ratePerPage = 1.50;
+  if (campaign.placementType === 'cover') ratePerPage = 1.50;
   else if (campaign.placementType === 'watermark') ratePerPage = 1.00;
   else if (campaign.placementType === 'coupon') ratePerPage = 2.00;
 
@@ -214,7 +183,7 @@ export const injectAdIntoPDF = async (
       }
     }
 
-  } else if (campaign.placementType === 'first_page') {
+  } else if (campaign.placementType === 'cover') {
     // 📄 Placement 2: Header Card on the very first page
     costDeducted = ratePerPage; // Flat cover fee
     const firstPage = pages[0];
@@ -358,29 +327,24 @@ export const injectAdIntoPDF = async (
   // C. Save the modified document
   const stampedBytes = await pdfDoc.save();
 
-  // D. Perform real-time balance updates inside Firestore transactionally
-  try {
-    const campaignRef = doc(db, 'campaigns', campaign.id);
-    const newSpent = campaign.spent + costDeducted;
-
-    // Update impressions and spent budget
-    await updateDoc(campaignRef, {
-      spent: increment(costDeducted),
-      impressions: increment(pageCount),
-      updatedAt: serverTimestamp()
-    });
-
-    // E. If budget is fully exhausted, mark it completed in real-time!
-    if (newSpent >= campaign.budget) {
-      await updateDoc(campaignRef, {
-        status: 'completed',
-        completedAt: new Date().toISOString()
-      });
-      console.log(`PDF Ad Engine: Campaign "${campaign.name}" has exhausted its budget and is now complete.`);
+  // D. Perform real-time balance updates securely on the backend (only on first view)
+  if (!skipBudgetDeduction) {
+    try {
+      console.log(`PDF Ad Engine: Requesting backend budget deduction for campaign: ${campaign.id} | Cost: ${costDeducted} | Pages: ${pageCount}`);
+      const VERCEL_API_URL = 'https://quickxerox-api.vercel.app/api';
+      const deductUrl = `${VERCEL_API_URL}/proxy-pdf?action=deduct-budget&campaignId=${campaign.id}&costDeducted=${costDeducted}&pageCount=${pageCount}`;
+      
+      const response = await fetch(deductUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to deduct campaign budget: ${response.statusText}`);
+      }
+      
+      console.log('PDF Ad Engine: Budget successfully deducted on backend!');
+    } catch (statError) {
+      console.error('Error logging campaign stats / budget deductions:', statError);
     }
-
-  } catch (statError) {
-    console.error('Error logging campaign stats / budget deductions:', statError);
+  } else {
+    console.log('PDF Ad Engine: skipBudgetDeduction=true — budget deduction skipped (repeat view).');
   }
 
   return { pdfBytes: stampedBytes, pageCount, costDeducted };

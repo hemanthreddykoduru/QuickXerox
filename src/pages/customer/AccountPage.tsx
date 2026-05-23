@@ -7,7 +7,7 @@ import EditProfileModal from '../../components/account/EditProfileModal';
 import { useProfile } from '../../hooks/useProfile';
 import { Order } from '../../types';
 import { db, auth } from '../../firebase';
-import { collection, query, where, onSnapshot, or } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import Skeleton from '../../components/common/Skeleton';
 
 const AccountPage = () => {
@@ -45,66 +45,65 @@ const AccountPage = () => {
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
   useEffect(() => {
-    // Use a ref to store the unsubscribe function to ensure it's accessible for cleanup
-    let unsubscribe: (() => void) | undefined;
+    const unsubscribes: (() => void)[] = [];
+    const orderDocs = new Map<string, Order>();
 
-    if (isInitialized) {
-      const userEmail = profile.email || localStorage.getItem('userEmail');
+    const syncOrders = () => {
+      const fetchedOrders = Array.from(orderDocs.values());
+      fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setOrders(fetchedOrders);
+      setIsLoadingOrders(false);
+    };
 
-      if (!userEmail) {
-        console.log("AccountPage: No email for orders, clearing list.");
-        setOrders([]);
-        setIsLoadingOrders(false);
-      } else {
-        setIsLoadingOrders(true);
-        console.log("AccountPage: Setting up direct listener for:", userEmail);
+    if (!isInitialized) {
+      return;
+    }
 
-        try {
-          const userId = auth.currentUser?.uid;
-          const userEmail = profile.email || localStorage.getItem('userEmail') || auth.currentUser?.email;
-          const userPhone = profile.mobile || localStorage.getItem('userPhone') || auth.currentUser?.phoneNumber;
+    const userId = auth.currentUser?.uid;
+    const userEmail = profile.email || localStorage.getItem('userEmail') || auth.currentUser?.email;
 
-          console.log("AccountPage: Setting up direct listener for UserID:", userId);
+    if (!userId && !userEmail) {
+      setOrders([]);
+      setIsLoadingOrders(false);
+      return;
+    }
 
-          // Use the new Firestore OR filter for maximum reliability
-          const q = query(
-            collection(db, 'orders'),
-            or(
-              where('customerId', '==', userId || '---'),
-              where('customerEmail', '==', userEmail || '---'),
-              where('customerPhone', '==', userPhone || '---')
-            )
-          );
+    setIsLoadingOrders(true);
 
-          unsubscribe = onSnapshot(q, (querySnapshot) => {
-            console.log("AccountPage: Real-time update received from Firestore!");
-            const fetchedOrders: Order[] = [];
-            querySnapshot.forEach((doc) => {
-              fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
-            });
+    const onOrdersSnapshot = (querySnapshot: { forEach: (fn: (doc: { id: string; data: () => unknown }) => void) => void }) => {
+      querySnapshot.forEach((doc) => {
+        orderDocs.set(doc.id, { id: doc.id, ...(doc.data() as object) } as Order);
+      });
+      syncOrders();
+    };
 
-            // Sort by timestamp descending
-            fetchedOrders.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            
-            console.log(`AccountPage: Setting ${fetchedOrders.length} orders to state.`);
-            setOrders(fetchedOrders);
-            setIsLoadingOrders(false);
-          }, (error) => {
-            console.error("AccountPage: Firestore listener error:", error);
-            setIsLoadingOrders(false);
-          });
-        } catch (err) {
-          console.error("AccountPage: Setup error:", err);
-          setIsLoadingOrders(false);
-        }
-      }
+    const onOrdersError = (error: unknown) => {
+      console.error('AccountPage: Firestore listener error:', error);
+      setIsLoadingOrders(false);
+    };
+
+    if (userId) {
+      unsubscribes.push(
+        onSnapshot(
+          query(collection(db, 'orders'), where('customerId', '==', userId)),
+          onOrdersSnapshot,
+          onOrdersError
+        )
+      );
+    }
+
+    if (userEmail) {
+      unsubscribes.push(
+        onSnapshot(
+          query(collection(db, 'orders'), where('customerEmail', '==', userEmail)),
+          onOrdersSnapshot,
+          onOrdersError
+        )
+      );
     }
 
     return () => {
-      if (unsubscribe) {
-        console.log("AccountPage: Cleaning up listener");
-        unsubscribe();
-      }
+      unsubscribes.forEach((u) => u());
     };
   }, [profile.email, isInitialized]);
 

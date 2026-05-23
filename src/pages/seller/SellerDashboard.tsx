@@ -854,6 +854,20 @@ const SellerDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700">Shop Address (Campaign Target Location)</label>
+                  <input
+                    type="text"
+                    value={tempSettings.shop.address || ''}
+                    onChange={(e) => setTempSettings(prev => ({
+                      ...prev,
+                      shop: { ...prev.shop, address: e.target.value }
+                    }))}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 sm:py-2 text-sm"
+                    placeholder="e.g. Gitam University, Visakhapatnam"
+                    aria-label="Shop address"
+                  />
+                </div>
+                <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700">Description</label>
                   <textarea
                     value={tempSettings.shop.description}

@@ -22,6 +22,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isOrderCustomer() {
+      return isSignedIn() && (
+        resource.data.customerId == request.auth.uid ||
+        (resource.data.customerEmail != null &&
+          request.auth.token.email != null &&
+          resource.data.customerEmail == request.auth.token.email)
+      );
+    }
+
+    function isOrderSeller() {
+      return isSeller() && resource.data.shopId == request.auth.uid;
+    }
+
     // ── User profiles ──────────────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
@@ -38,15 +51,11 @@ service cloud.firestore {
 
     // ── Orders ─────────────────────────────────────────────────────────────────
     match /orders/{orderId} {
-      // Customers can create & read their own orders; sellers/admins can read all
+      // Customers: read by customerId or customerEmail (legacy orders)
+      // Sellers: read/update only their shop's orders
       allow create: if isSignedIn();
-      allow read: if isSignedIn() && (
-        resource.data.customerId == request.auth.uid ||
-        isSeller() ||
-        isAdmin()
-      );
-      // Only sellers and admins can update status/OTP (not the customer)
-      allow update: if isSeller() || isAdmin();
+      allow read: if isOrderCustomer() || isOrderSeller() || isAdmin();
+      allow update: if isOrderSeller() || isAdmin();
       allow delete: if isAdmin();
     }
 
@@ -128,7 +137,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (resource.data.sponsorId == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && request.resource.data.sponsorId == request.auth.uid;
       allow update: if isSignedIn() && (resource.data.sponsorId == request.auth.uid || isAdmin());
-      allow delete: if isAdmin();
+      allow delete: if isSignedIn() && (resource.data.sponsorId == request.auth.uid || isAdmin());
     }
 
     // ── Ad Impressions ─────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 import { useNavigate } from 'react-router-dom';
@@ -16,12 +16,14 @@ import OrderTracking from '../../components/orders/OrderTracking';
 import OTPVerification from '../../components/orders/OTPVerification';
 import NotificationCenter from '../../components/notifications/NotificationCenter';
 import { PrintJob, PrintShop, Order } from '../../types';
-import { db } from '../../firebase'; // Import db
+import { db, auth } from '../../firebase'; // Import db
 import { collection, onSnapshot, query, where } from 'firebase/firestore'; // Import Firestore functions
+import { onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 
 
 import { useProfile } from '../../hooks/useProfile'; // Import useProfile
+import { countUnreadOrderNotifications } from '../../utils/orderNotifications';
 import Skeleton from '../../components/common/Skeleton';
 import DashboardSkeleton from '../../components/common/DashboardSkeleton';
 import SimplePreviewModal from '../../components/common/SimplePreviewModal';
@@ -130,44 +132,56 @@ function CustomerDashboard() {
     return () => unsubscribe();
   }, []);
 
-  // Real-time notification count based on orders
+  // Real-time notification count (customerId + customerEmail for legacy orders)
+  const orderDocsRef = useRef(new Map<string, Record<string, unknown>>());
+
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (!userId) return;
+    const unsubscribes: (() => void)[] = [];
 
-    const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+    const syncCount = () => {
+      const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+      setNotificationCount(countUnreadOrderNotifications(orderDocsRef.current, readNotifications));
+    };
 
-    const ordersQuery = query(
-      collection(db, 'orders'),
-      where('customerId', '==', userId)
-    );
+    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribes.forEach((u) => u());
+      unsubscribes.length = 0;
+      orderDocsRef.current.clear();
 
-    const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
-      let count = 0;
-      snapshot.forEach((doc) => {
-        const order = doc.data();
-        const orderId = doc.id;
+      if (!user) {
+        setNotificationCount(0);
+        return;
+      }
 
-        // Count unread notifications based on order status
-        if (order.status === 'pending' && order.isPaid === true) {
-          if (!readNotifications.includes(`order-pending-${orderId}`)) count++;
-        }
-        if (order.status === 'processing') {
-          if (!readNotifications.includes(`order-processing-${orderId}`)) count++;
-        }
-        if (order.status === 'completed') {
-          if (!readNotifications.includes(`order-completed-${orderId}`)) count++;
-        }
-        if (order.status === 'rejected') {
-          if (!readNotifications.includes(`order-rejected-${orderId}`)) count++;
-        }
-      });
+      unsubscribes.push(
+        onSnapshot(
+          query(collection(db, 'orders'), where('customerId', '==', user.uid)),
+          (snapshot) => {
+            snapshot.forEach((docSnap) => orderDocsRef.current.set(docSnap.id, docSnap.data()));
+            syncCount();
+          }
+        )
+      );
 
-      setNotificationCount(count);
+      const email = profile.email || user.email;
+      if (email) {
+        unsubscribes.push(
+          onSnapshot(
+            query(collection(db, 'orders'), where('customerEmail', '==', email)),
+            (snapshot) => {
+              snapshot.forEach((docSnap) => orderDocsRef.current.set(docSnap.id, docSnap.data()));
+              syncCount();
+            }
+          )
+        );
+      }
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      authUnsubscribe();
+      unsubscribes.forEach((u) => u());
+    };
+  }, [profile.email]);
 
   // Handle navigation attempts to prevent data loss if files are added
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, AlertCircle, Clock, Package, PackageCheck, ChevronRight, Trash2 } from 'lucide-react';
@@ -34,37 +34,30 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
   const MotionDiv = motion.div as any;
   const MotionButton = motion.button as any;
 
+  const orderDocsRef = useRef(new Map<string, Record<string, unknown>>());
+
   useEffect(() => {
     const currentUser = auth.currentUser;
     if (!currentUser) return;
 
-    const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
-    const currentDeletedIds = JSON.parse(localStorage.getItem('deleted_notifications') || '[]');
+    const unsubscribes: (() => void)[] = [];
 
-    const ordersQuery = query(
-      collection(db, 'orders'),
-      where('customerId', '==', currentUser.uid),
-      orderBy('timestamp', 'desc'),
-      limit(20)
-    );
-
-    const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+    const syncNotifications = () => {
+      const readNotifications = JSON.parse(localStorage.getItem('read_notifications') || '[]');
+      const currentDeletedIds = JSON.parse(localStorage.getItem('deleted_notifications') || '[]');
       const orderNotifications: Notification[] = [];
 
-      snapshot.forEach((doc) => {
-        const order = doc.data();
-        const orderId = doc.id;
-
-        // Skip if deleted
-        if (currentDeletedIds.includes(`order-pending-${orderId}`) ||
+      orderDocsRef.current.forEach((order, orderId) => {
+        if (
+          currentDeletedIds.includes(`order-pending-${orderId}`) ||
           currentDeletedIds.includes(`order-processing-${orderId}`) ||
           currentDeletedIds.includes(`order-completed-${orderId}`) ||
-          currentDeletedIds.includes(`order-rejected-${orderId}`)) {
+          currentDeletedIds.includes(`order-rejected-${orderId}`)
+        ) {
           return;
         }
 
-        const timestamp = order.timestamp || new Date().toISOString();
-
+        const timestamp = (order.timestamp as string) || new Date().toISOString();
         let notification: Notification | null = null;
 
         if (order.status === 'pending' && order.isPaid === true) {
@@ -73,62 +66,85 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose
             type: 'info',
             title: 'New Order Placed',
             message: `Order #${orderId.slice(-6)} has been placed and is waiting for shop confirmation`,
-            timestamp: timestamp,
+            timestamp,
             isRead: readNotifications.includes(`order-pending-${orderId}`),
-            actionUrl: `/customer/orders/${orderId}`,
+            actionUrl: `/account`,
             actionText: 'View Order',
-            orderId
+            orderId,
           };
         } else if (order.status === 'processing') {
           notification = {
             id: `order-processing-${orderId}`,
             type: 'warning',
             title: 'Order Accepted',
-            message: `Order #${orderId.slice(-6)} is being processed by ${order.shopName || 'the shop'}`,
-            timestamp: timestamp,
+            message: `Order #${orderId.slice(-6)} is being processed by ${(order.shopName as string) || 'the shop'}`,
+            timestamp,
             isRead: readNotifications.includes(`order-processing-${orderId}`),
-            actionUrl: `/customer/orders/${orderId}`,
+            actionUrl: `/account`,
             actionText: 'View Order',
-            orderId
+            orderId,
           };
         } else if (order.status === 'completed') {
           notification = {
             id: `order-completed-${orderId}`,
             type: 'success',
             title: 'Order Ready for Pickup',
-            message: `Order #${orderId.slice(-6)} is ready! Pick it up from ${order.shopName || 'the shop'}`,
-            timestamp: order.completedAt || timestamp,
+            message: `Order #${orderId.slice(-6)} is ready! Pick it up from ${(order.shopName as string) || 'the shop'}`,
+            timestamp: (order.completedAt as string) || timestamp,
             isRead: readNotifications.includes(`order-completed-${orderId}`),
-            actionUrl: `/customer/orders/${orderId}`,
+            actionUrl: `/account`,
             actionText: 'View Order',
-            orderId
+            orderId,
           };
         } else if (order.status === 'rejected') {
           notification = {
             id: `order-rejected-${orderId}`,
             type: 'error',
             title: 'Order Rejected',
-            message: `Order #${orderId.slice(-6)} was rejected by ${order.shopName || 'the shop'}`,
-            timestamp: timestamp,
+            message: `Order #${orderId.slice(-6)} was rejected by ${(order.shopName as string) || 'the shop'}`,
+            timestamp,
             isRead: readNotifications.includes(`order-rejected-${orderId}`),
-            actionUrl: `/customer/orders/${orderId}`,
+            actionUrl: `/account`,
             actionText: 'View Order',
-            orderId
+            orderId,
           };
         }
 
         if (notification) orderNotifications.push(notification);
       });
 
-      orderNotifications.sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      orderNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      const limited = orderNotifications.slice(0, 20);
+      setNotifications(limited);
+      setUnreadCount(limited.filter((n) => !n.isRead).length);
+    };
+
+    const ingestSnapshot = (snapshot: { forEach: (fn: (doc: { id: string; data: () => Record<string, unknown> }) => void) => void }) => {
+      snapshot.forEach((doc) => orderDocsRef.current.set(doc.id, doc.data()));
+      syncNotifications();
+    };
+
+    unsubscribes.push(
+      onSnapshot(
+        query(collection(db, 'orders'), where('customerId', '==', currentUser.uid)),
+        ingestSnapshot
+      )
+    );
+
+    const email = currentUser.email;
+    if (email) {
+      unsubscribes.push(
+        onSnapshot(
+          query(collection(db, 'orders'), where('customerEmail', '==', email)),
+          ingestSnapshot
+        )
       );
+    }
 
-      setNotifications(orderNotifications);
-      setUnreadCount(orderNotifications.filter(n => !n.isRead).length);
-    });
-
-    return () => unsubscribe();
+    return () => {
+      unsubscribes.forEach((u) => u());
+      orderDocsRef.current.clear();
+    };
   }, [deletedIds]);
 
   const deleteNotification = (notificationId: string) => {

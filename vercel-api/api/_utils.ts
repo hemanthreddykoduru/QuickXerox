@@ -119,8 +119,8 @@ export const validateCoupon = async (couponCode: string, orderAmount: number, us
     const finalAmount = orderAmount - discount;
 
     return {
-        discount: Math.round(discount),
-        finalAmount: Math.round(finalAmount),
+        discount: Math.round(discount * 100) / 100,
+        finalAmount: Math.round(finalAmount * 100) / 100,
         couponId: couponDoc.id,
         code: coupon.code,
     };
@@ -152,5 +152,5 @@ export const calculateOrderAmount = async (shopId: string, items: any[]) => {
     }
 
     const totalAmount = totalPages * basePrice;
-    return Math.round(totalAmount);
+    return Math.round(totalAmount * 100) / 100;
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { Printer, FileText, Clock, Shield, Eye, X } from 'lucide-react';
 import { Order } from '../../types';
 import Skeleton from '../common/Skeleton';
+import { generateInvoice } from '../../utils/invoiceGenerator';
 
 
 interface OrderHistoryProps {
@@ -10,7 +11,23 @@ interface OrderHistoryProps {
   userEmail?: string;
 }
 
-const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
+const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading, userEmail }) => {
+  const [isGenerating, setIsGenerating] = React.useState<string | null>(null);
+
+  const handleViewInvoice = async (order: Order) => {
+    try {
+      setIsGenerating(order.id);
+      const pdfBlob = await generateInvoice(order, userEmail, true) as Blob;
+      if (pdfBlob) {
+        const fileURL = URL.createObjectURL(pdfBlob);
+        window.open(fileURL, '_blank');
+      }
+    } catch (error) {
+      console.error("Failed to view invoice:", error);
+    } finally {
+      setIsGenerating(null);
+    }
+  };
   const [currentPage, setCurrentPage] = React.useState(1);
   const [activeTab, setActiveTab] = React.useState<'all' | 'pending' | 'processing' | 'completed'>('all');
   const ITEMS_PER_PAGE = 5;
@@ -126,7 +143,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                       <p className="text-xs text-gray-500 mt-0.5">
                         {new Date(order.timestamp).toLocaleString('en-IN', {
                           day: '2-digit', month: 'short', year: 'numeric',
-                          hour: 'numeric', minute: '2-digit', hour12: true
+                          hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true
                         })}
                       </p>
                       {order.paymentId && (
@@ -205,7 +222,7 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                     <span>
                       {order.status === 'completed'
                         ? order.completedAt
-                          ? `Completed ${new Date(order.completedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}`
+                          ? `Completed ${new Date(order.completedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}`
                           : 'Completed'
                         : order.status === 'rejected'
                           ? 'Cancelled'
@@ -215,16 +232,27 @@ const OrderHistory: React.FC<OrderHistoryProps> = ({ orders, isLoading }) => {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    {order.invoiceUrl && (
-                      <a
-                        href={order.invoiceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        View Invoice
-                      </a>
+                    {currentStatus === 'completed' && (
+                      order.invoiceUrl ? (
+                        <a
+                          href={order.invoiceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-bold transition-all bg-indigo-50/50 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100/60 hover:border-indigo-100"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View Invoice
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => handleViewInvoice(order)}
+                          disabled={isGenerating === order.id}
+                          className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-bold transition-all bg-indigo-50/50 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg border border-indigo-100/60 hover:border-indigo-100 disabled:opacity-50 cursor-pointer"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          {isGenerating === order.id ? 'Generating...' : 'View Invoice'}
+                        </button>
+                      )
                     )}
                     <p className="font-bold text-gray-900 text-sm">₹{order.total.toFixed(2)}</p>
                   </div>

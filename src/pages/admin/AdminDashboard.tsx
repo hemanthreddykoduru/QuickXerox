@@ -1860,7 +1860,7 @@ const AdminDashboard = () => {
                         }
                         setSendingTestEmail(true);
                         try {
-                          const response = await fetch('https://quickxerox-api.vercel.app/api/send-test-email', {
+                          const response = await fetch('https://quickxerox-api.vercel.app/api/send-test', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email })

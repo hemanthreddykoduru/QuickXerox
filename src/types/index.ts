@@ -53,7 +53,7 @@ export interface Order {
   total: number;
   status: OrderStatus;
   timestamp: string;
-  shopId: number;
+  shopId: string;
   isPaid: boolean;
   otpVerified?: boolean;
   otp?: string;
@@ -64,6 +64,7 @@ export interface Order {
   couponCode?: string;
   discountAmount?: number;
   originalTotal?: number;
+  displayId?: string;
 }
 
 export type PaymentMethod = 'upi' | 'card' | 'netbanking' | 'wallet';

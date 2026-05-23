@@ -8,6 +8,7 @@ import { getSignedUrl } from '../../services/storageService';
 
 interface Order {
   id: string;
+  displayId?: string;
   customerId: string;
   customerName: string;
   customerEmail: string;
@@ -64,6 +65,7 @@ const AdminOrderList = () => {
 
           return {
             id: doc.id,
+            displayId: data.displayId || '',
             customerId: data.userId || data.customerId || 'N/A',
             customerName: data.customerName || 'N/A',
             customerEmail: data.customerEmail || 'N/A',
@@ -97,6 +99,7 @@ const AdminOrderList = () => {
     const q = search.toLowerCase();
     const matchesSearch =
       order.id.toLowerCase().includes(q) ||
+      (order.displayId || '').toLowerCase().includes(q) ||
       order.customerName.toLowerCase().includes(q) ||
       order.customerEmail.toLowerCase().includes(q) ||
       order.status.toLowerCase().includes(q);
@@ -327,7 +330,7 @@ const AdminOrderList = () => {
                 ) : (
                   paginatedOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{order.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{order.displayId || order.id}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.customerName}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.customerEmail}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.shopId}</td>
@@ -370,7 +373,7 @@ const AdminOrderList = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-500 dark:text-gray-400">Order ID</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{order.id}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{order.displayId || order.id}</p>
                   </div>
                   <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${order.status === 'completed' || order.status === 'paid' ? 'bg-green-100 text-green-800' :
                     order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -444,12 +447,12 @@ const AdminOrderList = () => {
               <div className="space-y-3">
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Order ID</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.id}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{selectedOrder.displayId || selectedOrder.id}</p>
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Invoice No</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">
-                    INV-{selectedOrder.id.slice(-8).toUpperCase()}
+                    INV-{(selectedOrder.displayId || selectedOrder.id).slice(-8).toUpperCase()}
                   </p>
                 </div>
                 <div className="pb-2 border-b border-gray-200 dark:border-gray-700">

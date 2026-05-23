@@ -105,8 +105,11 @@ const SellerInvitationAccept = () => {
         }
       });
 
+      localStorage.setItem('isSellerAuthenticated', 'true');
+      localStorage.setItem('sellerId', user.uid);
+
       toast.success('Account created successfully!');
-      navigate('/seller');
+      navigate('/seller/dashboard', { replace: true });
     } catch (error: any) {
       console.error('Error creating account:', error);
       toast.error(error.message || 'Failed to create account');
